@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+	// TO MAKE THE MAP APPEAR YOU MUST
+	// ADD YOUR ACCESS TOKEN FROM
+	// https://account.mapbox.com
+mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNrbmd2MjNqMTAwb24yc3QxOGVxNjJiMDAifQ.lEm25NigjnVbNSO8kUQuiQ';
+var map = new mapboxgl.Map({
+container: 'map', // container id
+style: 'mapbox://styles/mapbox/streets-v11', // style URL
+center: [120.595883,18.19441], // starting position [lng, lat]
+zoom: 15 // starting zoom
+});
+
+// popoup
+var popup = new mapboxgl.Popup()
+.setHTML('<h3> Destination </h3> <p>Drop Location</p>');
+// Create a default Marker and add it to the map.
+var marker = new mapboxgl.Marker()
+.setLngLat([120.595883, 18.19441])
+.setPopup(popup)
+.addTo(map);
+ 
+
+ var popup1 = new mapboxgl.Popup()
+.setHTML('<h3> Pickup Location </h3> <p>Passenger Pickup</p>');
+// Create a default Marker and add it to the map.
+var marker1 = new mapboxgl.Marker()
+.setLngLat([120.590788, 18.195128])
+.setPopup(popup1)
+.addTo(map);
+// Create a default Marker, colored black, rotated 45 degrees.
+//var marker2 = new mapboxgl.Marker({ color: 'black', rotation: 45 })
+//.setLngLat([12.65147, 55.608166])
+//.addTo(map);
+var e='120.590788, 18.195128;120.595883, 18.19441';
+map.on('load', function () {
+getMatch(e);
+});
+
+
+function getMatch() {
+    // https://www.mapbox.com/api-documentation/#directions
+    var url = 'https://api.mapbox.com/directions/v5/mapbox/driving/'+e+'?geometries=geojson&steps=true&&access_token=pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNrbmd2MjNqMTAwb24yc3QxOGVxNjJiMDAifQ.lEm25NigjnVbNSO8kUQuiQ';
+    var req = new XMLHttpRequest();
+    req.responseType = 'json';
+    req.open('GET', url, true);
+    req.onload  = function() {
+      var jsonResponse = req.response;
+      var distance = jsonResponse.routes[0].distance*0.001; // convert to km
+      var duration = jsonResponse.routes[0].duration/60; // convert to minutes
+      // add results to info box
+     document.getElementById('calculated-line').innerHTML = 'Distance: ' + distance.toFixed(2) + ' km<br>Duration: ' + duration.toFixed(2) + ' minutes';
+      var coords = jsonResponse.routes[0].geometry;
+      // add the route to the map
+      addRoute(coords);
+    };
+    req.send();
+}
+
+function addRoute (coords) {
+  // check if the route is already loaded
+  if (map.getSource('route')) {
+    map.removeLayer('route')
+    map.removeSource('route')
+  } else{
+    map.addLayer({
+      "id": "route",
+      "type": "line",
+      "source": {
+        "type": "geojson",
+        "data": {
+          "type": "Feature",
+          "properties": {},
+          "geometry": coords
+        }
+      },
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#3b9ddd",
+        "line-width": 8,
+        "line-opacity": 0.8
+      }
+    });
+  };
+}
+
+function removeRoute () {
+  if (map.getSource('route')) {
+    map.removeLayer('route');
+    map.removeSource('route');
+    document.getElementById('calculated-line').innerHTML = '';
+  } else  {
+    return;
+  }
+}
+
+
+</script>
+ <div id='calculated-line'></div>
+</body>
+</html>
