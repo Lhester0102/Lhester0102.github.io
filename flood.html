@@ -47,10 +47,10 @@
   </div>
 
   <!-- Bottom: Table (left) and Chart (right) -->
-  <div class="row mt-4">
+  <div class="row mt-1">
     <!-- Flood Data Table -->
     <div class="col-md-6">
-      <h5>Flood Data</h5>
+      <h5 align="center">Flood Data</h5>
       <div class="table-responsive">
         <table class="table table-bordered text-center">
           <thead class="table-dark">
@@ -71,7 +71,7 @@
 
     <!-- Rainfall Trend Chart -->
     <div class="col-md-6">
-      <h5>Rainfall Trend</h5>
+      <h5 align="center">Rainfall Trend</h5>
       <canvas id="rainfallChart" height="150"></canvas>
     </div>
   </div>
@@ -114,85 +114,118 @@
       }
     }
 
-    function updateTable(data) {
-      const body = document.getElementById('dataBody');
-      body.innerHTML = '';
+   function updateTable(data) {
+  const body = document.getElementById('dataBody');
+  body.innerHTML = '';
 
-      const latestByLocation = {};
-      for (const item of data) {
-        latestByLocation[item.location] = item;
-      }
+  const latestByLocation = {};
+  for (const item of data) {
+    latestByLocation[item.location] = item;
+  }
 
-      Object.values(latestByLocation).forEach(entry => {
-        const riskClass =
-          entry.river_level > 3 ? 'risk-high' :
-          entry.river_level > 2 ? 'risk-medium' : 'risk-low';
+  Object.values(latestByLocation).forEach(entry => {
+    const riskClass =
+      entry.river_level > 3 ? 'risk-high' :
+      entry.river_level > 2 ? 'risk-medium' : 'risk-low';
 
-        const row = `
-          <tr class="${riskClass}">
-            <td>${entry.location}</td>
-            <td>${entry.rainfall}</td>
-            <td>${entry.river_level}</td>
-            <td><strong>${entry.status}</strong></td>
-            <td>${new Date(entry.timestamp).toLocaleString()}</td>
-          </tr>
-        `;
-        body.innerHTML += row;
-      });
+    // Add status text color
+    let statusColor = '';
+    if (entry.status.includes("High Risk")) {
+      statusColor = 'text-danger'; // Bootstrap red
+    } else if (entry.status.includes("Moderate")) {
+      statusColor = 'text-warning'; // Bootstrap yellow
+    } else {
+      statusColor = 'text-success'; // Bootstrap green
     }
+
+    const row = `
+      <tr class="${riskClass}">
+        <td>${entry.location}</td>
+        <td>${entry.rainfall}</td>
+        <td>${entry.river_level}</td>
+        <td><strong class="${statusColor}">${entry.status}</strong></td>
+        <td>${new Date(entry.timestamp).toLocaleString()}</td>
+      </tr>
+    `;
+    body.innerHTML += row;
+  });
+}
 
     function updateChart(data) {
-      const grouped = {};
-      data.forEach(d => {
-        if (!grouped[d.location]) grouped[d.location] = [];
-        grouped[d.location].push(d);
-      });
+  const grouped = {};
+  data.forEach(d => {
+    if (!grouped[d.location]) grouped[d.location] = [];
+    grouped[d.location].push(d);
+  });
 
-      const labels = [...new Set(data.map(d => d.timestamp))];
-      const datasets = Object.entries(grouped).map(([loc, records]) => {
-        records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        return {
-          label: loc,
-          data: records.map(r => r.rainfall),
-          borderColor: 'green',
-          tension: 0.3,
-          fill: false
-        };
-      });
+  // Unique timestamps sorted
+  const labels = [...new Set(data.map(d => d.timestamp))].sort((a, b) => new Date(a) - new Date(b));
 
-      if (chart) {
-        chart.data.labels = labels;
-        chart.data.datasets = datasets;
-        chart.update();
-      } else {
-        const ctx = document.getElementById('rainfallChart').getContext('2d');
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: datasets
+  // Define a color palette
+  const colors = [
+    '#007bff', // blue
+    '#28a745', // green
+    '#dc3545', // red
+    '#ffc107', // yellow
+    '#17a2b8', // teal
+    '#6f42c1', // purple
+    '#fd7e14', // orange
+    '#20c997'  // emerald
+  ];
+
+  let colorIndex = 0;
+  const datasets = Object.entries(grouped).map(([loc, records]) => {
+    records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const color = colors[colorIndex++ % colors.length];
+    return {
+      label: loc,
+      data: records.map(r => r.rainfall),
+      borderColor: color,
+      backgroundColor: color,
+      tension: 0.3,
+      fill: false
+    };
+  });
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets = datasets;
+    chart.update();
+  } else {
+    const ctx = document.getElementById('rainfallChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Rainfall (mm)'
+            }
           },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: true,
-                position: 'top'
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Rainfall (mm)'
-                }
-              }
+          x: {
+            title: {
+              display: true,
+              text: 'Timestamp'
             }
           }
-        });
+        }
       }
-    }
+    });
+  }
+}
 
 
     fetchFloodData();
