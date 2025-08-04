@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>River and Rainfall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      background-color: #ffffff;
+      padding: 20px;
+    }
+    .risk-low {
+      background-color: #bcf808;
+    }
+    .risk-medium {
+      background-color: #f99419;
+    }
+    .risk-high {
+      background-color: #fe0015;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="mb-4 text-center"> Ilocos Norte Flood Monitoring Dashboard</h2>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Location</th>
+            <th>Rainfall (mm)</th>
+            <th>River Level (m)</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody">
+          <tr><td colspan="5">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rainfall Trend Chart -->
+    <h4 class="mt-5">Rainfall</h4>
+    <canvas id="rainfallChart" height="100"></canvas>
+  </div>
+
+  <!-- ✅ Modular Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
+    import { getDatabase, ref, child, get } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js';
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let chart;
+
+    async function fetchFloodData() {
+      try {
+        const snapshot = await get(child(ref(db), 'floodData'));
+        const rawData = snapshot.val();
+
+        if (!rawData) return;
+
+        const data = Object.values(rawData);
+        updateTable(data);
+        updateChart(data);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        document.getElementById('dataBody').innerHTML =
+          '<tr><td colspan="5">Failed to load data.</td></tr>';
+      }
+    }
+
+    function updateTable(data) {
+      const body = document.getElementById('dataBody');
+      body.innerHTML = '';
+
+      const latestByLocation = {};
+      for (const item of data) {
+        latestByLocation[item.location] = item;
+      }
+
+      Object.values(latestByLocation).forEach(entry => {
+        const riskClass =
+          entry.river_level > 3 ? 'risk-high' :
+          entry.river_level > 2 ? 'risk-medium' : 'risk-low';
+
+        const row = `
+          <tr class="${riskClass}">
+            <td>${entry.location}</td>
+            <td>${entry.rainfall}</td>
+            <td>${entry.river_level}</td>
+            <td><strong>${entry.status}</strong></td>
+            <td>${new Date(entry.timestamp).toLocaleString()}</td>
+          </tr>
+        `;
+        body.innerHTML += row;
+      });
+    }
+
+    function updateChart(data) {
+      const grouped = {};
+      data.forEach(d => {
+        if (!grouped[d.location]) grouped[d.location] = [];
+        grouped[d.location].push(d);
+      });
+
+      const labels = [...new Set(data.map(d => d.timestamp))];
+      const datasets = Object.entries(grouped).map(([loc, records]) => {
+        records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        return {
+          label: loc,
+          data: records.map(r => r.rainfall),
+          borderColor: randomColor(),
+          tension: 0.3,
+          fill: false
+        };
+      });
+
+      if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets = datasets;
+        chart.update();
+      } else {
+        const ctx = document.getElementById('rainfallChart').getContext('2d');
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Rainfall (mm)'
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function randomColor() {
+      const r = Math.floor(Math.random() * 150 + 50);
+      const g = Math.floor(Math.random() * 150 + 50);
+      const b = Math.floor(Math.random() * 150 + 50);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    fetchFloodData();
+    setInterval(fetchFloodData, 60000); // every 60s
+  </script>
+
+  <hr>
+  <!-- External Site Iframe -->
+<div class="mt-5">
+  <h5>Real-time Flood Map</h5>
+  <iframe 
+    src="https://lcariagamit.users.earthengine.app/view/flood2" 
+    width="100%" 
+    height="500" 
+    style="border:1px solid #ccc; border-radius: 8px;" 
+    allowfullscreen 
+    loading="lazy">
+  </iframe>
+</div>
+
+</body>
+</html>
