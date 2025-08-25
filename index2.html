@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Laoag River Water Level Monitor</title>
+</head>
+<body>
+  <h2>🌊 Live Water Level Data</h2>
+  <pre id="output">Loading...</pre>
+
+  <h3>Send Test Data (for debugging)</h3>
+  <button onclick="sendData()">Send Random Data</button>
+
+  <script>
+    const firebaseUrl = "https://flooded-95eeb-default-rtdb.firebaseio.com/floodData.json?auth=YOUR_FIREBASE_DATABASE_SECRET";
+
+    // Fetch data every 10 seconds
+    async function fetchData() {
+      const res = await fetch(firebaseUrl);
+      const data = await res.json();
+      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    }
+
+    // Send test data manually
+    async function sendData() {
+      const payload = {
+        river_name: "Laoag River",
+        water_level: Math.floor(Math.random() * 100),
+        timestamp: Date.now()
+      };
+
+      const res = await fetch(firebaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      alert("Data sent: " + JSON.stringify(result));
+      fetchData();
+    }
+
+    fetchData();
+    setInterval(fetchData, 10000);
+  </script>
+</body>
+</html>
