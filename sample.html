@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pasuquin Weather Data</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="text-center mb-4">
+      <h1 class="text-primary fw-bold">Pasuquin, Ilocos Norte</h1>
+      <p class="text-secondary">Live Weather Data (Updated Every 1 Minute)</p>
+    </div>
+
+    <div class="card shadow mx-auto" style="max-width: 500px;">
+      <div class="card-body">
+        <h5 class="card-title text-center mb-3" id="status"></h5>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>Date & Time:</strong> <span id="datetime">--</span></li>
+          <li class="list-group-item"><strong>Temperature:</strong> <span id="temperature">--</span> °C</li>
+          <li class="list-group-item"><strong>Humidity:</strong> <span id="humidity">--</span> %</li>
+          <li class="list-group-item"><strong>Pressure:</strong> <span id="pressure">--</span> hPa</li>
+          <li class="list-group-item"><strong>Wind Speed:</strong> <span id="wind">--</span> m/s</li>
+          <li class="list-group-item"><strong>Condition:</strong> <span id="condition">--</span></li>
+          <li class="list-group-item"><strong>Rainfall (last 1h):</strong> <span id="rainfall">--</span> mm</li>
+        </ul>
+      </div>
+      <div class="card-footer text-center text-muted">
+        <small id="lastUpdate">⏱️ Last updated: --</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const apiKey = "3455bf076408995a835435450d5ba19e"; 
+    const city = "Pasuquin,PH";
+
+    async function getWeather() {
+      const status = document.getElementById("status");
+      const dateTime = document.getElementById("datetime");
+      const temperature = document.getElementById("temperature");
+      const humidity = document.getElementById("humidity");
+      const pressure = document.getElementById("pressure");
+      const wind = document.getElementById("wind");
+      const condition = document.getElementById("condition");
+      const rainfall = document.getElementById("rainfall");
+      const lastUpdate = document.getElementById("lastUpdate");
+
+      try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (response.ok) {
+          const temp = data.main?.temp?.toFixed(1) ?? "N/A";
+          const hum = data.main?.humidity ?? "N/A";
+          const pres = data.main?.pressure ?? "N/A";
+          const windSpeed = data.wind?.speed ?? "N/A";
+          const cond = data.weather?.[0]?.description ?? "N/A";
+          const rain1h = data.rain?.["1h"] ?? 0;
+
+          const localTime = new Date(data.dt * 1000);
+          const options = { 
+            year: 'numeric', month: 'long', day: 'numeric', 
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            timeZone: 'Asia/Manila'
+          };
+          const formattedTime = localTime.toLocaleString('en-PH', options);
+
+          dateTime.textContent = formattedTime;
+          temperature.textContent = temp;
+          humidity.textContent = hum;
+          pressure.textContent = pres;
+          wind.textContent = windSpeed;
+          condition.textContent = cond;
+          rainfall.textContent = rain1h.toFixed(1);
+
+          const now = new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' });
+          lastUpdate.textContent = `Last updated: ${now}`;
+          status.classList.remove("text-danger");
+          status.classList.add("text-success");
+        } else {
+          status.textContent = `Error: ${data.message}`;
+          status.classList.add("text-danger");
+        }
+      } catch (error) {
+        status.textContent = "Error fetching data: " + error.message;
+        status.classList.add("text-danger");
+      }
+    }
+
+    // Fetch immediately when the page loads
+    getWeather();
+
+    // 🔁 Auto-refresh every 1 minute (60,000 ms)
+    setInterval(getWeather, 60000);
+  </script>
+
+</body>
+</html>
