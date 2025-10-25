@@ -180,7 +180,7 @@
     const color = colors[colorIndex++ % colors.length];
     return {
       label: loc,
-      data: records.map(r => r.rainfall),
+      data: records.map(r => r.river_level),
       borderColor: color,
       backgroundColor: color,
       tension: 0.3,
@@ -213,7 +213,7 @@
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Rainfall (mm)'
+              text: 'River Water evel (mm)'
             }
           },
           x: {
@@ -230,7 +230,7 @@
 
 
     fetchFloodData();
-    setInterval(fetchFloodData, 60000); // every 60s
+    setInterval(fetchFloodData, 20000); // every 60s
   </script>
 
   <hr>
