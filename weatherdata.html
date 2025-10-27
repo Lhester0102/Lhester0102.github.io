@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pasuquin Weather Dashboard</title>
+
+  <!-- Bootstrap + Chart.js -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { background:#f4f6f8; font-size:13px; margin-left:0; }
+    .grid-container {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      max-width:100%;
+      padding:10px;
+    }
+    .box {
+      background:white;
+      border-radius:10px;
+      padding:8px;
+      box-shadow:0 1px 4px rgba(0,0,0,0.1);
+      text-align:center;
+    }
+    .weather-box {
+      text-align:left;
+      padding-left:10px;
+    }
+    h6 { font-weight:600; color:#007bff; margin-bottom:5px; font-size:14px; }
+    canvas { height:150px !important; }
+    .data-item { margin:2px 0; }
+  </style>
+</head>
+<body>
+  <h5 class="text-center text-primary mt-3 mb-2">🌤️ Pasuquin Weather Dashboard</h5>
+
+  <div class="grid-container">
+    <!-- Box 1: Weather Info -->
+<div class="box weather-box text-start">
+  <h6>🌡️ Current Weather</h6>
+  <div class="row">
+    <div class="col-6">
+      <div><b>Date & Time:</b></div>
+      <div><b>Temp:</b></div>
+      <div><b>Humidity:</b></div>
+      <div><b>Pressure:</b></div>
+      <div><b>Wind:</b></div>
+      <div><b>Rain:</b></div>
+    </div>
+    <div class="col-6">
+      <div><span id="datetime">--</span></div>
+      <div><span id="temperature">--</span> °C</div>
+      <div><span id="humidity">--</span> %</div>
+      <div><span id="pressure">--</span> hPa</div>
+      <div><span id="wind">--</span> m/s</div>
+      <div><span id="rainfall">--</span> mm</div>
+    </div>
+  </div>
+  <small id="lastUpdate" class="text-muted d-block mt-1">⏱️ Last updated: --</small>
+</div>
+    <!-- Charts -->
+    <div class="box"><h6>🌡️ Temperature (°C)</h6><canvas id="tempChart"></canvas></div>
+    <div class="box"><h6>💧 Humidity (%)</h6><canvas id="humChart"></canvas></div>
+    <div class="box"><h6>⏲️ Pressure (hPa)</h6><canvas id="pressChart"></canvas></div>
+    <div class="box"><h6>🌬️ Wind (m/s)</h6><canvas id="windChart"></canvas></div>
+    <div class="box"><h6>🌧️ Rainfall (mm)</h6><canvas id="rainChart"></canvas></div>
+  </div>
+
+  <!-- ✅ Firebase + Weather Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca",
+      databaseURL: "https://flooded-95eeb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const apiKey = "3455bf076408995a835435450d5ba19e";
+    const city = "Pasuquin,PH";
+
+    const el = {
+      temperature: document.getElementById("temperature"),
+      humidity: document.getElementById("humidity"),
+      pressure: document.getElementById("pressure"),
+      wind: document.getElementById("wind"),
+      rainfall: document.getElementById("rainfall"),
+      datetime: document.getElementById("datetime"),
+      lastUpdate: document.getElementById("lastUpdate"),
+    };
+
+    const charts = {
+      temp: makeChart("tempChart", "#ff5733", "Temperature (°C)"),
+      hum: makeChart("humChart", "#3399ff", "Humidity (%)"),
+      press: makeChart("pressChart", "#888", "Pressure (hPa)"),
+      wind: makeChart("windChart", "#00cc99", "Wind (m/s)"),
+      rain: makeChart("rainChart", "#3366cc", "Rainfall (mm)"),
+    };
+
+    function makeChart(id, color, label) {
+      return new Chart(document.getElementById(id), {
+        type: "line",
+        data: { labels: [], datasets: [{
+          label: label,
+          data: [],
+          borderColor: color,
+          backgroundColor: color + "33",
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 2,
+          pointBackgroundColor: color
+        }]},
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true, labels: { boxWidth: 10, font:{size:10} } } },
+          scales: {
+            x: {
+              title: { display: true, text: "Date & Time", color: "#555", font: { size: 10 } },
+              ticks: { color: "#555", font: { size: 9 }, maxRotation: 45, minRotation: 45 },
+              grid: { color: "rgba(200,200,200,0.25)" }
+            },
+            y: {
+              title: { display: true, text: label, color: "#555", font: { size: 10 } },
+              ticks: { color: "#555", font: { size: 9 } },
+              grid: { color: "rgba(200,200,200,0.25)" }
+            }
+          }
+        }
+      });
+    }
+
+    async function getWeather() {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+        const d = await res.json();
+        const t = d.main?.temp ?? 0, h = d.main?.humidity ?? 0, p = d.main?.pressure ?? 0;
+        const w = d.wind?.speed ?? 0, r = d.rain?.["1h"] ?? 0;
+        const now = new Date().toLocaleString("en-PH", { timeZone: "Asia/Manila" });
+
+        el.temperature.textContent = t.toFixed(1);
+        el.humidity.textContent = h;
+        el.pressure.textContent = p;
+        el.wind.textContent = w;
+        el.rainfall.textContent = r;
+        el.datetime.textContent = now;
+        el.lastUpdate.textContent = "⏱️ Last updated: " + new Date().toLocaleTimeString("en-PH", { timeZone: "Asia/Manila" });
+
+        const key = Date.now();
+        await set(ref(db, "weather_data/" + key), { datetime: now, temperature: t, humidity: h, pressure: p, wind_speed: w, rainfall: r });
+      } catch (e) { console.log("Error:", e); }
+    }
+
+    async function loadData() {
+      const snap = await get(child(ref(db), "weather_data"));
+      if (snap.exists()) {
+        const vals = Object.values(snap.val()).slice(-8);
+        const labels = vals.map(v => v.datetime.split(", ")[1]); // show only time portion
+        charts.temp.data.labels = charts.hum.data.labels = charts.press.data.labels = charts.wind.data.labels = charts.rain.data.labels = labels;
+
+        charts.temp.data.datasets[0].data = vals.map(v => v.temperature);
+        charts.hum.data.datasets[0].data = vals.map(v => v.humidity);
+        charts.press.data.datasets[0].data = vals.map(v => v.pressure);
+        charts.wind.data.datasets[0].data = vals.map(v => v.wind_speed);
+        charts.rain.data.datasets[0].data = vals.map(v => v.rainfall);
+        Object.values(charts).forEach(c => c.update());
+      }
+    }
+
+    getWeather();
+    loadData();
+    setInterval(() => { getWeather(); loadData(); }, 100000);
+  </script>
+</body>
+</html>
