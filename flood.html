@@ -2,19 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>River and Rainfall</title>
+  <title>Ilocos Norte Flood Monitoring Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap -->
+  <!-- ✅ Bootstrap -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
 
-  <!-- Chart.js -->
+  <!-- ✅ Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
-      background-color: #ffffff;
-    
+      background-color: #f8f9fa;
     }
     .risk-low {
       background-color: #bcf808;
@@ -28,95 +27,117 @@
   </style>
 </head>
 <body>
- <div class="card m-2">
-  <h2 class="mb-4 text-center">Ilocos Norte Flood Monitoring Dashboard</h2>
-<!--    https://github.com/Lhester0102/Lhester0102.github.io/blob/main/flood.html -->
+  <div class="container-fluid py-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-center text-primary fw-bold mb-4">
+          🌊 Ilocos Norte Flood Monitoring Dashboard
+        </h2>
 
-  <!-- Top: Full-width Flood Map -->
-  <div class="row">
-    <div class="col-12 w-50">
-      <!-- <h5>Real-time Flood Map</h5> -->
-      <iframe 
-        src="https://lcariagamit.users.earthengine.app/view/flood2" 
-        width="100%" 
-        height="400" 
-        style="border:1px solid #ccc; border-radius: 8px;" 
-        allowfullscreen 
-        loading="lazy">
-      </iframe>
-    </div>
-        <!-- Rainfall Trend Chart -->
-    <div class="col-md-12 w-50" >
-      <h5 align="center">Water Level Trend</h5>
-      <canvas align="center" id="rainfallChart" height="150"></canvas>
+        <!-- 🗺️ FIRST ROW: Flood Map + Water Level Trend (Desktop side-by-side) -->
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-dark text-white text-center fw-semibold">
+                Real-time Flood Map
+              </div>
+              <div class="card-body p-0">
+                <iframe 
+                  src="https://lcariagamit.users.earthengine.app/view/flood2" 
+                  width="100%" 
+                  height="400"
+                  style="border:0; border-radius: 0 0 8px 8px;" 
+                  allowfullscreen 
+                  loading="lazy">
+                </iframe>
+              </div>
+            </div>
+          </div>
 
-  </div>
-</div>
-  <!-- Bottom: Table (left) and Chart (right) -->
-  <div class="row mt-1">
-    <!-- Flood Data Table -->
-    <div class="col-md-6 w-50">
-      <h5 align="center">Flood Data</h5>
-      <div class="table-responsive">
-        <table class="table table-bordered text-center">
-          <thead class="table-dark">
-            <tr>
-              <th>Location</th>
-              <th>Rainfall (mm)</th>
-              <th>River Level (m)</th>
-              <th>Status</th>
-              <th>Last Updated</th>
-            </tr>
-          </thead>
-          <tbody id="dataBody">
-            <tr><td colspan="5">Loading data...</td></tr>
-          </tbody>
-        </table>
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-dark text-white text-center fw-semibold">
+                River Water Level Trend
+              </div>
+              <div class="card-body">
+                <canvas id="rainfallChart" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 📊 SECOND ROW: Flood Table + External Site -->
+        <div class="row g-4 mt-3">
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-dark text-white text-center fw-semibold">
+                Flood Data Summary
+              </div>
+              <div class="card-body table-responsive">
+                <table class="table table-bordered table-hover text-center align-middle">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>Location</th>
+                      <th>Rainfall (mm)</th>
+                      <th>River Level (m)</th>
+                      <th>Status</th>
+                      <th>Last Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dataBody">
+                    <tr><td colspan="5">Loading data...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-dark text-white text-center fw-semibold">
+                External Monitoring Site
+              </div>
+              <div class="card-body p-0">
+            <a href="weatherdata.html">    <iframe 
+                  src="https://lhester0102.github.io/sample.html" 
+                  width="100%" 
+                  height="500" 
+                  style="border:0; border-radius: 0 0 8px 8px;" 
+                  allowfullscreen 
+                  loading="lazy">
+                </iframe> </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      </div>
-    <div class="col-md-6 w-50">
-      
-     <a href="weatherdata.html"> <iframe 
-        src="https://lhester0102.github.io/sample.html" 
-        width="100%" 
-        height="500" 
-        style="border:1px solid #ccc; border-radius: 8px;" 
-        allowfullscreen 
-        loading="lazy">
-      </iframe> </a>
     </div>
   </div>
-  </div>
 
-    
-
-</div>
-
-  <!-- ✅ Modular Firebase SDK -->
+  <!-- ✅ Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
     import { getDatabase, ref, child, get } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js';
 
     const firebaseConfig = {
-  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-  authDomain: "flooded-95eeb.firebaseapp.com",
-  projectId: "flooded-95eeb",
-  storageBucket: "flooded-95eeb.firebasestorage.app",
-  messagingSenderId: "142547476223",
-  appId: "1:142547476223:web:70de7014c664e26d0636ca",
-  measurementId: "G-MRFYTR1F5K"
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca",
+      measurementId: "G-MRFYTR1F5K"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     let chart;
 
     async function fetchFloodData() {
       try {
         const snapshot = await get(child(ref(db), 'floodData'));
         const rawData = snapshot.val();
-
         if (!rawData) return;
 
         const data = Object.values(rawData);
@@ -129,127 +150,85 @@
       }
     }
 
-   function updateTable(data) {
-  const body = document.getElementById('dataBody');
-  body.innerHTML = '';
+    function updateTable(data) {
+      const body = document.getElementById('dataBody');
+      body.innerHTML = '';
 
-  const latestByLocation = {};
-  for (const item of data) {
-    latestByLocation[item.location] = item;
-  }
+      const latestByLocation = {};
+      for (const item of data) latestByLocation[item.location] = item;
 
-  Object.values(latestByLocation).forEach(entry => {
-    const riskClass =
-      entry.river_level > 3 ? 'risk-high' :
-      entry.river_level > 2 ? 'risk-medium' : 'risk-low';
+      Object.values(latestByLocation).forEach(entry => {
+        const riskClass =
+          entry.river_level > 3 ? 'risk-high' :
+          entry.river_level > 2 ? 'risk-medium' : 'risk-low';
 
-    // Add status text color
-    let statusColor = '';
-    if (entry.status.includes("High Risk")) {
-      statusColor = 'text-danger'; // Bootstrap red
-    } else if (entry.status.includes("Moderate")) {
-      statusColor = 'text-warning'; // Bootstrap yellow
-    } else {
-      statusColor = 'text-success'; // Bootstrap green
+        let statusColor = 'text-success';
+        if (entry.status.includes("High Risk")) statusColor = 'text-danger';
+        else if (entry.status.includes("Moderate")) statusColor = 'text-warning';
+
+        const row = `
+          <tr class="${riskClass}">
+            <td>${entry.location}</td>
+            <td>${entry.rainfall}</td>
+            <td>${entry.river_level}</td>
+            <td><strong class="${statusColor}">${entry.status}</strong></td>
+            <td>${new Date(entry.timestamp).toLocaleString()}</td>
+          </tr>
+        `;
+        body.innerHTML += row;
+      });
     }
 
-    const row = `
-      <tr class="${riskClass}">
-        <td>${entry.location}</td>
-        <td>${entry.rainfall}</td>
-        <td>${entry.river_level}</td>
-        <td><strong class="${statusColor}">${entry.status}</strong></td>
-        <td>${new Date(entry.timestamp).toLocaleString()}</td>
-      </tr>
-    `;
-    body.innerHTML += row;
-  });
-}
-
     function updateChart(data) {
-  const grouped = {};
-  data.forEach(d => {
-    if (!grouped[d.location]) grouped[d.location] = [];
-    grouped[d.location].push(d);
-  });
+      const grouped = {};
+      data.forEach(d => {
+        if (!grouped[d.location]) grouped[d.location] = [];
+        grouped[d.location].push(d);
+      });
 
-  // Unique timestamps sorted
-  const labels = [...new Set(data.map(d => d.timestamp))].sort((a, b) => new Date(a) - new Date(b));
+      const labels = [...new Set(data.map(d => d.timestamp))]
+        .sort((a, b) => new Date(a) - new Date(b));
 
-  // Define a color palette
-  const colors = [
-    '#007bff', // blue
-    '#28a745', // green
-    '#dc3545', // red
-    '#ffc107', // yellow
-    '#17a2b8', // teal
-    '#6f42c1', // purple
-    '#fd7e14', // orange
-    '#20c997'  // emerald
-  ];
+      const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997'];
 
-  let colorIndex = 0;
-  const datasets = Object.entries(grouped).map(([loc, records]) => {
-    records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    const color = colors[colorIndex++ % colors.length];
-    return {
-      label: loc,
-      data: records.map(r => r.river_level),
-      borderColor: color,
-      backgroundColor: color,
-      tension: 0.3,
-      fill: false
-    };
-  });
+      let colorIndex = 0;
+      const datasets = Object.entries(grouped).map(([loc, records]) => {
+        records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const color = colors[colorIndex++ % colors.length];
+        return {
+          label: loc,
+          data: records.map(r => r.river_level),
+          borderColor: color,
+          backgroundColor: color,
+          tension: 0.3,
+          fill: false
+        };
+      });
 
-  if (chart) {
-    chart.data.labels = labels;
-    chart.data.datasets = datasets;
-    chart.update();
-  } else {
-    const ctx = document.getElementById('rainfallChart').getContext('2d');
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top'
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'River Water evel (mm)'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Timestamp'
+      if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets = datasets;
+        chart.update();
+      } else {
+        const ctx = document.getElementById('rainfallChart').getContext('2d');
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+              y: { beginAtZero: true, title: { display: true, text: 'River Water Level (m)' } },
+              x: { title: { display: true, text: 'Timestamp' } }
             }
           }
-        }
+        });
       }
-    });
-  }
-}
-
+    }
 
     fetchFloodData();
-    setInterval(fetchFloodData, 60000); // every 60s
+    setInterval(fetchFloodData, 60000); // refresh every 1 minute
   </script>
-
-  <hr>
-  <!-- External Site Iframe -->
-
-
 </body>
 </html>
