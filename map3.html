@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ilocos Norte Geospatial DSS (Mapbox Version)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Mapbox GL CSS & JS -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {margin:0; font-family:Segoe UI, sans-serif; background:#f4f6f8;}
+header {background:#004aad; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 20px; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+header h1 {margin:0; font-size:1.2rem; flex:1; text-align:center;}
+.menu-toggle {font-size:2rem; background:none; border:none; color:white; cursor:pointer; display:none; position:absolute; left:10px; top:50%; transform:translateY(-50%);}
+nav ul {list-style:none; margin:0; padding:0; display:flex; gap:15px; align-items:center;}
+nav a {color:white; text-decoration:none; font-weight:500; transition:color 0.3s;}
+nav a:hover {color:#d0e6ff;}
+#mainNav {display:flex; flex:1; justify-content:center;}
+#layout {display:grid; grid-template-columns:350px 1fr; gap:12px; padding:12px; height:calc(100vh - 60px); box-sizing:border-box;}
+.panel {background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:auto;}
+.legend .box {display:inline-block; width:18px; height:12px; margin-right:5px; vertical-align:middle;}
+#map {width:100%; height:100%; border-radius:8px;}
+@media(max-width:900px){
+  #layout {grid-template-columns:1fr; grid-template-rows:auto 1fr; height:auto;}
+  #map {height:50vh; margin-top:12px;}
+  .menu-toggle {display:block;}
+  #mainNav {display:none; position:absolute; top:60px; left:0; width:100%; flex-direction:column; background:#004aad; padding:12px 0; z-index:999;}
+  #mainNav.open {display:flex;}
+  #mainNav ul {flex-direction:column; gap:8px; padding-left:20px;}
+  #mainNav a {display:block; width:100%; padding:6px 0;}
+}
+
+/* Fix Chart popup sizing */
+.mapboxgl-popup-content {
+  padding: 8px !important;
+  width: 280px !important;
+  max-height: 250px !important;
+  overflow: hidden;
+}
+.popup-chart-container {
+  width: 100%;
+  height: 180px;
+}
+.popup-chart-container canvas {
+  width: 100% !important;
+  height: 160px !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="menu-toggle" id="menuToggle">☰</button>
+  <h1>Ilocos Norte Geospatial DSS</h1>
+  <nav id="mainNav">
+    <ul>
+      <li><a href="index.php">DASHBOARD</a></li>
+      <li><a href="map.html">MAP</a></li>
+      <li><a href="index2.php">MUNICIPALITIES</a></li>
+      <li><a href="upload_geojson.html">UPLOAD GEOJSON</a></li>
+      <li><a href="#">LOGIN</a></li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+const menuBtn = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+menuBtn.addEventListener('click', () => { mainNav.classList.toggle('open'); });
+</script>
+
+<div id="layout">
+  <div class="panel">
+    <b>LEGEND</b>
+    <div class="legend">
+      <div><span class="box" style="background:red"></span> 80–100 Severe</div>
+      <div><span class="box" style="background:orange"></span> 50–79 Moderate</div>
+      <div><span class="box" style="background:yellow"></span> 20–49 Low</div>
+      <div><span class="box" style="background:#008a43"></span> 0–19 Minimal</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div id="map"></div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Initialize Mapbox
+mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+  center: [120.613949, 18.341757],
+  zoom: 18,
+  pitch: 55
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+function getFloodColor(v) {
+  if(v == "Severe") return 'rgba(255,0,0,0.5)';
+  if(v == "High" || v == "Moderate") return 'rgba(255,165,0,0.5)';
+  if(v == "Low") return 'rgba(255,255,0,0.5)';
+  return 'rgba(0,138,67,0.5)';
+}
+
+// Load Flood Polygons
+map.on('load', () => {
+  db.ref('Flooded_Areas').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    const bounds = new mapboxgl.LngLatBounds();
+
+    Object.values(data).forEach((f, i) => {
+      try {
+        const geo = f.geojson;
+        if (!geo || !geo.features) return;
+
+        const floodClass = geo.features?.[0]?.properties?.flood_class ?? "Minimal";
+        const color = getFloodColor(floodClass);
+        const sourceId = 'flood-src-' + i;
+        const layerId = 'flood-layer-' + i;
+
+        map.addSource(sourceId, { type: 'geojson', data: geo });
+        map.addLayer({
+          id: layerId,
+          type: 'fill',
+          source: sourceId,
+          paint: { 'fill-color': color, 'fill-opacity': 0.6 }
+        });
+
+        const coords = geo.features[0].geometry.coordinates.flat(2);
+        coords.forEach(([lng, lat]) => bounds.extend([lng, lat]));
+      } catch (e) { console.error("Error loading flood polygon:", e); }
+    });
+
+    if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 50, duration: 1000 });
+  });
+});
+
+// River markers with Chart.js popups
+const rivers = [
+  ["Baldi River",18.337086,120.613098,[2.1,2.4,2.8,3.0,3.4]],
+  ["Padsan River",18.192422,120.591328,[2.1,2.4,2.8,3.0,3.4]],
+  ["Bacarra-Vintar River",18.247178,120.622658,[1.8,2.0,2.3,2.1,2.5]],
+  ["Guisit River",18.163531,120.719962,[1.5,1.7,1.9,2.2,2.4]],
+  ["Agua Grande River",18.570544,120.899848,[0.8,1.0,1.2,1.3,1.5]],
+  ["Baruyen River",18.516827,120.706686,[1.2,1.4,1.6,1.8,2.0]],
+  ["Pusuak Creek",18.529664,120.613062,[1.2,1.4,1.6,1.8,2.0]],
+  ["Solsona Dam",18.084367,120.814453,[1.2,1.4,1.6,1.8,2.0]],
+  ["Bagbag, Solsona River",18.119279,120.749626,[1.2,1.4,1.6,1.8,2.0]],
+  ["Dingras, Padsan River",18.094932,120.714017,[1.2,1.4,1.6,1.8,2.0]],
+  ["Currimao River",17.994427,120.502793,[1.2,1.4,1.6,1.8,2.0]],
+  ["Nueva Era River",17.917148,120.661374,[1.2,1.4,1.6,1.8,2.0]],
+  ["Badoc River",17.926813,120.489637,[1.2,1.4,1.6,1.8,2.0]]
+];
+
+rivers.forEach(([name, lat, lng, data]) => {
+  const popupId = `chart-${name.replace(/\s+/g,'')}`;
+  const popupHTML = `
+    <div class="popup-chart-container">
+      <b>${name}</b>
+      <canvas id="${popupId}"></canvas>
+    </div>`;
+
+  const popup = new mapboxgl.Popup({ offset:25 }).setHTML(popupHTML);
+
+  const marker = new mapboxgl.Marker({ color:'blue' })
+    .setLngLat([lng, lat])
+    .setPopup(popup)
+    .addTo(map);
+
+  popup.on('open', () => {
+    const ctx = document.getElementById(popupId);
+    if(ctx) {
+      new Chart(ctx, {
+        type:'line',
+        data:{
+          labels:["Mon","Tue","Wed","Thu","Fri"],
+          datasets:[{
+            label:'Water Level (m)',
+            data,
+            borderColor:'blue',
+            backgroundColor:'rgba(0,123,255,0.2)',
+            fill:true,
+            tension:0.3
+          }]
+        },
+        options:{
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true}},
+          responsive:true,
+          maintainAspectRatio:false
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
