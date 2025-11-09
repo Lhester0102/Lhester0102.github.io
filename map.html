@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ilocos Norte Geospatial DSS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {margin:0; font-family:Segoe UI, sans-serif; background:#f4f6f8;}
+  header {background:#004aad; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 20px; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+  header h1 {margin:0; font-size:1.2rem; flex:1; text-align:center;}
+  .menu-toggle {font-size:2rem; background:none; border:none; color:white; cursor:pointer; display:none; position:absolute; left:10px; top:50%; transform:translateY(-50%);}
+  nav ul {list-style:none; margin:0; padding:0; display:flex; gap:15px; align-items:center;}
+  nav a {color:white; text-decoration:none; font-weight:500; transition:color 0.3s;}
+  nav a:hover {color:#d0e6ff;}
+  #mainNav {display:flex; flex:1; justify-content:center;}
+  #layout {display:grid; grid-template-columns:350px 1fr; gap:12px; padding:12px; height:calc(100vh - 60px); box-sizing:border-box;}
+  .panel {background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:auto;}
+  label {display:block; margin:8px 0 4px; font-weight:500;}
+  .legend .box {display: inline-block; width: 18px; height: 12px; margin-right: 5px; vertical-align: middle;}
+  #map {width:100%; height:100%; border-radius:8px;}
+  
+  @media(max-width:900px){
+    #layout {grid-template-columns:1fr; grid-template-rows:auto 1fr; height:auto;}
+    #map {height:50vh; margin-top:12px;}
+    .menu-toggle {display:block;}
+    #mainNav {display:none; position:absolute; top:60px; left:0; width:100%; flex-direction:column; background:#004aad; padding:12px 0; z-index:999;}
+    #mainNav.open {display:flex;}
+    #mainNav ul {flex-direction:column; gap:8px; padding-left:20px;}
+    #mainNav a {display:block; width:100%; padding:6px 0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="menu-toggle" id="menuToggle">☰</button>
+  <h1>Ilocos Norte Geospatial DSS</h1>
+  <nav id="mainNav">
+    <ul>
+      <li><a href="index.php">DASHBOARD</a></li>
+      <li><a href="map.html">MAP</a></li>
+      <li><a href="index2.php">MUNICIPALITIES</a></li>
+      <li><a href="upload_geojson.html">UPLOAD GEOJSON</a></li>
+      <li><a href="#">LOGIN</a></li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+const menuBtn = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+menuBtn.addEventListener('click', () => { mainNav.classList.toggle('open'); });
+</script>
+
+<div id="layout">
+  <div class="panel">
+    <b>LEGEND</b>
+    <div class="legend">
+      <div><span class="box" style="background:red"></span> 80–100 Severe</div>
+      <div><span class="box" style="background:orange"></span> 50–79 Moderate</div>
+      <div><span class="box" style="background:yellow"></span> 20–49 Low</div>
+      <div><span class="box" style="background:#008a43"></span> 0–19 Minimal</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div id="map"></div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Initialize map
+const map = L.map('map').setView([18.224277, 120.767085], 9.5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+
+// Function to get color by vulnerability
+function getFloodColor(v) {
+  if(v == "Severe") return 'red';
+  if(v == "High") return 'orange';
+  if(v == "Moderate") return 'yellow';
+  return '#008a43'; // 0–19
+}
+
+// Load flooded areas from Firebase
+db.ref('Flooded_Areas').once('value', snapshot => {
+  const data = snapshot.val();
+  if(!data) return;
+
+  Object.values(data).forEach(f => {
+    try {
+      const geo = f.geojson;
+      L.geoJSON(geo, {
+        style: feature => ({
+          color: getFloodColor(feature.properties?.flood_class ?? 0),
+          fillColor: getFloodColor(feature.properties?.flood_class ?? 0),
+          fillOpacity:0.4,
+          weight:1
+        }),
+        onEachFeature: (feature, layer) => {
+          const cls = feature.properties?.flood_class ?? 0;
+          const names = feature.properties?.name ?? '';
+           const popupHTML = `<div style="width:100%; height:100%;"><b>Name:</b>${names}<br><b>Flood Class:</b>${cls}<br><b>Notes:</b>Wla Pa<br></div>`;
+          layer.bindPopup(popupHTML);
+          
+        }
+      }).addTo(map);
+    } catch(e) { console.error("Error parsing polygon", e); }
+  });
+});
+
+// Example river markers with chart popups
+function addRiverMarker(name, lat, lng, data, labels) {
+  const marker = L.marker([lat, lng]).addTo(map);
+  const id = `chart-${name.replace(/\s+/g,'')}`;
+  const popupHTML = `<div style="width:250px; height:180px;"><b>${name}</b><br><canvas id="${id}" width="250" height="120"></canvas></div>`;
+  marker.bindPopup(popupHTML);
+
+  marker.on('popupopen', () => {
+    const ctx = document.getElementById(id);
+    if(!ctx) return;
+    new Chart(ctx, {
+      type:'line',
+      data:{labels, datasets:[{label:'Water Level (m)', data, borderColor:'blue', backgroundColor:'rgba(0,123,255,0.2)', fill:true, tension:0.3}]},
+      options:{scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}}, maintainAspectRatio:false, responsive:true}
+    });
+  });
+}
+
+
+
+// Add example markers
+addRiverMarker("Baldi River",18.337086,120.613098,[2.1,2.4,2.8,3.0,3.4],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Padsan River",18.192422,120.591328,[2.1,2.4,2.8,3.0,3.4],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Bacarra-Vintar River",18.247178,120.622658,[1.8,2.0,2.3,2.1,2.5],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Guisit River",18.163531,120.719962,[1.5,1.7,1.9,2.2,2.4],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Agua Grande River",18.570544,120.899848,[0.8,1.0,1.2,1.3,1.5],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Baruyen River",18.516827,120.706686,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Pusuak Creek",18.529664,120.613062,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Solsona Dam",18.084367,120.814453,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Bagbag, Solsona River",18.119279,120.749626,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Dingras, Padsan River",18.094932,120.714017,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Currimao River",17.994427,120.502793,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Nueva Era River",17.917148,120.661374,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+addRiverMarker("Badoc River",17.926813,120.489637,[1.2,1.4,1.6,1.8,2.0],["Mon","Tue","Wed","Thu","Fri"]);
+</script>
+</body>
+</html>
