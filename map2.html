@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ilocos Norte Geospatial DSS (Mapbox)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {margin:0; font-family:Segoe UI, sans-serif; background:#f4f6f8;}
+  header {background:#004aad; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 20px; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+  header h1 {margin:0; font-size:1.2rem; flex:1; text-align:center;}
+  .menu-toggle {font-size:2rem; background:none; border:none; color:white; cursor:pointer; display:none; position:absolute; left:10px; top:50%; transform:translateY(-50%);}
+  nav ul {list-style:none; margin:0; padding:0; display:flex; gap:15px; align-items:center;}
+  nav a {color:white; text-decoration:none; font-weight:500; transition:color 0.3s;}
+  nav a:hover {color:#d0e6ff;}
+  #mainNav {display:flex; flex:1; justify-content:center;}
+  #layout {display:grid; grid-template-columns:350px 1fr; gap:12px; padding:12px; height:calc(100vh - 60px); box-sizing:border-box;}
+  .panel {background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:auto;}
+  label {display:block; margin:8px 0 4px; font-weight:500;}
+  .legend .box {display: inline-block; width: 18px; height: 12px; margin-right: 5px; vertical-align: middle;}
+  #map {width:100%; height:100%; border-radius:8px;}
+
+  @media(max-width:900px){
+    #layout {grid-template-columns:1fr; grid-template-rows:auto 1fr; height:auto;}
+    #map {height:50vh; margin-top:12px;}
+    .menu-toggle {display:block;}
+    #mainNav {display:none; position:absolute; top:60px; left:0; width:100%; flex-direction:column; background:#004aad; padding:12px 0; z-index:999;}
+    #mainNav.open {display:flex;}
+    #mainNav ul {flex-direction:column; gap:8px; padding-left:20px;}
+    #mainNav a {display:block; width:100%; padding:6px 0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="menu-toggle" id="menuToggle">☰</button>
+  <h1>Ilocos Norte Geospatial DSS</h1>
+  <nav id="mainNav">
+    <ul>
+      <li><a href="index.php">DASHBOARD</a></li>
+      <li><a href="map.html">MAP</a></li>
+      <li><a href="index2.php">MUNICIPALITIES</a></li>
+      <li><a href="upload_geojson.html">UPLOAD GEOJSON</a></li>
+      <li><a href="#">LOGIN</a></li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+const menuBtn = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+menuBtn.addEventListener('click', () => { mainNav.classList.toggle('open'); });
+</script>
+
+<div id="layout">
+  <div class="panel">
+    <b>LEGEND</b>
+    <div class="legend">
+      <div><span class="box" style="background:red"></span> 80–100 Severe</div>
+      <div><span class="box" style="background:orange"></span> 50–79 Moderate</div>
+      <div><span class="box" style="background:yellow"></span> 20–49 Low</div>
+      <div><span class="box" style="background:#008a43"></span> 0–19 Minimal</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div id="map"></div>
+  </div>
+</div>
+
+<script>
+  // ✅ Use your working Mapbox token here
+  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+
+  // ✅ Initialize Mapbox map
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+    center: [120.613949,18.341757], // Ilocos Norte
+    zoom: 18,
+    pitch: 55 
+  });
+
+  map.addControl(new mapboxgl.NavigationControl());
+
+  // ✅ Example: add sample markers for rivers
+  const rivers = [
+    {name:'Baldi River', lat:18.337086, lng:120.613098},
+    {name:'Padsan River', lat:18.192422, lng:120.591328},
+    {name:'Bacarra-Vintar River', lat:18.247178, lng:120.622658},
+    {name:'Baruyen River', lat:18.516827, lng:120.706686}
+  ];
+
+  rivers.forEach(r => {
+    new mapboxgl.Marker({ color:'blue' })
+      .setLngLat([r.lng, r.lat])
+      .setPopup(new mapboxgl.Popup().setHTML(`<b>${r.name}</b><br>Water Level: Moderate`))
+      .addTo(map);
+  });
+</script>
+</body>
+</html>
