@@ -25,9 +25,26 @@ nav a:hover {color:#d0e6ff;}
 .panel {background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:auto;}
 .legend .box {display:inline-block; width:18px; height:12px; margin-right:5px; vertical-align:middle;}
 #map {width:100%; height:100%; border-radius:8px;}
-#riverList {list-style:none; padding-left:0; margin-top:5px; max-height:50vh; overflow:auto;}
-#riverList li {cursor:pointer; margin-bottom:6px; color:#004aad; font-weight:500;}
-#riverList li:hover {text-decoration:underline;}
+#riverList 
+{list-style:none; 
+  padding-left:0; 
+  margin-top:5px; 
+    border:1px solid #0000;
+padding: 8px 0;
+  max-height:50vh; 
+  overflow:auto;
+}
+#riverList li {cursor:pointer; text-decoration: none;
+  background-color: #fff;
+  padding: 5px;
+  margin-bottom:6px; 
+  color:#000000; 
+  font-weight:500;
+}
+#riverList li:hover {
+  background-color: rgb(55, 55, 212);
+  color:#fff;
+}
 
 @media(max-width:900px){
   #layout {grid-template-columns:1fr; grid-template-rows:auto 1fr; height:auto;}
@@ -82,10 +99,10 @@ menuBtn.addEventListener('click', () => { mainNav.classList.toggle('open'); });
   <div class="panel">
     <b>LEGEND</b>
     <div class="legend" style="margin-bottom:15px;">
-      <div><span class="box" style="background:red"></span> 80–100 Severe</div>
-      <div><span class="box" style="background:orange"></span> 50–79 Moderate</div>
-      <div><span class="box" style="background:yellow"></span> 20–49 Low</div>
-      <div><span class="box" style="background:#008a43"></span> 0–19 Minimal</div>
+      <div><span class="box" style="background:rgba(255, 0, 0, 0.5)"></span> 80–100 Severe</div>
+      <div><span class="box" style="background:rgba(255, 166, 0, 0.5)"></span> 50–79 Moderate</div>
+      <div><span class="box" style="background:rgba(255, 255, 0, 0.5)"></span> 20–49 Low</div>
+      <div><span class="box" style="background:#008a4300"></span> 0–19 Minimal</div>
     </div>
 
     <b>RIVERS</b>
@@ -131,7 +148,7 @@ function getFloodColor(v) {
   if(v == "Severe") return 'rgba(255,0,0,0.5)';
   if(v == "High" || v == "Moderate") return 'rgba(255,165,0,0.5)';
   if(v == "Low") return 'rgba(255,255,0,0.5)';
-  return 'rgba(0,138,67,0.5)';
+  return '#008a4300';
 }
 
 // Load Flood Polygons
@@ -195,7 +212,7 @@ rivers.forEach(([name, lat, lng, data], index) => {
   const li = document.createElement('li');
   li.textContent = name;
   li.addEventListener('click', () => {
-    map.flyTo({ center: [lng, lat], zoom: 15, essential: true });
+    map.flyTo({ center: [lng, lat], zoom: 18, essential: true });
     if (mapMarkers[index]) mapMarkers[index].togglePopup();
   });
   riverListEl.appendChild(li);
