@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Water Level Prediction System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { background: #f4f6f8; }
+.status { font-size: 0.9rem; color: #333; margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Ilocos Norte Geospatial DSS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link" href="map6.html">MAP</a></li>
+        <li class="nav-item"><a class="nav-link" href="municipalities.html">MUNICIPALITIES</a></li>
+        <li class="nav-item"><a class="nav-link" href="upload2.html">UPLOAD GEOJSON</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">LOGIN</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<div class="container-fluid">
+  <div class="row g-3">
+    <!-- Left Column -->
+    <div class="col-lg-4">
+      <!-- Upload CSV -->
+      <div class="card mb-3">
+        <div class="card-header bg-primary text-white">Upload CSV Data</div>
+        <div class="card-body">
+          <input type="file" id="csvFileInput" accept=".csv" class="form-control mb-2">
+          <button id="uploadCsvBtn" class="btn btn-primary w-100">Upload & Save</button>
+          <div class="status" id="csvStatus">No file uploaded.</div>
+        </div>
+      </div>
+
+      <!-- Predict Water Level -->
+      <div class="card">
+        <div class="card-header bg-success text-white">Predict Water Level</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Rainfall (mm)</label>
+            <input type="number" step="0.01" id="rainfall" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Flow (m³/s)</label>
+            <input type="number" step="0.01" id="flow" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Water Level (m)</label>
+            <input type="number" step="0.01" id="water_level" class="form-control">
+          </div>
+          <button id="predictBtn" class="btn btn-success w-100">Predict</button>
+          <div class="status" id="predictStatus"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header bg-info text-white">Prediction Chart</div>
+        <div class="card-body">
+          <canvas id="predictionChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+</script>
+
+<script>
+// Chart setup
+const ctx = document.getElementById('predictionChart').getContext('2d');
+window.predChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            { label: 'Actual Water Level', data: [], borderColor: 'rgb(54,162,235)', backgroundColor: 'rgba(54,162,235,0.2)', fill:true, tension:0.3 },
+            { label: '1-Hour Prediction', data: [], borderColor: 'rgb(255,206,86)', backgroundColor: 'rgba(255,206,86,0.2)', fill:true, tension:0.3 },
+            { label: '3-Hour Prediction', data: [], borderColor: 'rgb(255,159,64)', backgroundColor: 'rgba(255,159,64,0.2)', fill:true, tension:0.3 },
+            { label: '6-Hour Prediction', data: [], borderColor: 'rgb(255,99,132)', backgroundColor: 'rgba(255,99,132,0.2)', fill:true, tension:0.3 }
+        ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{position:'bottom'}} }
+});
+
+// Upload CSV
+document.getElementById('uploadCsvBtn').addEventListener('click', () => {
+    const file = document.getElementById('csvFileInput').files[0];
+    if(!file){ document.getElementById('csvStatus').innerText = "Select a CSV file first."; return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const lines = e.target.result.split('\n');
+        lines.forEach(line => {
+            const [rain, flow, level] = line.split(',').map(Number);
+            if(!isNaN(rain) && !isNaN(flow) && !isNaN(level)){
+                db.ref('water_data').push({ rain, flow, level, timestamp: Date.now() });
+            }
+        });
+        document.getElementById('csvStatus').innerText = "CSV uploaded successfully!";
+        loadLastRecords();
+    };
+    reader.readAsText(file);
+});
+
+// Load last records
+function loadLastRecords(n=20){
+    db.ref('water_data').orderByChild('timestamp').limitToLast(n).once('value', snapshot => {
+        const labels=[], actual=[], pred1=[], pred3=[], pred6=[];
+        snapshot.forEach(s => {
+            const d = s.val();
+            labels.push(new Date(d.timestamp).toLocaleTimeString());
+            actual.push(d.level);
+            pred1.push(d.level + (d.rain*0.01) + (d.flow*0.02));
+            pred3.push(d.level + (d.rain*0.02) + (d.flow*0.03));
+            pred6.push(d.level + (d.rain*0.03) + (d.flow*0.05));
+        });
+        window.predChart.data.labels = labels;
+        window.predChart.data.datasets[0].data = actual;
+        window.predChart.data.datasets[1].data = pred1;
+        window.predChart.data.datasets[2].data = pred3;
+        window.predChart.data.datasets[3].data = pred6;
+        window.predChart.update();
+
+        // prefill input fields
+        const last = snapshot.val() ? Object.values(snapshot.val()).pop() : {rain:0, flow:0, level:0};
+        document.getElementById('rainfall').value = last.rain;
+        document.getElementById('flow').value = last.flow;
+        document.getElementById('water_level').value = last.level;
+    });
+}
+
+// Predict button
+document.getElementById('predictBtn').addEventListener('click', () => {
+    const rain=parseFloat(document.getElementById('rainfall').value);
+    const flow=parseFloat(document.getElementById('flow').value);
+    const water=parseFloat(document.getElementById('water_level').value);
+    if(isNaN(rain) || isNaN(flow) || isNaN(water)){
+        document.getElementById('predictStatus').innerText = "Enter all values.";
+        return;
+    }
+    db.ref('water_data').push({ rain, flow, level: water, timestamp: Date.now() });
+    document.getElementById('predictStatus').innerText = "Prediction saved!";
+    loadLastRecords();
+});
+
+// Initial load
+loadLastRecords();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

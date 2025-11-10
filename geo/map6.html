@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ilocos Norte Geospatial DSS (Bootstrap + Full Height Sidebar)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Mapbox GL CSS & JS -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6f8;
+  overflow: hidden;
+}
+.main-container {
+  height: calc(100vh - 56px); /* subtract navbar height */
+}
+#map {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+#riverList {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+#riverList li {
+  cursor: pointer;
+  background-color: #fff;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  color: #000;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+#riverList li:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.legend .box {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  margin-right: 5px;
+  vertical-align: middle;
+  border: 1px solid #999;
+}
+.card.h-100 {
+  display: flex;
+  flex-direction: column;
+}
+.card-body.d-flex {
+  flex-direction: column;
+  overflow: hidden;
+}
+.mapboxgl-popup-content {
+  padding: 8px !important;
+  width: 280px !important;
+  max-height: 250px !important;
+  overflow: hidden;
+}
+.popup-chart-container {
+  width: 100%;
+  height: 180px;
+}
+.popup-chart-container canvas {
+  width: 100% !important;
+  height: 160px !important;
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Ilocos Norte Geospatial DSS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link" href="map6.html">MAP</a></li>
+        <li class="nav-item"><a class="nav-link" href="municipalities.html">MUNICIPALITIES</a></li>
+        <li class="nav-item"><a class="nav-link" href="upload2.html">UPLOAD GEOJSON</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">LOGIN</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN LAYOUT -->
+<div class="container-fluid main-container p-2">
+  <div class="row h-100 g-3">
+
+    <!-- SIDEBAR TOGGLE (for mobile) -->
+    <div class="col-12 d-lg-none mt-4">
+      <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarPanel">
+        ☰ Show / Hide Sidebar
+      </button>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4 collapse d-lg-block h-100" id="sidebarPanel">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex">
+          <div>
+            <h5 class="fw-bold">Legend</h5>
+            <div class="legend mb-3">
+              <div><span class="box" style="background:rgba(255, 0, 0, 0.5)"></span> 80–100 Severe</div>
+              <div><span class="box" style="background:rgba(255, 166, 0, 0.5)"></span> 50–79 Moderate</div>
+              <div><span class="box" style="background:rgba(255, 255, 0, 0.5)"></span> 20–49 Low</div>
+              <div><span class="box" style="background:rgba(2, 251, 2, 0.096)"></span> Municipal Boundaries</div>
+            </div>
+            <h5 class="fw-bold mt-3">Rivers</h5>
+          </div>
+          <ul id="riverList" class="mt-2"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="col-lg-8 h-100">
+      <div class="card shadow-sm h-100">
+        <div class="card-body p-2 h-100">
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Initialize Mapbox
+mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+  center: [120.716062, 18.106858],
+  zoom: 9.5,
+  pitch: 55
+});
+map.addControl(new mapboxgl.NavigationControl());
+
+function getFloodColor(v) {
+  if(v == "Severe") return 'rgba(255,0,0,0.5)';
+  if(v == "High" || v == "Moderate") return 'rgba(255,165,0,0.5)';
+  if(v == "Low") return 'rgba(255,255,0,0.5)';
+  return 'rgba(2, 251, 2, 0.096)';
+}
+
+// Load Flood Data
+map.on('load', () => {
+  db.ref('Flooded_Areas').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+    const bounds = new mapboxgl.LngLatBounds();
+
+    Object.entries(data).forEach(([id, f], i) => {
+      try {
+        const geo = f.geojson;
+        if (!geo || !geo.features) return;
+
+        const floodClass = f.flood_class || "Minimal";
+        const type = f.type || "";
+        const color = getFloodColor(floodClass);
+
+        const sourceId = 'flood-src-' + i;
+        const layerId = 'flood-layer-' + i;
+        const borderLayerId = 'flood-border-' + i;
+
+        map.addSource(sourceId, { type: 'geojson', data: geo });
+        map.addLayer({
+          id: layerId,
+          type: 'fill',
+          source: sourceId,
+          paint: { 'fill-color': color, 'fill-opacity': 0.6 }
+        });
+
+        if (type.toLowerCase() === 'municipality') {
+          map.addLayer({
+            id: borderLayerId,
+            type: 'line',
+            source: sourceId,
+            paint: { 'line-color': 'red', 'line-width': 2, 'line-opacity': 1 }
+          });
+        }
+
+        const coords = geo.features[0].geometry.coordinates.flat(2);
+        coords.forEach(([lng, lat]) => bounds.extend([lng, lat]));
+      } catch (e) { console.error("Error loading flood polygon:", e); }
+    });
+
+    if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 50, duration: 1000 });
+  });
+});
+
+// River Data
+const rivers = [
+  ["Baldi River",18.337086,120.613098,[2.1,2.4,2.8,3.0,3.4]],
+  ["Padsan River",18.192422,120.591328,[2.1,2.4,2.8,3.0,3.4]],
+  ["Bacarra-Vintar River",18.247178,120.622658,[1.8,2.0,2.3,2.1,2.5]],
+  ["Guisit River",18.163531,120.719962,[1.5,1.7,1.9,2.2,2.4]],
+  ["Agua Grande River",18.570544,120.899848,[0.8,1.0,1.2,1.3,1.5]],
+  ["Baruyen River",18.516827,120.706686,[1.2,1.4,1.6,1.8,2.0]],
+  ["Pusuak Creek",18.529664,120.613062,[1.2,1.4,1.6,1.8,2.0]],
+  ["Solsona Dam",18.084367,120.814453,[1.2,1.4,1.6,1.8,2.0]],
+  ["Bagbag, Solsona River",18.119279,120.749626,[1.2,1.4,1.6,1.8,2.0]],
+  ["Dingras, Padsan River",18.094932,120.714017,[1.2,1.4,1.6,1.8,2.0]],
+  ["Currimao River",17.994427,120.502793,[1.2,1.4,1.6,1.8,2.0]],
+  ["Nueva Era River",17.917148,120.661374,[1.2,1.4,1.6,1.8,2.0]],
+  ["Badoc River",17.926813,120.489637,[1.2,1.4,1.6,1.8,2.0]]
+];
+
+const riverListEl = document.getElementById('riverList');
+const mapMarkers = [];
+
+rivers.forEach(([name, lat, lng, data], index) => {
+  const li = document.createElement('li');
+  li.textContent = name;
+  li.addEventListener('click', () => {
+    map.flyTo({ center: [lng, lat], zoom: 18, pitch: 45, essential: true });
+    if (mapMarkers[index]) mapMarkers[index].togglePopup();
+  });
+  riverListEl.appendChild(li);
+
+  const popupId = `chart-${name.replace(/\s+/g,'')}`;
+  const popupHTML = `
+    <div class="popup-chart-container">
+      <b>${name}</b>
+      <canvas id="${popupId}"></canvas>
+    </div>`;
+  const popup = new mapboxgl.Popup({ offset:25 }).setHTML(popupHTML);
+
+  const marker = new mapboxgl.Marker({ color:'blue' })
+    .setLngLat([lng, lat])
+    .setPopup(popup)
+    .addTo(map);
+
+  popup.on('open', () => {
+    const ctx = document.getElementById(popupId);
+    if(ctx) {
+      new Chart(ctx, {
+        type:'line',
+        data:{
+          labels:["Mon","Tue","Wed","Thu","Fri"],
+          datasets:[{
+            label:'Water Level (m)',
+            data,
+            borderColor:'blue',
+            backgroundColor:'rgba(0,123,255,0.2)',
+            fill:true,
+            tension:0.3
+          }]
+        },
+        options:{
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true}},
+          responsive:true,
+          maintainAspectRatio:false
+        }
+      });
+    }
+  });
+
+  mapMarkers.push(marker);
+});
+</script>
+
+</body>
+</html>
