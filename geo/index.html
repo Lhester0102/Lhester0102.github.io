@@ -32,7 +32,6 @@ body { background: #f4f6f8; }
   </div>
 </nav>
 
-
 <div class="container-fluid">
   <div class="row g-3">
     <!-- Left Column -->
@@ -115,17 +114,21 @@ window.predChart = new Chart(ctx, {
     options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{position:'bottom'}} }
 });
 
-// Upload CSV
+// Upload CSV to 3 Firebase branches
 document.getElementById('uploadCsvBtn').addEventListener('click', () => {
     const file = document.getElementById('csvFileInput').files[0];
     if(!file){ document.getElementById('csvStatus').innerText = "Select a CSV file first."; return; }
+
     const reader = new FileReader();
     reader.onload = e => {
         const lines = e.target.result.split('\n');
         lines.forEach(line => {
             const [rain, flow, level] = line.split(',').map(Number);
             if(!isNaN(rain) && !isNaN(flow) && !isNaN(level)){
-                db.ref('water_data').push({ rain, flow, level, timestamp: Date.now() });
+                const timestamp = Date.now();
+                db.ref('rainfall_data').push({ value: rain, timestamp });
+                db.ref('water_flow_data').push({ value: flow, timestamp });
+                db.ref('water_level_data').push({ value: level, timestamp });
             }
         });
         document.getElementById('csvStatus').innerText = "CSV uploaded successfully!";
@@ -134,18 +137,31 @@ document.getElementById('uploadCsvBtn').addEventListener('click', () => {
     reader.readAsText(file);
 });
 
-// Load last records
+// Load last records from all 3 datasets
 function loadLastRecords(n=20){
-    db.ref('water_data').orderByChild('timestamp').limitToLast(n).once('value', snapshot => {
+    Promise.all([
+        db.ref('rainfall_data').orderByChild('timestamp').limitToLast(n).once('value'),
+        db.ref('water_flow_data').orderByChild('timestamp').limitToLast(n).once('value'),
+        db.ref('water_level_data').orderByChild('timestamp').limitToLast(n).once('value')
+    ]).then(([rainSnap, flowSnap, levelSnap]) => {
+        const rainData = Object.values(rainSnap.val() || {});
+        const flowData = Object.values(flowSnap.val() || {});
+        const levelData = Object.values(levelSnap.val() || {});
+        const len = Math.min(rainData.length, flowData.length, levelData.length);
+
         const labels=[], actual=[], pred1=[], pred3=[], pred6=[];
-        snapshot.forEach(s => {
-            const d = s.val();
-            labels.push(new Date(d.timestamp).toLocaleTimeString());
-            actual.push(d.level);
-            pred1.push(d.level + (d.rain*0.01) + (d.flow*0.02));
-            pred3.push(d.level + (d.rain*0.02) + (d.flow*0.03));
-            pred6.push(d.level + (d.rain*0.03) + (d.flow*0.05));
-        });
+        for(let i=0;i<len;i++){
+            const r = rainData[i].value;
+            const f = flowData[i].value;
+            const l = levelData[i].value;
+            const ts = levelData[i].timestamp;
+            labels.push(new Date(ts).toLocaleTimeString());
+            actual.push(l);
+            pred1.push(l + (r*0.01) + (f*0.02));
+            pred3.push(l + (r*0.02) + (f*0.03));
+            pred6.push(l + (r*0.03) + (f*0.05));
+        }
+
         window.predChart.data.labels = labels;
         window.predChart.data.datasets[0].data = actual;
         window.predChart.data.datasets[1].data = pred1;
@@ -153,11 +169,13 @@ function loadLastRecords(n=20){
         window.predChart.data.datasets[3].data = pred6;
         window.predChart.update();
 
-        // prefill input fields
-        const last = snapshot.val() ? Object.values(snapshot.val()).pop() : {rain:0, flow:0, level:0};
-        document.getElementById('rainfall').value = last.rain;
-        document.getElementById('flow').value = last.flow;
-        document.getElementById('water_level').value = last.level;
+        // Prefill last input values
+        const lastR = rainData[len-1]?.value || 0;
+        const lastF = flowData[len-1]?.value || 0;
+        const lastL = levelData[len-1]?.value || 0;
+        document.getElementById('rainfall').value = lastR;
+        document.getElementById('flow').value = lastF;
+        document.getElementById('water_level').value = lastL;
     });
 }
 
@@ -170,7 +188,10 @@ document.getElementById('predictBtn').addEventListener('click', () => {
         document.getElementById('predictStatus').innerText = "Enter all values.";
         return;
     }
-    db.ref('water_data').push({ rain, flow, level: water, timestamp: Date.now() });
+    const timestamp = Date.now();
+    db.ref('rainfall_data').push({ value: rain, timestamp });
+    db.ref('water_flow_data').push({ value: flow, timestamp });
+    db.ref('water_level_data').push({ value: water, timestamp });
     document.getElementById('predictStatus').innerText = "Prediction saved!";
     loadLastRecords();
 });
