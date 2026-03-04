@@ -54,7 +54,7 @@
         <div class="col-md-8">
             
             <div class="card p-3 mb-3">
-                <h5>Flood Map (Click to Update Distance)</h5>
+                <h5>Flood Risk Map (Click to Update Distance)</h5>
                 <div id="map"></div>
             </div>
             
@@ -202,8 +202,8 @@
             
             document.getElementById("status").innerHTML="Training...";
             await model.fit(xsTrain, ysTrain, {
-                epochs: 150,
-                batchSize: 16,
+                epochs: 50,
+                batchSize: 32,
                 shuffle: true,
                 validationData: [xsTest, ysTest]
             });
