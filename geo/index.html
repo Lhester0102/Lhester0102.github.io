@@ -1,205 +1,331 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Water Level Prediction System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body { background: #f4f6f8; }
-.status { font-size: 0.9rem; color: #333; margin-top: 5px; }
-</style>
+    <meta charset="UTF-8">
+    <title>Flash Flood Forecast DSS</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { background:#c22e09; }
+        .card { border-radius:15px; }
+        #map { height:400px; border-radius:15px; }
+        canvas { margin-top:20px; }
+    </style>
 </head>
-<body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Ilocos Norte Geospatial DSS</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link active" href="index.html">DASHBOARD</a></li>
-        <li class="nav-item"><a class="nav-link" href="map6.html">MAP</a></li>
-        <li class="nav-item"><a class="nav-link" href="municipalities.html">MUNICIPALITIES</a></li>
-        <li class="nav-item"><a class="nav-link" href="upload2.html">UPLOAD GEOJSON</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">LOGIN</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="container-fluid">
-  <div class="row g-3">
-    <!-- Left Column -->
-    <div class="col-lg-4">
-      <!-- Upload CSV -->
-      <div class="card mb-3">
-        <div class="card-header bg-primary text-white">Upload CSV Data</div>
-        <div class="card-body">
-          <input type="file" id="csvFileInput" accept=".csv" class="form-control mb-2">
-          <button id="uploadCsvBtn" class="btn btn-primary w-100">Upload & Save</button>
-          <div class="status" id="csvStatus">No file uploaded.</div>
+<body class="container-fluid p-4">
+    
+    <div class="row">
+        
+        <!-- LEFT PANEL -->
+        <div class="col-md-4">
+            
+            <div class="card p-3 mb-3">
+                <h5>Upload Flood Dataset (CSV)</h5>
+                <input type="file" id="csvFile" class="form-control">
+                <button onclick="autoTrain()" class="btn btn-primary mt-2 w-100">Train Model</button>
+                <button onclick="saveModel()" class="btn btn-success mt-2 w-100">Save Model</button>
+                <button onclick="loadModel()" class="btn btn-warning mt-2 w-100">Load Model</button>
+                <p id="status"></p>
+            </div>
+            
+            <div class="card p-3 mb-3">
+                <h5>Manual Input / Predict Flood Risk</h5>
+                <input value="4.5" type="number" class="form-control mb-2" id="waterLevel" placeholder="Water Level (m)">
+                <input value="25" type="number" class="form-control mb-2" id="rainfall" placeholder="Rainfall (mm)">
+                <input value="160" type="number" class="form-control mb-2" id="discharge" placeholder="Discharge (m³/s)">
+                <input value="500" type="number" class="form-control mb-2" id="distance" placeholder="Distance from River (m)">
+                <button class="btn btn-danger w-100" onclick="manualPredict()">Predict & Forecast</button>
+            </div>
+            
+            <div class="card p-3 mb-3">
+                <h5>Flash Flood Probability Forecast</h5>
+                <canvas id="probChart"></canvas>
+            </div>
+            
         </div>
-      </div>
-
-      <!-- Predict Water Level -->
-      <div class="card">
-        <div class="card-header bg-success text-white">Predict Water Level</div>
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">Rainfall (mm)</label>
-            <input type="number" step="0.01" id="rainfall" class="form-control">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Flow (m³/s)</label>
-            <input type="number" step="0.01" id="flow" class="form-control">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Water Level (m)</label>
-            <input type="number" step="0.01" id="water_level" class="form-control">
-          </div>
-          <button id="predictBtn" class="btn btn-success w-100">Predict</button>
-          <div class="status" id="predictStatus"></div>
+        
+        <!-- RIGHT PANEL -->
+        <div class="col-md-8">
+            
+            <div class="card p-3 mb-3">
+                <h5>Flood Map (Click to Update Distance)</h5>
+                <div id="map"></div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
+                        <h6>Confusion Matrix</h6>
+                        <canvas id="confMatrix"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
+                        <h6>ROC Curve</h6>
+                        <canvas id="rocChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
         </div>
-      </div>
     </div>
-
-    <!-- Right Column -->
-    <div class="col-lg-8">
-      <div class="card h-100">
-        <div class="card-header bg-info text-white">Prediction Chart</div>
-        <div class="card-body">
-          <canvas id="predictionChart" height="300"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-  authDomain: "flooded-95eeb.firebaseapp.com",
-  projectId: "flooded-95eeb",
-  storageBucket: "flooded-95eeb.firebasestorage.app",
-  messagingSenderId: "142547476223",
-  appId: "1:142547476223:web:70de7014c664e26d0636ca",
-  measurementId: "G-MRFYTR1F5K"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-</script>
-
-<script>
-// Chart setup
-const ctx = document.getElementById('predictionChart').getContext('2d');
-window.predChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [
-            { label: 'Actual Water Level', data: [], borderColor: 'rgb(54,162,235)', backgroundColor: 'rgba(54,162,235,0.2)', fill:true, tension:0.3 },
-            { label: '1-Hour Prediction', data: [], borderColor: 'rgb(255,206,86)', backgroundColor: 'rgba(255,206,86,0.2)', fill:true, tension:0.3 },
-            { label: '3-Hour Prediction', data: [], borderColor: 'rgb(255,159,64)', backgroundColor: 'rgba(255,159,64,0.2)', fill:true, tension:0.3 },
-            { label: '6-Hour Prediction', data: [], borderColor: 'rgb(255,99,132)', backgroundColor: 'rgba(255,99,132,0.2)', fill:true, tension:0.3 }
-        ]
-    },
-    options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{position:'bottom'}} }
-});
-
-// Upload CSV to 3 Firebase branches
-document.getElementById('uploadCsvBtn').addEventListener('click', () => {
-    const file = document.getElementById('csvFileInput').files[0];
-    if(!file){ document.getElementById('csvStatus').innerText = "Select a CSV file first."; return; }
-
-    const reader = new FileReader();
-    reader.onload = e => {
-        const lines = e.target.result.split('\n');
-        lines.forEach(line => {
-            const [rain, flow, level] = line.split(',').map(Number);
-            if(!isNaN(rain) && !isNaN(flow) && !isNaN(level)){
-                const timestamp = Date.now();
-                db.ref('rainfall_data').push({ value: rain, timestamp });
-                db.ref('water_flow_data').push({ value: flow, timestamp });
-                db.ref('water_level_data').push({ value: level, timestamp });
-            }
+    
+    <script>
+        
+        // ================= MAPBOX =================
+        mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+            center: [120.716062, 18.106858],
+            zoom: 9.5,
+            pitch: 55
         });
-        document.getElementById('csvStatus').innerText = "CSV uploaded successfully!";
-        loadLastRecords();
-    };
-    reader.readAsText(file);
-});
-
-// Load last records from all 3 datasets
-function loadLastRecords(n=20){
-    Promise.all([
-        db.ref('rainfall_data').orderByChild('timestamp').limitToLast(n).once('value'),
-        db.ref('water_flow_data').orderByChild('timestamp').limitToLast(n).once('value'),
-        db.ref('water_level_data').orderByChild('timestamp').limitToLast(n).once('value')
-    ]).then(([rainSnap, flowSnap, levelSnap]) => {
-        const rainData = Object.values(rainSnap.val() || {});
-        const flowData = Object.values(flowSnap.val() || {});
-        const levelData = Object.values(levelSnap.val() || {});
-        const len = Math.min(rainData.length, flowData.length, levelData.length);
-
-        const labels=[], actual=[], pred1=[], pred3=[], pred6=[];
-        for(let i=0;i<len;i++){
-            const r = rainData[i].value;
-            const f = flowData[i].value;
-            const l = levelData[i].value;
-            const ts = levelData[i].timestamp;
-            labels.push(new Date(ts).toLocaleTimeString());
-            actual.push(l);
-            pred1.push(l + (r*0.01) + (f*0.02));
-            pred3.push(l + (r*0.02) + (f*0.03));
-            pred6.push(l + (r*0.03) + (f*0.05));
+        
+        map.addControl(new mapboxgl.NavigationControl());
+        
+        
+        // ================= RIVER REFERENCE POINT =================
+        const riverPoint = {
+            lng: 120.716062,
+            lat: 18.106858
+        };
+        
+        let riverMarker = null;
+        let clickMarker = null;
+        
+        riverMarker = new mapboxgl.Marker({color:'red'})
+        .setLngLat([riverPoint.lng, riverPoint.lat])
+        .addTo(map);
+        // ================= HAVERSINE DISTANCE =================
+        function calculateDistance(lat1, lon1, lat2, lon2){
+            const R = 6371000;
+            const toRad = a => a*Math.PI/180;
+            
+            const dLat = toRad(lat2-lat1);
+            const dLon = toRad(lon2-lon1);
+            
+            const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*
+            Math.sin(dLon/2)**2;
+            
+            const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+            return R*c;
         }
-
-        window.predChart.data.labels = labels;
-        window.predChart.data.datasets[0].data = actual;
-        window.predChart.data.datasets[1].data = pred1;
-        window.predChart.data.datasets[2].data = pred3;
-        window.predChart.data.datasets[3].data = pred6;
-        window.predChart.update();
-
-        // Prefill last input values
-        const lastR = rainData[len-1]?.value || 0;
-        const lastF = flowData[len-1]?.value || 0;
-        const lastL = levelData[len-1]?.value || 0;
-        document.getElementById('rainfall').value = lastR;
-        document.getElementById('flow').value = lastF;
-        document.getElementById('water_level').value = lastL;
-    });
-}
-
-// Predict button
-document.getElementById('predictBtn').addEventListener('click', () => {
-    const rain=parseFloat(document.getElementById('rainfall').value);
-    const flow=parseFloat(document.getElementById('flow').value);
-    const water=parseFloat(document.getElementById('water_level').value);
-    if(isNaN(rain) || isNaN(flow) || isNaN(water)){
-        document.getElementById('predictStatus').innerText = "Enter all values.";
-        return;
-    }
-    const timestamp = Date.now();
-    db.ref('rainfall_data').push({ value: rain, timestamp });
-    db.ref('water_flow_data').push({ value: flow, timestamp });
-    db.ref('water_level_data').push({ value: water, timestamp });
-    document.getElementById('predictStatus').innerText = "Prediction saved!";
-    loadLastRecords();
-});
-
-// Initial load
-loadLastRecords();
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        // ================= MAP CLICK =================
+        map.on('click', function(e){
+            
+            const clickedLng = e.lngLat.lng;
+            const clickedLat = e.lngLat.lat;
+            
+            const distance = calculateDistance(
+            riverPoint.lat,
+            riverPoint.lng,
+            clickedLat,
+            clickedLng
+            );
+            
+            document.getElementById('distance').value = distance.toFixed(2);
+            
+            // remove previous marker
+            if(clickMarker) clickMarker.remove();
+            
+            clickMarker = new mapboxgl.Marker({color:'blue'})
+            .setLngLat([clickedLng, clickedLat])
+            .addTo(map);
+            
+            manualPredict();
+        });
+        
+        // ================= GLOBAL VARIABLES =================
+        let model, minVals=[], maxVals=[];
+        let probChart, confChart, rocChart;
+        
+        // ================= NORMALIZATION =================
+        function normalize(row){
+            return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i]));
+        }
+        
+        // ================= TRAIN MODEL =================
+        async function autoTrain(){
+            
+            const file = document.getElementById('csvFile').files[0];
+            if(!file){ alert("Upload CSV first."); return; }
+            
+            const text = await file.text();
+            const rows = text.split('\n').slice(1);
+            
+            trainingData=[]; labels=[];
+            rows.forEach(r=>{
+                const c=r.split(',');
+                if(c.length===5){
+                    trainingData.push(c.slice(0,4).map(Number));
+                    labels.push(Number(c[4]));
+                }
+            });
+            
+            // Train/Test Split 80/20
+            const splitIndex = Math.floor(trainingData.length*0.8);
+            let trainX=trainingData.slice(0,splitIndex);
+            let testX=trainingData.slice(splitIndex);
+            let trainY=labels.slice(0,splitIndex);
+            let testY=labels.slice(splitIndex);
+            
+            // Normalization
+            minVals=tf.min(tf.tensor2d(trainX),0).arraySync();
+            maxVals=tf.max(tf.tensor2d(trainX),0).arraySync();
+            trainX=trainX.map(normalize);
+            testX=testX.map(normalize);
+            
+            const xsTrain=tf.tensor2d(trainX);
+            const ysTrain=tf.tensor2d(trainY,[trainY.length,1]);
+            const xsTest=tf.tensor2d(testX);
+            const ysTest=tf.tensor2d(testY,[testY.length,1]);
+            
+            // ================= MLP MODEL =================
+            model=tf.sequential();
+            model.add(tf.layers.dense({inputShape:[4],units:128,activation:'relu'}));
+            model.add(tf.layers.dense({units:64,activation:'relu'}));
+            model.add(tf.layers.dense({units:32,activation:'relu'}));
+            model.add(tf.layers.dense({units:16,activation:'relu'}));
+            model.add(tf.layers.dense({units:1,activation:'sigmoid'}));
+            
+            model.compile({optimizer:'adam', loss:'binaryCrossentropy', metrics:['accuracy']});
+            
+            document.getElementById("status").innerHTML="Training...";
+            await model.fit(xsTrain, ysTrain, {
+                epochs: 150,
+                batchSize: 16,
+                shuffle: true,
+                validationData: [xsTest, ysTest]
+            });
+            document.getElementById("status").innerHTML="Training Complete ✔";
+            
+            evaluateModel(xsTest, ysTest);
+            manualPredict();
+        }
+        
+        // ================= MANUAL PREDICT =================
+        async function manualPredict(){
+            
+            if(!model) return;
+            
+            const input=[
+            parseFloat(document.getElementById('waterLevel').value),
+            parseFloat(document.getElementById('rainfall').value),
+            parseFloat(document.getElementById('discharge').value),
+            parseFloat(document.getElementById('distance').value)
+            ];
+            
+            generateForecastChart(input);
+        }
+        
+        // ================= FORECAST CHART =================
+        async function generateForecastChart(current){
+            
+            const horizons=[3,6,12,24,48];
+            const predictions=[];
+            let last=current.slice();
+            
+            for(const h of horizons){
+                
+                const inputTensor=tf.tensor2d([normalize(last)]);
+                const pred=await model.predict(inputTensor).data();
+                predictions.push(pred[0]*100);
+                
+                last[0]+=0.1*(last[1]/50);
+                last[1]=Math.max(last[1]-h*0.15,0);
+                last[2]+=0.1*(last[0]/2);
+            }
+            
+            if(probChart) probChart.destroy();
+            
+            probChart=new Chart(document.getElementById("probChart"),{
+                type:'line',
+                data:{
+                    labels:horizons.map(h=>h+'h'),
+                    datasets:[{
+                        label:'Flood Probability (%)',
+                        data:predictions,
+                        borderColor:'red',
+                        backgroundColor:'rgba(255,0,0,0.2)',
+                        fill:true,
+                        tension:0.3
+                    }]
+                },
+                options:{
+                    scales:{y:{beginAtZero:true,max:100}}
+                }
+            });
+            
+            return predictions;
+        }
+        
+        // ================= EVALUATION =================
+        async function evaluateModel(xs,ys){
+            
+            const predVals=(await model.predict(xs).data());
+            const trueVals=await ys.data();
+            
+            let tp=0,tn=0,fp=0,fn=0;
+            
+            for(let i=0;i<predVals.length;i++){
+                if(predVals[i]>=0.5 && trueVals[i]==1) tp++;
+                if(predVals[i]<0.5 && trueVals[i]==0) tn++;
+                if(predVals[i]>=0.5 && trueVals[i]==0) fp++;
+                if(predVals[i]<0.5 && trueVals[i]==1) fn++;
+            }
+            
+            let accuracy=(tp+tn)/(tp+tn+fp+fn);
+            let precision=tp/(tp+fp);
+            let recall=tp/(tp+fn);
+            let f1=2*((precision*recall)/(precision+recall));
+            
+            if(confChart) confChart.destroy();
+            confChart=new Chart(document.getElementById("confMatrix"),{
+                type:'bar',
+                data:{
+                    labels:["TP","FP","TN","FN"],
+                    datasets:[{data:[tp,fp,tn,fn]}]
+                }
+            });
+            
+            let tprList=[],fprList=[];
+            
+            for(let t=0;t<=1;t+=0.05){
+                let tp_t=0,fp_t=0,tn_t=0,fn_t=0;
+                
+                for(let i=0;i<predVals.length;i++){
+                    if(predVals[i]>=t && trueVals[i]==1) tp_t++;
+                    if(predVals[i]>=t && trueVals[i]==0) fp_t++;
+                    if(predVals[i]<t && trueVals[i]==0) tn_t++;
+                    if(predVals[i]<t && trueVals[i]<1) fn_t++;
+                }
+                
+                tprList.push(tp_t/(tp_t+fn_t||1));
+                fprList.push(fp_t/(fp_t+tn_t||1));
+            }
+            
+            if(rocChart) rocChart.destroy();
+            rocChart=new Chart(document.getElementById("rocChart"),{
+                type:'line',
+                data:{
+                    labels:fprList,
+                    datasets:[{data:tprList,fill:false}]
+                }
+            });
+            document.getElementById("status").innerHTML+=
+            `<br>Accuracy:${accuracy.toFixed(3)}, Precision:${precision.toFixed(3)}, Recall:${recall.toFixed(3)}, F1:${f1.toFixed(3)}`;
+        }
+        
+    </script>
 </body>
 </html>
