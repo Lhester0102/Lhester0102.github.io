@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Geospatial DSS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="icon.png">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <!-- Mapbox -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    html, body { height:100%; margin:0; overflow:hidden; font-family:'Segoe UI',sans-serif; }
+    #map { width:100%; height:100%; border-radius:8px; position:relative; }
+    .mapboxgl-popup-content { padding:8px !important; width:280px !important; }
+    .popup-chart-container { width:100%; height:180px; }
+    
+    /* Legend */
+    #map-legend {
+      position:absolute; bottom:50px; right:20px;
+      background:rgba(255,255,255,0.9);
+      padding:10px; border-radius:8px; font-size:13px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    }
+    #map-legend span { display:inline-block; width:15px; height:10px; margin-right:5px; }
+    
+    /* Rivers dropdown */
+    #riverDropdownMenu { max-height:300px; overflow-y:auto; }
+    #riverDropdownMenu li { cursor:pointer; padding:5px 10px; transition:0.2s; }
+    #riverDropdownMenu li:hover { background:#800000; color:white; }
+  </style>
+</head>
+
+<body class="bg-light">
+  
+  <div class="d-flex vh-100">
+    
+    <!-- SIDEBAR -->
+    <div style="background-color:#800000; width:250px;" class="text-white p-2 d-flex flex-column">
+      
+      <!-- Logo + Title -->
+      <div class="text-center mb-3">
+        <img src="flood.png"
+        class=" w-75 border border-light img-fluid rounded-circle mb-2">
+        <h6 class="mb-0">Geospatial DSS</h6>
+        <small>Flood Monitoring</small>
+      </div>
+      
+      <hr class="border-light">
+      
+      <ul class="nav nav-pills flex-column mb-auto">
+        
+        <li class="nav-item">
+          <a href="main.html" class="nav-link text-white">
+            <span class="bi bi-speedometer2 me-2"></span> Dashboard
+          </a>
+        </li>
+        
+        <!-- MAP ACTIVE -->
+        <li class="nav-item">
+          <a href="index.html" class="nav-link text-white active bg-dark">
+            <span class="bi bi-map me-2"></span> Map
+          </a>
+        </li>
+        
+        <!-- Dropdown Manage -->
+        <li class="nav-item">
+          <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+            <span class="bi bi-gear me-2"></span> Manage
+            <span class="bi bi-chevron-down float-end"></span>
+          </a>
+          <div class="collapse" id="manageMenu">
+            <ul class="list-unstyled ps-3 small mb-0">
+              <li>
+                <a href="municipalities.html" class="nav-link text-white">
+                  <span class="bi bi-building me-2"></span> Municipalities
+                </a>
+              </li>
+              <li>
+                <a href="upload2.html" class="nav-link text-white">
+                  <span class="bi bi-upload me-2"></span> Upload GeoJSON
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item mt-2">
+          <a href="log.html" class="nav-link text-white">
+            <span class="bi bi-box-arrow-in-right me-2"></span> Logout
+          </a>
+        </li>
+        
+      </ul>
+      
+    </div>
+    
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow-1 p-2 d-flex flex-column">
+      
+      <!-- TOPBAR -->
+      <div class="bg-white p-2 rounded shadow-sm mb-2 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Geospatial DSS</h5>
+        
+        <!-- Rivers Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm fw-bold fs-6 dropdown-toggle" type="button" 
+          id="riversDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-water me-2"></i> Rivers&emsp;&emsp;&emsp;
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" id="riverDropdownMenu">
+          
+        </ul>
+      </div>
+    </div>
+    
+    <!-- MAP -->
+    <div class="flex-grow-1">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-1 h-100">
+          <div id="map">
+            <div id="map-legend">
+              <div><span style="background:red"></span> Severe</div>
+              <div><span style="background:orange"></span> Moderate</div>
+              <div><span style="background:yellow"></span> Low</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+    authDomain: "flooded-95eeb.firebaseapp.com",
+    projectId: "flooded-95eeb",
+    storageBucket: "flooded-95eeb.firebasestorage.app",
+    messagingSenderId: "142547476223",
+    appId: "1:142547476223:web:70de7014c664e26d0636ca",
+    measurementId: "G-MRFYTR1F5K"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
+  // Mapbox Init
+  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+    center: [120.716062, 18.106858],
+    zoom: 9.5,
+    pitch: 55
+  });
+  map.addControl(new mapboxgl.NavigationControl());
+  
+  function getFloodColor2(v) {
+    if(v >=90 ) return 'rgba(255,0,0,1)';
+    if(v >=50) return 'rgba(255, 140, 0, 1)';
+    if(v >=20) return 'rgba(255,255,0,1)';
+    return 'rgba(2, 251, 2, 1)';
+  }
+  
+  // Load Flood Data
+  const floodLayers = [];
+  map.on('load', () => {
+    db.ref('Flooded_Areas').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      const bounds = new mapboxgl.LngLatBounds();
+      
+      Object.entries(data).forEach(([id, f], i) => {
+        try {
+          const geo = f.geojson;
+          if (!geo || !geo.features) return;
+          
+          const floodClass = f.flood_class || "None";
+          const type = f.type || "";
+          const vulnerability = f.vulnerability || 0;
+          const name = f.name || "Unnamed";
+          const notes = f.notes || "";
+          
+          const color2 = getFloodColor2(vulnerability);
+          
+          const sourceId = 'flood-src-' + i;
+          const layerId = 'flood-layer-' + i;
+          const borderLayerId = 'flood-border-' + i;
+          
+          map.addSource(sourceId, { type: 'geojson', data: geo });
+          
+          if (type.toLowerCase() === 'municipality') {
+            map.addLayer({
+              id: borderLayerId,
+              type: 'line',
+              source: sourceId,
+              paint: { 'line-color': 'red', 'line-width': 2, 'line-opacity': 1 }
+            });
+          } else {
+            map.addLayer({
+              id: layerId,
+              type: 'fill',
+              source: sourceId,
+              paint: { 'fill-color': color2, 'fill-opacity': 0.6 }
+            });
+            floodLayers.push({layerId, properties: {floodClass, vulnerability, name, type, notes}});
+          }
+          
+          geo.features.forEach(feature => {
+            const coords = feature.geometry.coordinates.flat(2);
+            for (let j = 0; j < coords.length; j+=2) bounds.extend([coords[j], coords[j]]);
+          });
+        } catch(e) { console.error("Error loading flood polygon:", e); }
+      });
+      
+      if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 50, duration: 1000, pitch: map.getPitch() });
+    });
+  });
+  
+  // Click to show flood info
+  map.on('click', (e) => {
+    const features = map.queryRenderedFeatures(e.point, { layers: floodLayers.map(l=>l.layerId) });
+    if (features.length) {
+      const feature = features[0];
+      const fLayer = floodLayers.find(l=>l.layerId === feature.layer.id).properties;
+      const content = `<div p-4><h6>
+      <b>NAME: ${fLayer.name}</b><br>
+      <b>Flood Class:</b> ${fLayer.floodClass}<br>
+      <b>Vulnerability:</b> ${fLayer.vulnerability}<br>
+      <b>Type:</b> ${fLayer.type}<br>
+      <b>Notes:</b> ${fLayer.notes}
+    </h6></div>`;
+        new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(content).addTo(map);
+      }
+    });
+    
+    // Rivers
+    const rivers = [
+    ["Baldi River",18.337086,120.613098,[2.1,2.4,2.8,3.0,3.4]],
+    ["Padsan River",18.192422,120.591328,[2.1,2.4,2.8,3.0,3.4]],
+    ["Bacarra-Vintar River",18.247178,120.622658,[1.8,2.0,2.3,2.1,2.5]],
+    ["Guisit River",18.163531,120.719962,[1.5,1.7,1.9,2.2,2.4]],
+    ["Agua Grande River",18.570544,120.899848,[0.8,1.0,1.2,1.3,1.5]],
+    ["Baruyen River",18.516827,120.706686,[1.2,1.4,1.6,1.8,2.0]],
+    ["Pusuak Creek",18.529664,120.613062,[1.2,1.4,1.6,1.8,2.0]],
+    ["Solsona Dam",18.084367,120.814453,[1.2,1.4,1.6,1.8,2.0]],
+    ["Bagbag, Solsona River",18.119279,120.749626,[1.2,1.4,1.6,1.8,2.0]],
+    ["Dingras, Padsan River",18.094932,120.714017,[1.2,1.4,1.6,1.8,2.0]],
+    ["Currimao River",17.994427,120.502793,[1.2,1.4,1.6,1.8,2.0]],
+    ["Nueva Era River",17.917148,120.661374,[1.2,1.4,1.6,1.8,2.0]],
+    ["Badoc River",17.926813,120.489637,[1.2,1.4,1.6,1.8,2.0]]
+    ];
+    
+    const riverDropdownMenu = document.getElementById('riverDropdownMenu');
+    const mapMarkers = [];
+    
+    rivers.forEach(([name, lat, lng, data], index) => {
+      const li = document.createElement('li');
+      li.className = 'dropdown-item';
+      li.textContent = name;
+      li.addEventListener('click', () => {
+        map.flyTo({ center: [lng, lat], zoom: 18, pitch: 45, essential: true });
+        if (mapMarkers[index]) mapMarkers[index].togglePopup();
+      });
+      riverDropdownMenu.appendChild(li);
+      
+      const popupId = `chart-${name.replace(/\s+/g,'')}`;
+      const popupHTML = `<div class="popup-chart-container"><b>${name}</b><canvas id="${popupId}"></canvas></div>`;
+      const popup = new mapboxgl.Popup({ offset:25 }).setHTML(popupHTML);
+      
+      const marker = new mapboxgl.Marker({ color:'blue' }).setLngLat([lng, lat]).setPopup(popup).addTo(map);
+      
+      popup.on('open', () => {
+        const ctx = document.getElementById(popupId);
+        if(ctx) {
+          new Chart(ctx, {
+            type:'line',
+            data:{
+              labels:["Mon","Tue","Wed","Thu","Fri"],
+              datasets:[{
+                label:'Water Level (m)',
+                data,
+                borderColor:'blue',
+                backgroundColor:'rgba(0,123,255,0.2)',
+                fill:true,
+                tension:0.3
+              }]
+            },
+            options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}, responsive:true, maintainAspectRatio:false}
+          });
+        }
+      });
+      
+      mapMarkers.push(marker);
+    });
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Flash Flood Forecast DSS</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { background:#c22e09; }
+        .card { border-radius:15px; }
+        #map { height:400px; border-radius:15px; }
+        canvas { margin-top:20px; }
+    </style>
+</head>
+
+<body class="container-fluid p-4">
+    
+    <div class="row">
+        
+        <!-- LEFT PANEL -->
+        <div class="col-md-4">
+            
+            <div class="card p-3 mb-3">
+                <h5>Upload Flood Dataset (CSV)</h5>
+                <input type="file" id="csvFile" class="form-control">
+                <button onclick="autoTrain()" class="btn btn-primary mt-2 w-100">Train Model</button>
+                <button onclick="saveModel()" class="btn btn-success mt-2 w-100">Save Model</button>
+                <button onclick="loadModel()" class="btn btn-warning mt-2 w-100">Load Model</button>
+                <p id="status"></p>
+            </div>
+            
+            <div class="card p-3 mb-3">
+                <h5>Manual Input / Predict Flood Risk</h5>
+                <input value="4.5" type="number" class="form-control mb-2" id="waterLevel" placeholder="Water Level (m)">
+                <input value="25" type="number" class="form-control mb-2" id="rainfall" placeholder="Rainfall (mm)">
+                <input value="160" type="number" class="form-control mb-2" id="discharge" placeholder="Discharge (m³/s)">
+                <input value="500" type="number" class="form-control mb-2" id="distance" placeholder="Distance from River (m)">
+                <button class="btn btn-danger w-100" onclick="manualPredict()">Predict & Forecast</button>
+            </div>
+            
+            <div class="card p-3 mb-3">
+                <h5>Flash Flood Probability Forecast</h5>
+                <canvas id="probChart"></canvas>
+            </div>
+            
+        </div>
+        
+        <!-- RIGHT PANEL -->
+        <div class="col-md-8">
+            
+            <div class="card p-3 mb-3">
+                <h5>Flood Risk Map (Click to Update Distance)</h5>
+                <div id="map"></div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
+                        <h6>Confusion Matrix</h6>
+                        <canvas id="confMatrix"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
+                        <h6>ROC Curve</h6>
+                        <canvas id="rocChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+        
+        // ================= MAPBOX =================
+        mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+            center: [120.716062, 18.106858],
+            zoom: 9.5,
+            pitch: 55
+        });
+        
+        map.addControl(new mapboxgl.NavigationControl());
+        
+        
+        // ================= RIVER REFERENCE POINT =================
+        const riverPoint = {
+            lng: 120.716062,
+            lat: 18.106858
+        };
+        
+        let riverMarker = null;
+        let clickMarker = null;
+        
+        riverMarker = new mapboxgl.Marker({color:'red'})
+        .setLngLat([riverPoint.lng, riverPoint.lat])
+        .addTo(map);
+        // ================= HAVERSINE DISTANCE =================
+        function calculateDistance(lat1, lon1, lat2, lon2){
+            const R = 6371000;
+            const toRad = a => a*Math.PI/180;
+            
+            const dLat = toRad(lat2-lat1);
+            const dLon = toRad(lon2-lon1);
+            
+            const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*
+            Math.sin(dLon/2)**2;
+            
+            const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+            return R*c;
+        }
+        
+        // ================= MAP CLICK =================
+        map.on('click', function(e){
+            
+            const clickedLng = e.lngLat.lng;
+            const clickedLat = e.lngLat.lat;
+            
+            const distance = calculateDistance(
+            riverPoint.lat,
+            riverPoint.lng,
+            clickedLat,
+            clickedLng
+            );
+            
+            document.getElementById('distance').value = distance.toFixed(2);
+            
+            // remove previous marker
+            if(clickMarker) clickMarker.remove();
+            
+            clickMarker = new mapboxgl.Marker({color:'blue'})
+            .setLngLat([clickedLng, clickedLat])
+            .addTo(map);
+            
+            manualPredict();
+        });
+        
+        // ================= GLOBAL VARIABLES =================
+        let model, minVals=[], maxVals=[];
+        let probChart, confChart, rocChart;
+        
+        // ================= NORMALIZATION =================
+        function normalize(row){
+            return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i]));
+        }
+        
+        // ================= TRAIN MODEL =================
+        async function autoTrain(){
+            
+            const file = document.getElementById('csvFile').files[0];
+            if(!file){ alert("Upload CSV first."); return; }
+            
+            const text = await file.text();
+            const rows = text.split('\n').slice(1);
+            
+            trainingData=[]; labels=[];
+            rows.forEach(r=>{
+                const c=r.split(',');
+                if(c.length===5){
+                    trainingData.push(c.slice(0,4).map(Number));
+                    labels.push(Number(c[4]));
+                }
+            });
+            
+            // Train/Test Split 80/20
+            const splitIndex = Math.floor(trainingData.length*0.8);
+            let trainX=trainingData.slice(0,splitIndex);
+            let testX=trainingData.slice(splitIndex);
+            let trainY=labels.slice(0,splitIndex);
+            let testY=labels.slice(splitIndex);
+            
+            // Normalization
+            minVals=tf.min(tf.tensor2d(trainX),0).arraySync();
+            maxVals=tf.max(tf.tensor2d(trainX),0).arraySync();
+            trainX=trainX.map(normalize);
+            testX=testX.map(normalize);
+            
+            const xsTrain=tf.tensor2d(trainX);
+            const ysTrain=tf.tensor2d(trainY,[trainY.length,1]);
+            const xsTest=tf.tensor2d(testX);
+            const ysTest=tf.tensor2d(testY,[testY.length,1]);
+            
+            // ================= MLP MODEL =================
+            model=tf.sequential();
+            model.add(tf.layers.dense({inputShape:[4],units:128,activation:'relu'}));
+            model.add(tf.layers.dense({units:64,activation:'relu'}));
+            model.add(tf.layers.dense({units:32,activation:'relu'}));
+            model.add(tf.layers.dense({units:16,activation:'relu'}));
+            model.add(tf.layers.dense({units:1,activation:'sigmoid'}));
+            
+            model.compile({optimizer:'adam', loss:'binaryCrossentropy', metrics:['accuracy']});
+            
+            document.getElementById("status").innerHTML="Training...";
+            await model.fit(xsTrain, ysTrain, {
+                epochs: 50,
+                batchSize: 32,
+                shuffle: true,
+                validationData: [xsTest, ysTest]
+            });
+            document.getElementById("status").innerHTML="Training Complete ✔";
+            
+            evaluateModel(xsTest, ysTest);
+            manualPredict();
+        }
+        
+        // ================= MANUAL PREDICT =================
+        async function manualPredict(){
+            
+            if(!model) return;
+            
+            const input=[
+            parseFloat(document.getElementById('waterLevel').value),
+            parseFloat(document.getElementById('rainfall').value),
+            parseFloat(document.getElementById('discharge').value),
+            parseFloat(document.getElementById('distance').value)
+            ];
+            
+            generateForecastChart(input);
+        }
+        
+        // ================= FORECAST CHART =================
+        async function generateForecastChart(current){
+            
+            const horizons=[3,6,12,24,48];
+            const predictions=[];
+            let last=current.slice();
+            
+            for(const h of horizons){
+                
+                const inputTensor=tf.tensor2d([normalize(last)]);
+                const pred=await model.predict(inputTensor).data();
+                predictions.push(pred[0]*100);
+                
+                last[0]+=0.1*(last[1]/50);
+                last[1]=Math.max(last[1]-h*0.15,0);
+                last[2]+=0.1*(last[0]/2);
+            }
+            
+            if(probChart) probChart.destroy();
+            
+            probChart=new Chart(document.getElementById("probChart"),{
+                type:'line',
+                data:{
+                    labels:horizons.map(h=>h+'h'),
+                    datasets:[{
+                        label:'Flood Probability (%)',
+                        data:predictions,
+                        borderColor:'red',
+                        backgroundColor:'rgba(255,0,0,0.2)',
+                        fill:true,
+                        tension:0.3
+                    }]
+                },
+                options:{
+                    scales:{y:{beginAtZero:true,max:100}}
+                }
+            });
+            
+            return predictions;
+        }
+        
+        // ================= EVALUATION =================
+        async function evaluateModel(xs,ys){
+            
+            const predVals=(await model.predict(xs).data());
+            const trueVals=await ys.data();
+            
+            let tp=0,tn=0,fp=0,fn=0;
+            
+            for(let i=0;i<predVals.length;i++){
+                if(predVals[i]>=0.5 && trueVals[i]==1) tp++;
+                if(predVals[i]<0.5 && trueVals[i]==0) tn++;
+                if(predVals[i]>=0.5 && trueVals[i]==0) fp++;
+                if(predVals[i]<0.5 && trueVals[i]==1) fn++;
+            }
+            
+            let accuracy=(tp+tn)/(tp+tn+fp+fn);
+            let precision=tp/(tp+fp);
+            let recall=tp/(tp+fn);
+            let f1=2*((precision*recall)/(precision+recall));
+            
+            if(confChart) confChart.destroy();
+            confChart=new Chart(document.getElementById("confMatrix"),{
+                type:'bar',
+                data:{
+                    labels:["TP","FP","TN","FN"],
+                    datasets:[{data:[tp,fp,tn,fn]}]
+                }
+            });
+            
+            let tprList=[],fprList=[];
+            
+            for(let t=0;t<=1;t+=0.05){
+                let tp_t=0,fp_t=0,tn_t=0,fn_t=0;
+                
+                for(let i=0;i<predVals.length;i++){
+                    if(predVals[i]>=t && trueVals[i]==1) tp_t++;
+                    if(predVals[i]>=t && trueVals[i]==0) fp_t++;
+                    if(predVals[i]<t && trueVals[i]==0) tn_t++;
+                    if(predVals[i]<t && trueVals[i]<1) fn_t++;
+                }
+                
+                tprList.push(tp_t/(tp_t+fn_t||1));
+                fprList.push(fp_t/(fp_t+tn_t||1));
+            }
+            
+            if(rocChart) rocChart.destroy();
+            rocChart=new Chart(document.getElementById("rocChart"),{
+                type:'line',
+                data:{
+                    labels:fprList,
+                    datasets:[{data:tprList,fill:false}]
+                }
+            });
+            document.getElementById("status").innerHTML+=
+            `<br>Accuracy:${accuracy.toFixed(3)}, Precision:${precision.toFixed(3)}, Recall:${recall.toFixed(3)}, F1:${f1.toFixed(3)}`;
+        }
+        
+    </script>
+</body>
+</html>

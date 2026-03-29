@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Flash Flood Forecast DSS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+
+<style>
+html, body { height:100%; margin:0; overflow:hidden; font-family:'Segoe UI'; }
+#map { height:100%; border-radius:10px; }
+.card { border-radius:12px; }
+.sidebar { background:#800000; width:250px; }
+</style>
+</head>
+
+<body class="bg-light">
+
+<div class="d-flex vh-100">
+
+<!-- SIDEBAR -->
+<div class="sidebar text-white p-2 d-flex flex-column">
+    <div class="text-center mb-3">
+        <img src="flood.png" class="w-75 border border-light img-fluid rounded-circle mb-2">
+        <h6>Geospatial DSS</h6>
+        <small>Flood Monitoring</small>
+    </div>
+    <hr class="border-light">
+
+    <ul class="nav flex-column">
+        <li><a class="nav-link text-white bg-dark"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li><a class="nav-link text-white"><i class="bi bi-map"></i> Map</a></li>
+    </ul>
+</div>
+
+<!-- MAIN -->
+<div class="flex-grow-1 d-flex flex-column p-2">
+
+<div class="bg-white p-2 rounded shadow-sm mb-2">
+    <h5>Flash Flood Forecast Decision Support System</h5>
+</div>
+
+<div class="d-flex flex-grow-1 gap-2">
+
+<!-- LEFT PANEL -->
+<div class="bg-white p-2 rounded shadow-sm" style="width:300px; overflow:auto;">
+    
+    <h6>Controls</h6>
+
+    <input type="file" id="csvFile" class="form-control form-control-sm mb-2">
+    <button onclick="autoTrain()" class="btn btn-primary btn-sm w-100 mb-1">Train</button>
+    <button onclick="saveModel()" class="btn btn-success btn-sm w-100 mb-1">Save</button>
+    <button onclick="loadModel()" class="btn btn-warning btn-sm w-100 mb-2">Load</button>
+
+    <h6>Manual Prediction</h6>
+    <input id="waterLevel" class="form-control form-control-sm mb-1" value="4.5">
+    <input id="rainfall" class="form-control form-control-sm mb-1" value="25">
+    <input id="discharge" class="form-control form-control-sm mb-1" value="160">
+    <input id="distance" class="form-control form-control-sm mb-1" value="500">
+    <button onclick="manualPredict()" class="btn btn-danger btn-sm w-100">Predict</button>
+
+    <p id="status" class="small mt-2">Idle</p>
+</div>
+
+<!-- CENTER -->
+<div class="flex-grow-1 d-flex flex-column gap-2">
+
+<div class="p-3 card flex-grow-1">
+    <div id="map"></div>
+</div>
+
+<div class="row g-2" style="height:35%;">
+    <div class="col"><canvas id="probChart"></canvas></div>
+    <div class="col"><canvas id="confMatrix"></canvas></div>
+    <div class="col"><canvas id="rocChart"></canvas></div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
+// Firebase config
+const app = initializeApp({
+  apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+  authDomain: "flooded-95eeb.firebaseapp.com",
+  projectId: "flooded-95eeb",
+  storageBucket: "flooded-95eeb.firebasestorage.app",
+  messagingSenderId: "142547476223",
+  appId: "1:142547476223:web:70de7014c664e26d0636ca",
+  measurementId: "G-MRFYTR1F5K"
+});
+const storage = getStorage(app);
+
+// Mapbox
+mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+  center: [120.716062, 18.106858],
+  zoom: 9.5,
+  pitch: 55
+});
+
+// Globals
+let model, minVals=[], maxVals=[];
+let probChart, confChart, rocChart;
+
+// Normalize
+function normalize(row){
+    return row.map((v,i)=>(v-minVals[i])/(maxVals[i]-minVals[i]||1));
+}
+
+// TRAIN
+window.autoTrain = async function(){
+    const file = document.getElementById('csvFile').files[0];
+    if(!file) return alert("Upload CSV");
+
+    const text = await file.text();
+    const rows = text.split('\n').slice(1);
+
+    let X=[],Y=[];
+    rows.forEach(r=>{
+        const c=r.split(',');
+        if(c.length===5){
+            X.push(c.slice(0,4).map(Number));
+            Y.push(Number(c[4]));
+        }
+    });
+
+    minVals=tf.min(tf.tensor2d(X),0).arraySync();
+    maxVals=tf.max(tf.tensor2d(X),0).arraySync();
+    X=X.map(normalize);
+
+    const xs=tf.tensor2d(X);
+    const ys=tf.tensor2d(Y,[Y.length,1]);
+
+    model=tf.sequential();
+    model.add(tf.layers.dense({inputShape:[4],units:64,activation:'relu'}));
+    model.add(tf.layers.dense({units:1,activation:'sigmoid'}));
+    model.compile({optimizer:'adam',loss:'binaryCrossentropy'});
+
+    document.getElementById("status").innerHTML="Training...";
+    await model.fit(xs,ys,{epochs:30});
+    document.getElementById("status").innerHTML="Done ✔";
+}
+
+// PREDICT
+window.manualPredict = async function(){
+    if(!model) return;
+
+    const input=[
+        +waterLevel.value,
+        +rainfall.value,
+        +discharge.value,
+        +distance.value
+    ];
+
+    const pred = await model.predict(tf.tensor2d([normalize(input)])).data();
+
+    if(probChart) probChart.destroy();
+    probChart=new Chart(probChart=document.getElementById("probChart"),{
+        type:'bar',
+        data:{labels:["Flood Risk"],datasets:[{data:[pred[0]*100]}]}
+    });
+}
+
+// SAVE
+window.saveModel = async function(){
+    if(!model) return alert("Train first");
+
+    document.getElementById("status").innerHTML="Saving...";
+
+    await model.save(tf.io.withSaveHandler(async (artifacts)=>{
+        await uploadBytes(ref(storage,'model.json'),
+            new Blob([JSON.stringify(artifacts.modelTopology)])
+        );
+        await uploadBytes(ref(storage,'weights.bin'),
+            new Blob([artifacts.weightData])
+        );
+        return {};
+    }));
+
+    document.getElementById("status").innerHTML="Saved ✔";
+}
+
+// LOAD
+window.loadModel = async function(){
+    document.getElementById("status").innerHTML="Loading...";
+
+    const jsonURL = await getDownloadURL(ref(storage,'model.json'));
+    const weightsURL = await getDownloadURL(ref(storage,'weights.bin'));
+
+    model = await tf.loadLayersModel(tf.io.browserHTTPRequest(jsonURL,{
+        weightPathPrefix: weightsURL.replace("weights.bin","")
+    }));
+
+    document.getElementById("status").innerHTML="Loaded ✔";
+}
+
+</script>
+
+</body>
+</html>

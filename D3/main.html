@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Flash Flood Forecast DSS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="icon.png">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Mapbox GL CSS & JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+    <!-- TensorFlow + Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        html, body { height:100%; margin:0; overflow:hidden; font-family:'Segoe UI'; }
+        #map { height:100%; border-radius:10px; }
+        .card { border-radius:12px; }
+    </style>
+</head>
+
+<body class="bg-light">
+    
+    <div class="d-flex vh-100">
+        
+        <!-- SIDEBAR -->
+        <div style="background-color:#800000; width:289px;" class="text-white p-2 d-flex flex-column">
+            
+            <!-- Logo + Title -->
+            <div class="text-center mb-3">
+                <img src="flood.png"
+                class=" w-75 border border-light img-fluid rounded-circle mb-2">
+                <h6 class="mb-0">Geospatial DSS</h6>
+                <small>Flood Monitoring</small>
+            </div>
+            
+            <hr class="border-light">
+            
+            <ul class="nav nav-pills flex-column mb-auto">
+                
+                <li class="nav-item">
+                    <a href="main.html" class="nav-link text-white active bg-dark">
+                        <span class="bi bi-speedometer2 me-2"></span> Dashboard
+                    </a>
+                </li>
+                
+                <!-- MAP ACTIVE -->
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link text-white ">
+                        <span class="bi bi-map me-2"></span> Map
+                    </a>
+                </li>
+                
+                <!-- Dropdown Manage -->
+                <li class="nav-item">
+                    <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+                        <span class="bi bi-gear me-2"></span> Manage
+                        <span class="bi bi-chevron-down float-end"></span>
+                    </a>
+                    <div class="collapse" id="manageMenu">
+                        <ul class="list-unstyled ps-3 small mb-0">
+                            <li>
+                                <a href="municipalities.html" class="nav-link text-white">
+                                    <span class="bi bi-building me-2"></span> Municipalities
+                                </a>
+                            </li>
+                            <li>
+                                <a href="upload2.html" class="nav-link text-white">
+                                    <span class="bi bi-upload me-2"></span> Upload GeoJSON
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <a href="log.html" class="nav-link text-white">
+                        <span class="bi bi-box-arrow-in-right me-2"></span> Logout
+                    </a>
+                </li>
+                
+            </ul>
+            
+        </div>
+        
+        <!-- MAIN -->
+        <div class="d-flex flex-column vh-100 overflow-hidden p-2">
+            
+            <!-- TOPBAR -->
+            <div class="bg-white p-2 rounded shadow-sm mb-2 d-flex align-items-center">
+                <h5 class="mb-0">Flash Flood Forecast Decision Support System</h5>
+            </div>
+            
+            <!-- MAIN BODY -->
+            <div class="d-flex flex-grow-1 overflow-hidden gap-2">
+                
+                <!-- LEFT PANEL (QGIS-like controls) -->
+                <div class="bg-white rounded shadow-sm p-2 d-flex flex-column" 
+                style="width: 300px; overflow-y:auto;">
+                
+                <h6 class="mb-2">Data & Controls</h6>
+                
+                <!-- Upload -->
+                <div class="mb-3">
+                    <label class="form-label small">Upload CSV</label>
+                    <input type="file" id="csvFile" class="form-control form-control-sm mb-1">
+                    <button onclick="autoTrain()" class="btn btn-primary btn-sm w-100 mb-1">Train</button>
+                    <button onclick="saveModel()" class="btn btn-success btn-sm w-100 mb-1">Save</button>
+                    <button onclick="loadModel()" class="btn btn-warning btn-sm w-100">Load</button>
+                </div>
+                
+                <!-- Manual Input -->
+                <div class="mb-3">
+                    <label class="form-label small">Manual Prediction</label>
+                    <input value="4.5" type="number" class="form-control form-control-sm mb-1" id="waterLevel" placeholder="Water Level">
+                    <input value="25" type="number" class="form-control form-control-sm mb-1" id="rainfall" placeholder="Rainfall">
+                    <input value="160" type="number" class="form-control form-control-sm mb-1" id="discharge" placeholder="Discharge">
+                    <input value="500" type="number" class="form-control form-control-sm mb-1" id="distance" placeholder="Distance">
+                    <button class="btn btn-danger btn-sm w-100" onclick="manualPredict()">Predict</button>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                    <label class="form-label small">Status</label>
+                    <p id="status" class="small text-muted">Idle</p>
+                </div>
+                
+            </div>
+            
+            <!-- CENTER AREA -->
+            <div class="d-flex flex-column flex-grow-1 overflow-hidden gap-2">
+                
+                <!-- MAP (Main Focus) -->
+                <div class="card flex-grow-1 d-flex flex-column shadow-sm">
+                    <h6 class="p-2 mb-0">Flood Risk Map</h6>
+                    <div id="map" class="flex-grow-1"></div>
+                </div>
+                
+                <!-- BOTTOM ANALYTICS -->
+                <div class="row g-2" style="height: 35%;">
+                    
+                    <div class="col-md-4 h-100">
+                        <div class="card h-100 p-2 shadow-sm">
+                            <h6 class="mb-1">Flood Probability</h6>
+                            <canvas id="probChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 h-100">
+                        <div class="card h-100 p-2 shadow-sm">
+                            <h6 class="mb-1">Confusion Matrix</h6>
+                            <canvas id="confMatrix"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 h-100">
+                        <div class="card h-100 p-2 shadow-sm">
+                            <h6 class="mb-1">ROC Curve</h6>
+                            <canvas id="rocChart"></canvas>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>    </div>
+</div>
+
+<script>
+    
+    // ================= MAPBOX =================
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+        center: [120.620021, 18.334163,],
+        zoom: 15.5,
+        pitch: 55
+    });
+    
+    map.addControl(new mapboxgl.NavigationControl());
+    
+    
+    // ================= RIVER REFERENCE POINT =================
+    const riverPoint = {
+        lng: 120.716062,
+        lat: 18.106858
+    };
+    
+    let riverMarker = null;
+    let clickMarker = null;
+    
+    riverMarker = new mapboxgl.Marker({color:'red'})
+    .setLngLat([riverPoint.lng, riverPoint.lat])
+    .addTo(map);
+    // ================= HAVERSINE DISTANCE =================
+    function calculateDistance(lat1, lon1, lat2, lon2){
+        const R = 6371000;
+        const toRad = a => a*Math.PI/180;
+        
+        const dLat = toRad(lat2-lat1);
+        const dLon = toRad(lon2-lon1);
+        
+        const a = Math.sin(dLat/2)**2 +
+        Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*
+        Math.sin(dLon/2)**2;
+        
+        const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+        return R*c;
+    }
+    
+    // ================= MAP CLICK =================
+    map.on('click', function(e){
+        
+        const clickedLng = e.lngLat.lng;
+        const clickedLat = e.lngLat.lat;
+        
+        const distance = calculateDistance(
+        riverPoint.lat,
+        riverPoint.lng,
+        clickedLat,
+        clickedLng
+        );
+        
+        document.getElementById('distance').value = distance.toFixed(2);
+        
+        // remove previous marker
+        if(clickMarker) clickMarker.remove();
+        
+        clickMarker = new mapboxgl.Marker({color:'blue'})
+        .setLngLat([clickedLng, clickedLat])
+        .addTo(map);
+        
+        manualPredict();
+    });
+    
+    // ================= GLOBAL VARIABLES =================
+    let model, minVals=[], maxVals=[];
+    let probChart, confChart, rocChart;
+    
+    // ================= NORMALIZATION =================
+    function normalize(row){
+        return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i]));
+    }
+    
+    // ================= TRAIN MODEL =================
+    async function autoTrain(){
+        
+        const file = document.getElementById('csvFile').files[0];
+        if(!file){ alert("Upload CSV first."); return; }
+        
+        const text = await file.text();
+        const rows = text.split('\n').slice(1);
+        
+        trainingData=[]; labels=[];
+        rows.forEach(r=>{
+            const c=r.split(',');
+            if(c.length===5){
+                trainingData.push(c.slice(0,4).map(Number));
+                labels.push(Number(c[4]));
+            }
+        });
+        
+        // Train/Test Split 80/20
+        const splitIndex = Math.floor(trainingData.length*0.8);
+        let trainX=trainingData.slice(0,splitIndex);
+        let testX=trainingData.slice(splitIndex);
+        let trainY=labels.slice(0,splitIndex);
+        let testY=labels.slice(splitIndex);
+        
+        // Normalization
+        minVals=tf.min(tf.tensor2d(trainX),0).arraySync();
+        maxVals=tf.max(tf.tensor2d(trainX),0).arraySync();
+        trainX=trainX.map(normalize);
+        testX=testX.map(normalize);
+        
+        const xsTrain=tf.tensor2d(trainX);
+        const ysTrain=tf.tensor2d(trainY,[trainY.length,1]);
+        const xsTest=tf.tensor2d(testX);
+        const ysTest=tf.tensor2d(testY,[testY.length,1]);
+        
+        // ================= MLP MODEL =================
+        model=tf.sequential();
+        model.add(tf.layers.dense({inputShape:[4],units:128,activation:'relu'}));
+        model.add(tf.layers.dense({units:64,activation:'relu'}));
+        model.add(tf.layers.dense({units:32,activation:'relu'}));
+        model.add(tf.layers.dense({units:16,activation:'relu'}));
+        model.add(tf.layers.dense({units:1,activation:'sigmoid'}));
+        
+        model.compile({optimizer:'adam', loss:'binaryCrossentropy', metrics:['accuracy']});
+        
+        document.getElementById("status").innerHTML="Training...";
+        await model.fit(xsTrain, ysTrain, {
+            epochs: 50,
+            batchSize: 32,
+            shuffle: true,
+            validationData: [xsTest, ysTest]
+        });
+        document.getElementById("status").innerHTML="Training Complete ✔";
+        
+        evaluateModel(xsTest, ysTest);
+        manualPredict();
+    }
+    
+    // ================= MANUAL PREDICT =================
+    async function manualPredict(){
+        
+        if(!model) return;
+        
+        const input=[
+        parseFloat(document.getElementById('waterLevel').value),
+        parseFloat(document.getElementById('rainfall').value),
+        parseFloat(document.getElementById('discharge').value),
+        parseFloat(document.getElementById('distance').value)
+        ];
+        
+        generateForecastChart(input);
+    }
+    
+    // ================= FORECAST CHART =================
+    async function generateForecastChart(current){
+        
+        const horizons=[3,6,12,24,48];
+        const predictions=[];
+        let last=current.slice();
+        
+        for(const h of horizons){
+            
+            const inputTensor=tf.tensor2d([normalize(last)]);
+            const pred=await model.predict(inputTensor).data();
+            predictions.push(pred[0]*100);
+            
+            last[0]+=0.1*(last[1]/50);
+            last[1]=Math.max(last[1]-h*0.15,0);
+            last[2]+=0.1*(last[0]/2);
+        }
+        
+        if(probChart) probChart.destroy();
+        
+        probChart=new Chart(document.getElementById("probChart"),{
+            type:'line',
+            data:{
+                labels:horizons.map(h=>h+'h'),
+                datasets:[{
+                    label:'Flood Probability (%)',
+                    data:predictions,
+                    borderColor:'red',
+                    backgroundColor:'rgba(255,0,0,0.2)',
+                    fill:true,
+                    tension:0.3
+                }]
+            },
+            options:{
+                scales:{y:{beginAtZero:true,max:100}}
+            }
+        });
+        
+        return predictions;
+    }
+    
+    // ================= EVALUATION =================
+    async function evaluateModel(xs,ys){
+        
+        const predVals=(await model.predict(xs).data());
+        const trueVals=await ys.data();
+        
+        let tp=0,tn=0,fp=0,fn=0;
+        
+        for(let i=0;i<predVals.length;i++){
+            if(predVals[i]>=0.5 && trueVals[i]==1) tp++;
+            if(predVals[i]<0.5 && trueVals[i]==0) tn++;
+            if(predVals[i]>=0.5 && trueVals[i]==0) fp++;
+            if(predVals[i]<0.5 && trueVals[i]==1) fn++;
+        }
+        
+        let accuracy=(tp+tn)/(tp+tn+fp+fn);
+        let precision=tp/(tp+fp);
+        let recall=tp/(tp+fn);
+        let f1=2*((precision*recall)/(precision+recall));
+        
+        if(confChart) confChart.destroy();
+        confChart=new Chart(document.getElementById("confMatrix"),{
+            type:'bar',
+            data:{
+                labels:["TP","FP","TN","FN"],
+                datasets:[{data:[tp,fp,tn,fn]}]
+            }
+        });
+        
+        let tprList=[],fprList=[];
+        
+        for(let t=0;t<=1;t+=0.05){
+            let tp_t=0,fp_t=0,tn_t=0,fn_t=0;
+            
+            for(let i=0;i<predVals.length;i++){
+                if(predVals[i]>=t && trueVals[i]==1) tp_t++;
+                if(predVals[i]>=t && trueVals[i]==0) fp_t++;
+                if(predVals[i]<t && trueVals[i]==0) tn_t++;
+                if(predVals[i]<t && trueVals[i]<1) fn_t++;
+            }
+            
+            tprList.push(tp_t/(tp_t+fn_t||1));
+            fprList.push(fp_t/(fp_t+tn_t||1));
+        }
+        
+        if(rocChart) rocChart.destroy();
+        rocChart=new Chart(document.getElementById("rocChart"),{
+            type:'line',
+            data:{
+                labels:fprList,
+                datasets:[{data:tprList,fill:false}]
+            }
+        });
+        document.getElementById("status").innerHTML+=
+        `<br>Accuracy:${accuracy.toFixed(3)}, Precision:${precision.toFixed(3)}, Recall:${recall.toFixed(3)}, F1:${f1.toFixed(3)}`;
+    }
+    
+</script>
+
+</body>
+</html>
