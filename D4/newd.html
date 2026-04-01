@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-     <style>
+    <style>
         /* Theme Core */
         body { background: #f4f6f9;}
         
@@ -31,19 +31,19 @@
             overflow-y: auto;
             height: 100%;
         }
-
+        
         .nav-link { 
             color: rgba(255,255,255,0.8); 
             transition: 0.2s; 
             border-radius: 5px; 
             margin-bottom: 2px; 
         }
-
+        
         .nav-link:hover { 
             background-color: #212529; 
             color: #fff; 
         }
-
+        
         .nav-link.active { 
             background-color: #212529 !important; 
             color: white !important; 
@@ -60,13 +60,13 @@
             font-size: 0.85rem;
             padding: 12px;
         }
-
+        
         /* Responsive Layout Logic */
         @media (min-width: 768px) {
             .sidebar { min-height: 100vh; height: 100vh; }
             .main-content { height: 100vh; overflow-y: auto; }
         }
-
+        
         /* Small Sidebar Branding for Mobile */
         .mobile-brand {
             display: flex;
@@ -78,65 +78,65 @@
         }
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
-
+        
         /* Custom Scrollbar */
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
-         #map { width: 100%; height: 280px; border-radius: 10px; }
-    .main-content { height: 100vh; overflow-y: auto; }
-    
+        
+        #map { width: 100%; height: 280px; border-radius: 10px; }
+        .main-content { height: 100vh; overflow-y: auto; }
+        
     </style>
 </head>
 
 <body>
-
-<div class="container-fluid">
-    <div class="row">
-        
-        <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
+    
+    <div class="container-fluid">
+        <div class="row">
             
-            <div class="d-md-none mobile-brand">
-                <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
-                <div>
-                    <h6 class="text-white">Geospatial DSS</h6>
-                    <small class="text-white-50" style="font-size: 0.7rem;">Dashboard</small>
-                </div>
-                <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <div class="text-center mb-4 d-none d-md-block">
-                <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
-                <h6 class="fw-bold mb-0">Geospatial DSS</h6>
-                <!-- <small class="opacity-75">Admin Portal</small> -->
-            </div>
-            
-            <ul class="nav flex-column">
-                <li class="mb-1"><a class="nav-link text-white active" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+            <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 
-                <li class="nav-item">
-                    <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
-                        <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
-                    </a>
-                    <div class="collapse" id="manageMenu">
-                        <ul class="list-unstyled ps-3 small">
-                            <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
-                            <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
-                        </ul>
+                <div class="d-md-none mobile-brand">
+                    <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+                    <div>
+                        <h6 class="text-white">Geospatial DSS</h6>
+                        <small class="text-white-50" style="font-size: 0.7rem;">Dashboard</small>
                     </div>
-                </li>
-                <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-                <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
-            </ul>
+                    <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center mb-4 d-none d-md-block">
+                    <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+                    <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+                    <!-- <small class="opacity-75">Admin Portal</small> -->
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="mb-1"><a class="nav-link text-white active" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+                            <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
+                        </a>
+                        <div class="collapse" id="manageMenu">
+                            <ul class="list-unstyled ps-3 small">
+                                <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
+                                <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+                </ul>
+                
+                <div class="mt-4 pt-3 border-top border-secondary">
+                    <a id ="logoutLink" href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
+                </div>
+            </nav>
             
-            <div class="mt-4 pt-3 border-top border-secondary">
-                <a href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
-            </div>
-        </nav>
-        
             
             <!-- MAIN -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3">
@@ -149,7 +149,7 @@
                     
                     <h5 class="mb-0">Flash Flood DSS Dashboard</h5>
                     
-                    <span class="badge bg-success">System Active</span>
+                    <span id="emails" class="badge bg-success">System Active</span>
                 </div>
                 
                 <!-- KPI CARDS -->
@@ -275,6 +275,14 @@
     
     <script>
         window.onload = function() {
+            
+            // Check if the user is logged in
+            if (sessionStorage.getItem('loggedIn') !== 'true') {
+                // Redirect to login page if session is not set
+                window.location.href = 'log.html';
+            }
+            document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+            
             document.getElementById("kpiWater").innerHTML=document.getElementById("waterLevel").value;
             document.getElementById("kpiRain").innerHTML=document.getElementById("rainfall").value;
             document.getElementById("kpiDischarge").innerHTML=document.getElementById("discharge").value;
@@ -480,6 +488,11 @@
         document.getElementById('loadBtn').onclick = loadModel;
         document.getElementById('predictBtn').onclick = manualPredict;
         
+        document.getElementById('logoutLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.clear(); // Clear all session storage
+            window.location.href = 'log.html'; // Redirect to login page
+        });
     </script>
     
 </body>
