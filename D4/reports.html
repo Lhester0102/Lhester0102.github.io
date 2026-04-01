@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Geospatial DSS | Flood Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="GDSS.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        /* Theme Core */
+        body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Sidebar Styles (Theme Consistent) */
+        .sidebar { 
+            background-color: #800000; 
+            transition: all 0.3s;
+            z-index: 1050;
+            overflow-y: auto;
+        }
+        .nav-link { 
+            color: rgba(255,255,255,0.8); 
+            transition: 0.2s; 
+            border-radius: 5px; 
+            margin-bottom: 2px; 
+        }
+        .nav-link:hover { 
+            background-color: #212529; 
+            color: #fff; 
+        }
+        .nav-link.active { 
+            background-color: #212529 !important; 
+            color: white !important; 
+        }
+
+        /* Card & Report Styling */
+        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .filter-card { border-left: 5px solid #800000; }
+        
+        /* Table Aesthetics */
+        .table thead th { 
+            background-color: #f8f9fa; 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: #666;
+            border-top: none;
+            padding: 15px;
+        }
+        .table tbody td { 
+            font-size: 0.85rem; 
+            vertical-align: middle; 
+            padding: 12px 15px;
+        }
+        
+        /* Metric Badges */
+        .badge-metric { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .lvl-high { background: #ffebee; color: #c62828; }
+        .lvl-med { background: #fff3e0; color: #ef6c00; }
+        .lvl-low { background: #e8f5e9; color: #2e7d32; }
+
+        @media (min-width: 768px) {
+            .sidebar { min-height: 100vh; height: 100vh; }
+            .main-content { height: 100vh; overflow-y: auto; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+          <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
+            
+            <div class="d-md-none mobile-brand">
+                <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+                <div>
+                    <h6 class="text-white">Geospatial DSS</h6>
+                    <small class="text-white-50" style="font-size: 0.7rem;">User Management</small>
+                </div>
+                <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="text-center mb-4 d-none d-md-block">
+                <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+                <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+                <!-- <small class="opacity-75">Admin Portal</small> -->
+            </div>
+            
+            <ul class="nav flex-column">
+                <li class="mb-1"><a class="nav-link text-white" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+                        <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
+                    </a>
+                    <div class="collapse" id="manageMenu">
+                        <ul class="list-unstyled ps-3 small">
+                            <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
+                            <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="mb-1"><a class="nav-link text-white " href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
+                <li class="mb-1"><a class="nav-link text-white active" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+            </ul>
+            
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <a href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
+            </div>
+        </nav>
+
+        <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+            
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+                <div>
+                    <h5 class="mb-0 fw-bold text-dark">Flood Reports</h5>
+                    <!-- <p class="text-muted small mb-0">Ilocos Norte Spatio-temporal Data Logs</p> -->
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1"></i> Print</button>
+                    <button class="btn btn-sm btn-dark"><i class="bi bi-file-earmark-excel me-1"></i> Export CSV</button>
+                </div>
+            </div>
+
+            <div class="card filter-card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">DATE FROM</label>
+                            <input type="date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">DATE TO</label>
+                            <input type="date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">MUNICIPALITY</label>
+                            <select class="form-select form-select-sm">
+                                <option selected>All Municipalities</option>
+                                <option>Laoag City</option>
+                                <option>Bacarra</option>
+                                <option>Pasuquin</option>
+                                <option>Vintar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">BARANGAY (OPTIONAL)</label>
+                            <select class="form-select form-select-sm" multiple style="max-height: 38px;">
+                                <option>Brgy. 1, San Lorenzo</option>
+                                <option>Brgy. 2, Santa Joaquina</option>
+                                <option>Brgy. 10, San Jose</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm w-100 py-2 fw-bold">
+                                <i class="bi bi-funnel-fill me-1"></i> APPLY
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Barangay</th>
+                                    <th>Date Observed</th>
+                                    <th>Water Level</th>
+                                    <th>Rainfall (mm)</th>
+                                    <th>Discharge (m³/s)</th>
+                                    <th>Avg. Elevation</th>
+                                    <th>Flood Depth</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4 fw-bold">Brgy. 1, Laoag City</td>
+                                    <td>2026-04-02</td>
+                                    <td><span class="badge-metric lvl-high">4.2 m</span></td>
+                                    <td>125.5</td>
+                                    <td>840</td>
+                                    <td>5.2m ASL</td>
+                                    <td class="text-danger fw-bold">1.2 m</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-bold">Pasiocan, Bacarra</td>
+                                    <td>2026-04-01</td>
+                                    <td><span class="badge-metric lvl-med">2.8 m</span></td>
+                                    <td>98.2</td>
+                                    <td>415</td>
+                                    <td>8.5m ASL</td>
+                                    <td class="text-warning fw-bold">0.4 m</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-bold">Salet, Laoag City</td>
+                                    <td>2026-03-28</td>
+                                    <td><span class="badge-metric lvl-low">1.1 m</span></td>
+                                    <td>42.0</td>
+                                    <td>120</td>
+                                    <td>12.0m ASL</td>
+                                    <td class="text-success fw-bold">Safe</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3 border-top-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Showing 3 of 124 records</span>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
