@@ -21,26 +21,26 @@
     
     /* Sidebar Styles (Theme Consistent) */
     .sidebar { 
-        background-color: #800000; 
-        transition: all 0.3s;
-        z-index: 1050;
-        overflow-y: auto;
+      background-color: #800000; 
+      transition: all 0.3s;
+      z-index: 1050;
+      overflow-y: auto;
     }
     .nav-link { 
-        color: rgba(255,255,255,0.8); 
-        transition: 0.2s; 
-        border-radius: 5px; 
-        margin-bottom: 2px; 
+      color: rgba(255,255,255,0.8); 
+      transition: 0.2s; 
+      border-radius: 5px; 
+      margin-bottom: 2px; 
     }
     .nav-link:hover { 
-        background-color: #212529; 
-        color: #fff; 
+      background-color: #212529; 
+      color: #fff; 
     }
     .nav-link.active { 
-        background-color: #212529 !important; 
-        color: white !important; 
+      background-color: #212529 !important; 
+      color: white !important; 
     }
-
+    
     /* Card & UI Refinement */
     .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .top-bar { background: white; border-radius: 12px; padding: 12px 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
@@ -50,107 +50,114 @@
     
     /* Desktop vs Mobile Scrolling Fix */
     @media (min-width: 768px) {
-        body { height: 100vh; overflow: hidden; }
-        .sidebar { min-height: 100vh; height: 100vh; }
-        .main-content { height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
-        .map-container-row { flex-grow: 1; margin-bottom: 20px; }
+      body { height: 100vh; overflow: hidden; }
+      .sidebar { min-height: 100vh; height: 100vh; }
+      .main-content { height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+      .map-container-row { flex-grow: 1; margin-bottom: 20px; }
     }
-
+    
     @media (max-width: 767.98px) {
-        .main-content { padding-bottom: 40px; }
-        #map { height: 500px; }
+      .main-content { padding-bottom: 40px; }
+      #map { height: 500px; }
     }
   </style>
 </head>
 
 <body>
-
-<div class="container-fluid">
-  <div class="row">
-    
-            <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
-            
-            <div class="d-md-none mobile-brand">
-                <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
-                <div>
-                    <h6 class="text-white">Geospatial DSS</h6>
-                    <small class="text-white-50" style="font-size: 0.7rem;">User Management</small>
-                </div>
-                <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <div class="text-center mb-4 d-none d-md-block">
-                <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
-                <h6 class="fw-bold mb-0">Geospatial DSS</h6>
-                <!-- <small class="opacity-75">Admin Portal</small> -->
-            </div>
-            
-            <ul class="nav flex-column">
-                <li class="mb-1"><a class="nav-link text-white" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
-                
-                <li class="nav-item">
-                    <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
-                        <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
-                    </a>
-                    <div class="collapse show" id="manageMenu">
-                        <ul class="list-unstyled ps-3 small">
-                            <li><a href="municipalities.html" class="nav-link text-white-50 active py-1">Municipalities</a></li>
-                            <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-                <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
-            </ul>
-            
-            <div class="mt-4 pt-3 border-top border-secondary">
-                <a href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
-            </div>
-        </nav>
-    
-    <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+  
+  <div class="container-fluid">
+    <div class="row">
       
-      <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-        <button class="btn btn-danger d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="bi bi-list"></i>
-        </button>
-        <h5 class="mb-0 fw-bold text-dark">Municipal Boundaries Analysis</h5>
-        <div class="badge bg-success p-2">Spatio-temporal Live</div>
-      </div>
-
-      <div class="top-bar d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
-            <span class="text-muted small fw-bold text-uppercase">Region Focus: Ilocos Norte</span>
+      <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
+        
+        <div class="d-md-none mobile-brand">
+          <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+          <div>
+            <h6 class="text-white">Geospatial DSS</h6>
+            <small class="text-white-50" style="font-size: 0.7rem;">User Management</small>
+          </div>
+          <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <i class="bi bi-x-lg"></i>
+          </button>
         </div>
         
-        <div class="dropdown">
+        <div class="text-center mb-4 d-none d-md-block">
+          <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+          <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+          <!-- <small class="opacity-75">Admin Portal</small> -->
+        </div>
+        
+        <ul class="nav flex-column">
+          <li class="mb-1"><a class="nav-link text-white" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+          
+          <li class="nav-item">
+            <a class="nav-link text-white active" data-bs-toggle="collapse" href="#manageMenu">
+              <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
+            </a>
+            <div class="collapse show" id="manageMenu">
+              <ul class="list-unstyled ps-3 small">
+                <li><a href="municipalities.html" class="nav-link text-white-50 active py-1">Municipalities</a></li>
+                <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+        </ul>
+        
+        <div class="mt-4 pt-3 border-top border-secondary">
+          <a id ="logoutLink" href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
+        </div>
+      </nav>
+      
+      <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+        
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+          <button class="btn btn-danger d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <i class="bi bi-list"></i>
+          </button>
+          <h5 class="mb-0 fw-bold text-dark">Municipal Boundaries Analysis</h5>
+          <div class="badge bg-success p-2">Spatio-temporal Live</div>
+        </div>
+        
+        <div class="top-bar d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+            <span class="text-muted small fw-bold text-uppercase">Region Focus: Ilocos Norte</span>
+          </div>
+          
+          <div class="dropdown">
             <button class="btn btn-dark btn-sm dropdown-toggle shadow-sm px-3" data-bs-toggle="dropdown">
-                <i class="bi bi-search me-1"></i> Select Municipality
+              <i class="bi bi-search me-1"></i> Select Municipality
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0" id="areaDropdown" style="max-height:300px; overflow-y:auto;">
-                </ul>
-        </div>
-      </div>
-      
-      <div class="row map-container-row flex-grow-1">
-        <div class="col-12 h-100 mb-3">
-          <div class="card h-100 p-1">
-            <div id="map"></div>
+            </ul>
           </div>
         </div>
-      </div>
-      
-    </main>
+        
+        <div class="row map-container-row flex-grow-1">
+          <div class="col-12 h-100 mb-3">
+            <div class="card h-100 p-1">
+              <div id="map"></div>
+            </div>
+          </div>
+        </div>
+        
+      </main>
+    </div>
   </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    window.onload = function() {
+      // Check if the user is logged in
+      if (sessionStorage.getItem('loggedIn') !== 'true') {
+        // Redirect to login page if session is not set
+        window.location.href = 'log.html';
+      }
+    };
     // Firebase Init
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
@@ -173,7 +180,7 @@
       pitch: 45
     });
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
+    
     function getColor(v) {
       if (v >= 80) return '#800000';
       if (v >= 60) return '#BD0026';
@@ -187,8 +194,8 @@
       let lons = flat.filter((_, i) => i % 2 === 0);
       let lats = flat.filter((_, i) => i % 2 === 1);
       return [
-        lons.reduce((a,b)=>a+b,0)/lons.length,
-        lats.reduce((a,b)=>a+b,0)/lats.length
+      lons.reduce((a,b)=>a+b,0)/lons.length,
+      lats.reduce((a,b)=>a+b,0)/lats.length
       ];
     }
     
@@ -243,13 +250,18 @@
         const item = document.createElement('li');
         item.innerHTML = `<a class="dropdown-item py-2" href="#"><i class="bi bi-geo me-2"></i>${f.name}</a>`;
         item.onclick = (e) => {
-            e.preventDefault();
-            showArea(key, f);
+          e.preventDefault();
+          showArea(key, f);
         };
         dropdown.appendChild(item);
       });
     });
-</script>
-
+    document.getElementById('logoutLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      sessionStorage.clear(); // Clear all session storage
+      window.location.href = 'log.html'; // Redirect to login page
+    });
+  </script>
+  
 </body>
 </html>
