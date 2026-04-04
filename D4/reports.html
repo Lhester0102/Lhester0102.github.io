@@ -42,7 +42,7 @@
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
-        /* Table Aesthetics (Matched to System Design) */
+        /* Table Aesthetics */
         .table thead th { 
             background-color: #212529; 
             color: white; 
@@ -79,6 +79,43 @@
         /* Custom Scrollbar */
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        
+        /* Print Specific Styles */
+        .print-header { display: none; }
+        
+        @media print {
+            @page { margin: 1cm; }
+            body { background: white; margin: 0; padding: 0; }
+            
+            /* Hide UI Elements Not Needed for Print */
+            .sidebar, .mobile-brand, #filterCard, .btn, .navbar { 
+                display: none !important; 
+            }
+            
+            /* Expand main content to full width */
+            .main-content { 
+                width: 100% !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                height: auto !important; 
+                overflow: visible !important;
+            }
+            
+            .col-lg-10, .col-md-9 { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
+            
+            /* Adjust Card for Print */
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+            .table { font-size: 0.8rem; }
+            .table thead th { background-color: #f8f9fa !important; color: black !important; border-bottom: 2px solid #000 !important; }
+            
+            /* Show Print Header */
+            .print-header { 
+                display: block !important; 
+                text-align: center; 
+                margin-bottom: 20px; 
+            }
+            .print-header h4 { margin: 0; font-weight: bold; color: #800000; }
+        }
     </style>
 </head>
 
@@ -87,7 +124,6 @@
         <div class="row">
             
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
-                
                 <div class="d-md-none mobile-brand">
                     <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
                     <div>
@@ -97,6 +133,7 @@
                     <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                         <i class="bi bi-x-lg"></i>
                     </button>
+                    
                 </div>
                 
                 <div class="text-center mb-4 d-none d-md-block">
@@ -107,7 +144,6 @@
                 <ul class="nav flex-column">
                     <li class="mb-1"><a class="nav-link text-white" href="newd.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
-                    
                     <li class="nav-item">
                         <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
                             <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
@@ -130,112 +166,353 @@
             
             <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
                 
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
-                    <button class="btn btn-danger d-md-none me-2" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <h5 class="mb-0 fw-bold text-dark me-auto">Flood Reports (Live Data)</h5>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+                    <div class="d-flex align-items-center gap-3">
+                        <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        
+                        <div class="d-flex align-items-baseline gap-2">
+                            <h5 class="mb-0 fw-bold text-dark">Data Reports</h5>
+                            <span id="lastUpdated" class="text-muted small">
+                            </span>
+                        </div>
                     </div>
+                    
+                    <div class="dropdown">
+                        <button
+                        class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+                        type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="emails">User Loading...</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+                        <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                    </ul>
                 </div>
-                
-                <div class="card shadow-sm">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 align-middle">
-                                <thead>
-                                    <tr>
-                                        <th class="ps-4">Date & Time</th>
-                                        <th>Water Level</th>
-                                        <th>Rainfall (mm)</th>
-                                        <th>Flow/Discharge</th>
-                                        <th>Calculated Depth</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="flood-data-table">
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">Connecting to Firebase...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+            </div>
+            <div class="card shadow-sm mb-3" id="filterCard">
+                <div class="card-body">
+                    <div class="row g-2 align-items-end">
+                        
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1">Time Period</label>
+                            <select id="filterPeriodType" class="form-select form-select-sm">
+                                <option value="all">All</option>
+                                <option value="annually">Annually</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="custom">From-To Date</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-5" id="dynamicInputContainer">
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1">City/Municipality</label>
+                            <input type="text" id="filterCity" class="form-control form-control-sm" placeholder="City...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1">Barangay</label>
+                            <input type="text" id="filterBrgy" class="form-control form-control-sm" placeholder="Brgy...">
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <label class="form-label small text-muted mb-1">Rows</label>
+                            <select id="filterRowLimit" class="form-select form-select-sm">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="all" selected>All</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2 d-flex gap-1">
+                            <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
+                            <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
+                        </div>
+                        <div class="col-md-2 d-flex gap-1">
+                            <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
+                            <button class="btn btn-sm btn-secondary w-100 " onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+            
+            <div class="card shadow-sm table-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Time</th>
+                                    <th>City/Municpality</th>
+                                    <th>Barangay</th>
+                                    <th>Water Level</th>
+                                    <th>Rainfall</th>
+                                    <th>Flow/Discharge</th>
+                                    <th>Flood Depth</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flood-data-table">
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">Connecting to Firebase...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    // Session Guard
+    window.onload = function() {
+        if (sessionStorage.getItem('loggedIn') !== 'true') {
+            window.location.href = 'log.html';
+        }
+        document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+        document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
         
-        // Session Guard
-        window.onload = function() {
-            if (sessionStorage.getItem('loggedIn') !== 'true') {
-                window.location.href = 'log.html';
+    };
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dataRef = ref(db, 'data');
+    
+    let allReports = []; 
+    let currentFilteredData = []; // New array to hold the currently filtered data for CSV export
+    
+    // Dynamic Filter UI Logic
+    const periodTypeSelect = document.getElementById('filterPeriodType');
+    const dynamicContainer = document.getElementById('dynamicInputContainer');
+    
+    periodTypeSelect.addEventListener('change', function() {
+        const val = this.value;
+        dynamicContainer.innerHTML = ''; // clear
+        
+        if (val === 'annually') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Select Year</label>
+                    <input type="number" id="inputAnnual" class="form-control form-control-sm" placeholder="YYYY" min="2000" max="2100">
+                `;
+        } else if (val === 'monthly') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Select Month</label>
+                    <input type="month" id="inputMonthly" class="form-control form-control-sm">
+                `;
+        } else if (val === 'weekly') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Select Week</label>
+                    <input type="week" id="inputWeekly" class="form-control form-control-sm">
+                `;
+        } else if (val === 'custom') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1 w-100">Date Range (From - To)</label>
+                    <div class="d-flex gap-1">
+                        <input type="date" id="inputDateFrom" class="form-control form-control-sm">
+                        <input type="date" id="inputDateTo" class="form-control form-control-sm">
+                    </div>
+                `;
+        }
+    });
+    
+    function getISOWeekString(dateObj) {
+        const date = new Date(dateObj.getTime());
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+        const week1 = new Date(date.getFullYear(), 0, 4);
+        const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        return `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+    }
+    
+    function getDepthInfo(level) {
+        const l = parseFloat(level);
+        if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
+        if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
+        return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
+    }
+    
+    onValue(dataRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            allReports = Object.keys(data).map(key => data[key]).reverse();
+        } else {
+            allReports = [];
+        }
+        renderTable(); 
+    });
+    
+    function renderTable() {
+        const tableBody = document.getElementById('flood-data-table');
+        tableBody.innerHTML = ''; 
+        
+        const periodType = periodTypeSelect.value;
+        const cityFilter = document.getElementById('filterCity').value.toLowerCase();
+        const brgyFilter = document.getElementById('filterBrgy').value.toLowerCase();
+        const rowLimit = document.getElementById('filterRowLimit').value;
+        
+        // Apply Filters
+        currentFilteredData = allReports.filter(item => {
+            let match = true;
+            
+            // Time Period Filtering
+            if (periodType !== 'all') {
+                if (!item.date) {
+                    match = false;
+                } else {
+                    const itemDate = new Date(item.date);
+                    
+                    if (periodType === 'annually') {
+                        const y = document.getElementById('inputAnnual')?.value;
+                        if (y && itemDate.getFullYear().toString() !== y) match = false;
+                    } 
+                    else if (periodType === 'monthly') {
+                        const m = document.getElementById('inputMonthly')?.value;
+                        if (m) {
+                            const itemMonthStr = `${itemDate.getFullYear()}-${(itemDate.getMonth()+1).toString().padStart(2, '0')}`;
+                            if (itemMonthStr !== m) match = false;
+                        }
+                    } 
+                    else if (periodType === 'weekly') {
+                        const w = document.getElementById('inputWeekly')?.value;
+                        if (w && getISOWeekString(itemDate) !== w) match = false;
+                    } 
+                    else if (periodType === 'custom') {
+                        const from = document.getElementById('inputDateFrom')?.value;
+                        const to = document.getElementById('inputDateTo')?.value;
+                        if (from && itemDate < new Date(from)) match = false;
+                        if (to && itemDate > new Date(to)) match = false;
+                    }
+                }
             }
-        };
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-            authDomain: "flooded-95eeb.firebaseapp.com",
-            projectId: "flooded-95eeb",
-            storageBucket: "flooded-95eeb.firebasestorage.app",
-            messagingSenderId: "142547476223",
-            appId: "1:142547476223:web:70de7014c664e26d0636ca"
-        };
+            
+            // Location Filtering
+            if (cityFilter && (!item.city || !item.city.toLowerCase().includes(cityFilter))) match = false;
+            if (brgyFilter && (!item.barangay || !item.barangay.toLowerCase().includes(brgyFilter))) match = false;
+            
+            return match;
+        });
         
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const dataRef = ref(db, 'data');
-        
-        function getDepthInfo(level) {
-            const l = parseFloat(level);
-            if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
-            if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
-            return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
+        // Apply Row Limit
+        if (rowLimit !== 'all') {
+            currentFilteredData = currentFilteredData.slice(0, parseInt(rowLimit));
         }
         
-        onValue(dataRef, (snapshot) => {
-            const tableBody = document.getElementById('flood-data-table');
-            tableBody.innerHTML = ''; 
+        // Render Results
+        if (currentFilteredData.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
+            return;
+        }
+        
+        currentFilteredData.forEach(item => {
+            const depthMeta = getDepthInfo(item.level);
+            const cityDisp = item.city || 'N/A';
+            const brgyDisp = item.barangay || 'N/A';
             
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const rows = Object.keys(data).map(key => data[key]);
-                
-                rows.reverse().forEach(item => {
-                    const depthMeta = getDepthInfo(item.level);
-                    
-                    const rowHTML = `
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold text-dark">${item.date || 'N/A'}</div>
-                                <small class="text-muted">${item.time || ''}</small>
-                            </td>
-                            <td><span class="badge-metric ${depthMeta.class}">${item.level} m</span></td>
-                            <td>${item.rain} mm</td>
-                            <td>${item.flow} m³/s</td>
-                            <td class="fw-bold text-dark">${depthMeta.depthCalc}</td>
-                            <td><span class="badge rounded-pill ${depthMeta.class}">${depthMeta.label}</span></td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += rowHTML;
-                });
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No records found in Firebase.</td></tr>';
-            }
+            const rowHTML = `
+                    <tr>
+                        <td class="ps-4"><div class="fw-bold text-dark">${item.date || 'N/A'}</div> </td>
+                        <td><div class="fw-bold text-dark">${item.time || ''}</div></td>
+                        <td><div class="fw-bold text-dark">${cityDisp}</div></td>
+                        <td><div class="fw-bold text-dark">Brgy. ${brgyDisp}</div></td>
+                        <td><span class="badge-metric ${depthMeta.class}">${item.level} m</span></td>
+                        <td>${item.rain} mm</td>
+                        <td>${item.flow} m³/s</td>
+                        <td class="fw-bold text-dark">${depthMeta.depthCalc}</td>
+                        <td><span class="badge rounded-pill ${depthMeta.class}">${depthMeta.label}</span></td>
+                    </tr>
+                `;
+            tableBody.innerHTML += rowHTML;
+        });
+    }
+    
+    // CSV Export Function
+    function exportToCSV() {
+        if (currentFilteredData.length === 0) {
+            alert("No data available to export based on your current filters.");
+            return;
+        }
+        
+        // Setup CSV Header
+        let csvContent = "Date,Time,City,Barangay,Water Level (m),Rainfall (mm),Flow (m3/s),Calculated Depth,Status\n";
+        
+        // Populate CSV Rows
+        currentFilteredData.forEach(item => {
+            const depthMeta = getDepthInfo(item.level);
+            
+            // Wrap strings in quotes to prevent issues with commas in strings (if any)
+            const date = `"${item.date || 'N/A'}"`;
+            const time = `"${item.time || 'N/A'}"`;
+            const city = `"${item.city || 'N/A'}"`;
+            const brgy = `"${item.barangay || 'N/A'}"`;
+            const level = `"${item.level || '0'}"`;
+            const rain = `"${item.rain || '0'}"`;
+            const flow = `"${item.flow || '0'}"`;
+            const depth = `"${depthMeta.depthCalc}"`;
+            const status = `"${depthMeta.label}"`;
+            
+            csvContent += `${date},${time},${city},${brgy},${level},${rain},${flow},${depth},${status}\n`;
         });
         
-        document.getElementById('logoutLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            sessionStorage.clear();
-            window.location.href = 'log.html';
-        });
-    </script>
+        // Create Download Link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        link.setAttribute("download", `Flood_Reports_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    // Attach Event Listeners
+    document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+    
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+        periodTypeSelect.value = 'all';
+        dynamicContainer.innerHTML = '';
+        document.getElementById('filterCity').value = '';
+        document.getElementById('filterBrgy').value = '';
+        document.getElementById('filterRowLimit').value = 'all';
+        renderTable();
+    });
+    
+    document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
+    
+    document.getElementById('logoutLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        sessionStorage.clear();
+        window.location.href = 'log.html';
+    });
+</script>
 </body>
 </html>

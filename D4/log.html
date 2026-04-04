@@ -5,117 +5,212 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Flood DSS</title>
   <link rel="icon" type="image/x-icon" href="GDSS.png">
-  <!-- Bootstrap CSS -->
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
   
-  <div class="container-fluid vh-100">
-    <div class="row h-100">
+  <style>
+    :root {
+      --brand-maroon: #800000;
+      --brand-dark: #1a1a1a;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* --- MOBILE HEADER (Visible < 992px) --- */
+    .mobile-header {
+      background-color: var(--brand-maroon);
+      display: none;
+      padding: 12px 20px;
+      z-index: 1050;
+    }
+
+    /* --- SIDE PANEL (Visible > 992px) --- */
+    .auth-side-panel {
+      background: linear-gradient(135deg, var(--brand-maroon) 0%, #5a0000 100%);
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      padding: 40px;
+    }
+
+    .brand-logo {
+      max-width: 260px;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+      transition: transform 0.3s ease;
+    }
+
+    /* --- CARD STYLING --- */
+    .login-card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .form-control {
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+    }
+
+    .form-control:focus {
+      border-color: var(--brand-maroon);
+      box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+    }
+
+    .btn-login {
+      background-color: var(--brand-maroon);
+      border: none;
+      padding: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    .btn-login:hover { background-color: #600000; }
+
+    /* --- RESPONSIVE ADJUSTMENTS --- */
+    @media (max-width: 991.98px) {
+      .mobile-header { display: flex; align-items: center; justify-content: center; gap: 12px; }
+      .auth-side-panel { display: none !important; }
+      .login-container { min-height: calc(100vh - 70px); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="mobile-header sticky-top shadow-sm">
+    <img src="gds.png" alt="Logo" style="height: 40px; width: 40px;" class="rounded-circle border border-white">
+    <h5 class="text-white mb-0 fw-bold">Flash Floods GDSS</h5>
+  </header>
+  
+  <div class="container-fluid p-0">
+    <div class="row g-0">
       
-      <!-- LEFT PANEL -->
-      <div style="background-color:#800000;" class="col-md-7 d-none d-md-flex flex-column justify-content-center align-items-center text-white">
-        <h1 class="mb-3">Flash Floods GDSS</h1>
-        <p class="lead text-center">A Geospatial Decision Support System for Flood Monitoring</p>
-        <img src="gds.png" class="rounded-circle img-fluid" style="max-width:350px;">
+      <div class="col-lg-7 auth-side-panel">
+        <img src="gds.png" alt="Logo" class="brand-logo mb-4 rounded-circle">
+        <h1 class="fw-bold mb-2">Flash Floods GDSS</h1>
+        <p class="opacity-75 text-center lead" style="max-width: 500px;">
+          Geospatial Decision Support System for real-time flood monitoring and disaster response.
+        </p>
       </div>
       
-      <!-- RIGHT PANEL: LOGIN FORM -->
-      <div class="col-md-5 d-flex justify-content-center align-items-center">
-        <div class="card shadow-sm p-4 w-75" style="max-width: 400px;">
-          <h4 class="text-center mb-4">Login</h4>
+      <div class="col-lg-5 d-flex justify-content-center align-items-center bg-white login-container" style="min-height: 100vh;">
+        <div class="card login-card p-4 p-sm-5">
+          
+          <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark">Portal Login</h3>
+            <p class="text-muted small">Enter your credentials to access the system</p>
+          </div>
+
           <form id="loginForm">
             <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" id="email" class="form-control form-control-sm" placeholder="Enter email" required>
+              <label for="email" class="form-label small fw-semibold text-secondary">Email</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                <input type="email" id="email" class="form-control border-start-0" placeholder="name@agency.gov" required>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input type="password" id="password" class="form-control form-control-sm" placeholder="Enter password" required>
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between">
+                <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+                <a href="#" class="small text-decoration-none" style="color: var(--brand-maroon)">Forgot?</a>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-muted"></i></span>
+                <input type="password" id="password" class="form-control border-start-0" placeholder="••••••••" required>
+              </div>
             </div>
-            <button type="submit" class="btn btn-danger w-100">Login</button>
-            <div class="text-center mt-2">
-              <a href="#" class="small">Forgot password?</a>
-            </div>
+
+            <button type="submit" id="loginBtn" class="btn btn-danger btn-login w-100 mb-3">
+              <span class="spinner-border spinner-border-sm d-none me-2" id="btnSpinner"></span>
+              <span id="btnText">Sign In</span>
+            </button>
           </form>
+
+          <div class="text-center">
+            <span class="badge bg-light text-dark border py-2 px-3 fw-normal">
+              <i class="bi bi-info-circle me-1 text-maroon"></i> Secure Gov Access
+            </span>
+          </div>
         </div>
       </div>
       
     </div>
   </div>
-  
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Firebase SDKs -->
+
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
       authDomain: "flooded-95eeb.firebaseapp.com",
       projectId: "flooded-95eeb",
       storageBucket: "flooded-95eeb.firebasestorage.app",
       messagingSenderId: "142547476223",
-      appId: "1:142547476223:web:70de7014c664e26d0636ca",
-      measurementId: "G-MRFYTR1F5K"
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
     document.addEventListener('DOMContentLoaded', function() {
+      if(sessionStorage.getItem('loggedIn') == 'true') window.location.href = "newd.html";
       
-      // Check if user is already logged in
-      if(sessionStorage.getItem('loggedIn') === 'true'){
-        window.location.href = "newd.html";
-      }
-      
-      // Login form submit
-      document.getElementById('loginForm').addEventListener('submit', function(e){
+      const form = document.getElementById('loginForm');
+      const btn = document.getElementById('loginBtn');
+      const spinner = document.getElementById('btnSpinner');
+      const txt = document.getElementById('btnText');
+
+      form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const emailInput = document.getElementById('email').value;
-        const passwordInput = document.getElementById('password').value;
         
-        const usersRef = database.ref('users');
-        usersRef.once('value')
-        .then(snapshot => {
+        // Show Loading
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        txt.innerText = "Verifying...";
+
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value;
+        
+        database.ref('users').once('value').then(snapshot => {
           const users = snapshot.val();
-          console.log("Users from Firebase:", users);
+          let auth = false;
           
-          if(!users){
-            alert("No users found in database");
-            return;
-          }
-          
-          let authenticated = false;
-          for(let key in users){
-            console.log("Checking:", users[key].user, users[key].pass);
-            if(users[key].user == emailInput && users[key].pass == passwordInput){
-              authenticated = true;
-              sessionStorage.setItem('loggedIn', 'true');
-              sessionStorage.setItem('userEmail', emailInput);
+          for(let key in users) {
+            if(users[key].user == email && users[key].pass == pass) {
+              auth = true;
               break;
             }
           }
-          
-          if(authenticated){
-            alert("Login successful!");
+
+          if(auth) {
+            sessionStorage.setItem('loggedIn', 'true');
+            sessionStorage.setItem('userEmail', email);
             window.location.href = "newd.html";
           } else {
-            alert("Invalid email or password");
+            alert("Login failed. Please check your email and password.");
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+            txt.innerText = "Sign In";
           }
-        })
-        .catch(error => {
-          console.error("Firebase read error:", error);
+        }).catch(err => {
+          alert("Database connection error.");
+          btn.disabled = false;
+          spinner.classList.add('d-none');
+          txt.innerText = "Sign In";
         });
-        
       });
-      
     });
   </script>
-  
 </body>
 </html>

@@ -124,144 +124,165 @@
             
             <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
                 
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
-                    <button class="btn btn-danger d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <h5 class="mb-0 fw-bold text-dark">User Access Management</h5>
-                    <div class="badge bg-success p-2 px-3 shadow-sm"><i class="bi bi-shield-check me-1"></i> System Secure</div>
-                </div>
-                
-                <div class="row g-4">
-                    <div class="col-xl-4 col-lg-5">
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-dark text-white py-3" id="formHeader">
-                                <i class="bi bi-person-plus me-2"></i> Create New Account
-                            </div>
-                            <div class="card-body p-4">
-                                <form id="userForm">
-                                    <input type="hidden" id="userId">
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Username</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-person text-muted"></i></span>
-                                            <input type="text" id="username" class="form-control border-0" placeholder="Enter username" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Access Password</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-key text-muted"></i></span>
-                                            <input type="password" id="password" class="form-control border-0" placeholder="Create password" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <label class="form-label small fw-bold">Account Role</label>
-                                        <select id="userType" class="form-select shadow-sm" required>
-                                            <option value="" selected disabled>Choose role...</option>
-                                            <option value="Admin">Administrator</option>
-                                            <option value="User">Standard User</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" id="submitBtn" class="btn btn-danger py-2 fw-bold">Save Account</button>
-                                        <button type="button" id="cancelBtn" class="btn btn-light text-muted border py-2" style="display:none;" onclick="resetUserForm()">Cancel Edit</button>
-                                    </div>
-                                </form>
-                            </div>
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+                    <div class="d-flex align-items-center gap-3">
+                        <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        
+                        <div class="d-flex align-items-baseline gap-2">
+                            <h5 class="mb-0 fw-bold text-dark">User Management</h5>
+                            <span id="lastUpdated" class="text-muted small">
+                            </span>
                         </div>
                     </div>
                     
-                    <div class="col-xl-8 col-lg-7">
-                        <div class="card shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                                    <h6 class="fw-bold mb-0 text-maroon" style="color: #800000;">Registered Accounts</h6>
-                                    <div class="input-group" style="max-width: 300px;">
-                                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Filter users...">
+                    <div class="dropdown">
+                        <button
+                        class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+                        type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="emails">User Loading...</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+                        <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-xl-4 col-lg-5">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-dark text-white py-3" id="formHeader">
+                            <i class="bi bi-person-plus me-2"></i> Create New Account
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="userForm">
+                                <input type="hidden" id="userId">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Username</label>
+                                    <div class="input-group shadow-sm border rounded">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-person text-muted"></i></span>
+                                        <input type="text" id="username" class="form-control border-0" placeholder="Enter username" required>
                                     </div>
                                 </div>
                                 
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th>Username</th>
-                                                <th>Role</th>
-                                                <th class="text-end">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="userTable">
-                                        </tbody>
-                                    </table>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Access Password</label>
+                                    <div class="input-group shadow-sm border rounded">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-key text-muted"></i></span>
+                                        <input type="password" id="password" class="form-control border-0" placeholder="Create password" required>
+                                    </div>
                                 </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold">Account Role</label>
+                                    <select id="userType" class="form-select shadow-sm" required>
+                                        <option value="" selected disabled>Choose role...</option>
+                                        <option value="Admin">Administrator</option>
+                                        <option value="User">Standard User</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" id="submitBtn" class="btn btn-danger py-2 fw-bold">Save Account</button>
+                                    <button type="button" id="cancelBtn" class="btn btn-light text-muted border py-2" style="display:none;" onclick="resetUserForm()">Cancel Edit</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-8 col-lg-7">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                                <h6 class="fw-bold mb-0 text-maroon" style="color: #800000;">Registered Accounts</h6>
+                                <div class="input-group" style="max-width: 300px;">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Filter users...">
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Role</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userTable">
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.onload = function() {
+        // Check if the user is logged in
+        if (sessionStorage.getItem('loggedIn') !== 'true') {
+            // Redirect to login page if session is not set
+            window.location.href = 'log.html';
+        }
+        document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+    };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userRef = db.ref("users");
     
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    const form = document.getElementById("userForm");
+    const table = document.getElementById("userTable");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formHeader = document.getElementById("formHeader");
     
-    <script>
-        window.onload = function() {
-            // Check if the user is logged in
-            if (sessionStorage.getItem('loggedIn') !== 'true') {
-                // Redirect to login page if session is not set
-                window.location.href = 'log.html';
-            }
-        };
-        const firebaseConfig = {
-            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-            authDomain: "flooded-95eeb.firebaseapp.com",
-            projectId: "flooded-95eeb",
-            storageBucket: "flooded-95eeb.firebasestorage.app",
-            messagingSenderId: "142547476223",
-            appId: "1:142547476223:web:70de7014c664e26d0636ca"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const userRef = db.ref("users");
+    form.addEventListener("submit", function(e){
+        e.preventDefault();
+        const UID = document.getElementById("userId").value;
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const type = document.getElementById("userType").value;
+        const data = { user, pass, type };
         
-        const form = document.getElementById("userForm");
-        const table = document.getElementById("userTable");
-        const submitBtn = document.getElementById("submitBtn");
-        const cancelBtn = document.getElementById("cancelBtn");
-        const formHeader = document.getElementById("formHeader");
-        
-        form.addEventListener("submit", function(e){
-            e.preventDefault();
-            const UID = document.getElementById("userId").value;
-            const user = document.getElementById("username").value;
-            const pass = document.getElementById("password").value;
-            const type = document.getElementById("userType").value;
-            const data = { user, pass, type };
+        if(UID){
+            userRef.child(UID).update(data);
+        } else {
+            userRef.push(data);
+        }
+        resetUserForm();
+    });
+    
+    userRef.on("value", snapshot => {
+        table.innerHTML = "";
+        snapshot.forEach(child => {
+            const data = child.val();
+            const key = child.key;
+            const badgeClass = data.type === 'Admin' ? 'bg-danger' : 'bg-primary';
             
-            if(UID){
-                userRef.child(UID).update(data);
-            } else {
-                userRef.push(data);
-            }
-            resetUserForm();
-        });
-        
-        userRef.on("value", snapshot => {
-            table.innerHTML = "";
-            snapshot.forEach(child => {
-                const data = child.val();
-                const key = child.key;
-                const badgeClass = data.type === 'Admin' ? 'bg-danger' : 'bg-primary';
-                
-                table.innerHTML += `
+            table.innerHTML += `
                 <tr>
                     <td class="fw-bold text-dark">${data.user}</td>
                     <td><span class="badge ${badgeClass} opacity-75">${data.type}</span></td>
@@ -272,53 +293,53 @@
                     </td>
                 </tr>
             `;
-            });
         });
-        
-        function deleteUser(id){
-            if(confirm("Permanently delete this user account?")){
-                userRef.child(id).remove();
-            }
-        }
-        
-        function editUser(id, username, password, type){
-            document.getElementById("userId").value = id;
-            document.getElementById("username").value = username;
-            document.getElementById("password").value = password;
-            document.getElementById("userType").value = type;
-            
-            formHeader.innerHTML = '<i class="bi bi-pencil-square me-2"></i> Edit Account';
-            submitBtn.innerText = "Update Changes";
-            submitBtn.className = "btn btn-warning fw-bold py-2";
-            cancelBtn.style.display = "block";
-        }
-        
-        function resetUserForm() {
-            form.reset();
-            document.getElementById("userId").value = "";
-            formHeader.innerHTML = '<i class="bi bi-person-plus me-2"></i> Create New Account';
-            submitBtn.innerText = "Save Account";
-            submitBtn.className = "btn btn-danger fw-bold py-2";
-            cancelBtn.style.display = "none";
-        }
-        
-        function viewUser(username, type){
-            alert("Account Summary\n------------------\nUsername: " + username + "\nRole: " + type);
-        }
-        
-        document.getElementById("searchInput").addEventListener("keyup", function(){
-            let value = this.value.toLowerCase();
-            let rows = document.querySelectorAll("#userTable tr");
-            rows.forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
-            });
-        });
-        document.getElementById('logoutLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            sessionStorage.clear(); // Clear all session storage
-            window.location.href = 'log.html'; // Redirect to login page
-        });
-    </script>
+    });
     
+    function deleteUser(id){
+        if(confirm("Permanently delete this user account?")){
+            userRef.child(id).remove();
+        }
+    }
+    
+    function editUser(id, username, password, type){
+        document.getElementById("userId").value = id;
+        document.getElementById("username").value = username;
+        document.getElementById("password").value = password;
+        document.getElementById("userType").value = type;
+        
+        formHeader.innerHTML = '<i class="bi bi-pencil-square me-2"></i> Edit Account';
+        submitBtn.innerText = "Update Changes";
+        submitBtn.className = "btn btn-warning fw-bold py-2";
+        cancelBtn.style.display = "block";
+    }
+    
+    function resetUserForm() {
+        form.reset();
+        document.getElementById("userId").value = "";
+        formHeader.innerHTML = '<i class="bi bi-person-plus me-2"></i> Create New Account';
+        submitBtn.innerText = "Save Account";
+        submitBtn.className = "btn btn-danger fw-bold py-2";
+        cancelBtn.style.display = "none";
+    }
+    
+    function viewUser(username, type){
+        alert("Account Summary\n------------------\nUsername: " + username + "\nRole: " + type);
+    }
+    
+    document.getElementById("searchInput").addEventListener("keyup", function(){
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#userTable tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+        });
+    });
+    document.getElementById('logoutLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        sessionStorage.clear(); // Clear all session storage
+        window.location.href = 'log.html'; // Redirect to login page
+    });
+</script>
+
 </body>
 </html>

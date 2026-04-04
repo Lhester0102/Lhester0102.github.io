@@ -29,7 +29,6 @@
     }
     /* Applied Template Sidebar Style */
     /* Sidebar Styles */
-    /* Sidebar Styles */
     .sidebar { 
       background-color: #800000; 
       transition: all 0.3s;
@@ -93,14 +92,27 @@
     #map { width: 100%; height: 100%; border-radius: 10px; }
     .main-content { height: 100vh; overflow-y: auto; }
     
-    /* Map Legend (Kept from original for utility) */
+    /* Map Legend */
     #map-legend {
-      position: absolute; bottom: 30px; right: 20px;
-      background: white; padding: 12px; border-radius: 10px; font-size: 11px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 170px;
+      position: absolute; top: 180px; left: 15px;
+      background: rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 10px; font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 180px;
     }
+    #map-legend2 {
+      position: absolute; top: 15px; right: 15px;
+      font-size: 12px;background: rgba(255, 255, 255, 0.6); 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 200px;
+    }
+    /* Map Layer Toggles */
+    #layer-controls {
+      position: absolute; top: 15px; left: 15px;
+      background: rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 10px; 
+      font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 180px;
+    }
+    
     .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
     .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
+    
     
     /* Popups */
     .popup-chart-container { width: 240px; height: 140px; }
@@ -128,7 +140,6 @@
         <div class="text-center mb-4 d-none d-md-block">
           <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
-          <!-- <small class="opacity-75">Admin Portal</small> -->
         </div>
         
         <ul class="nav flex-column">
@@ -156,195 +167,258 @@
       </nav>
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
-        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-          <button class="btn btn-danger d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="bi bi-list"></i>
-          </button>
-          <div>
-            <h5 class="mb-0 fw-bold ms-2">Map</h5>
-            <!-- <small class="text-muted">Analysis > Live Monitoring</small> -->
+        <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+          <div class="d-flex align-items-center gap-3">
+            <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+              <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="d-flex align-items-baseline gap-2">
+              <h5 class="mb-0 fw-bold text-dark">Map Overlay</h5>
+              <span id="lastUpdated" class="text-muted small">
+              </span>
+            </div>
           </div>
           
-          <div class="d-flex align-items-center gap-3">
-            <div class="dropdown">
-              <button class="btn btn-dark dropdown-toggle btn-sm shadow-sm" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-water me-1"></i> River Stations
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow border-0" id="riverDropdownMenu" style="max-height:300px; overflow-y:auto;"></ul>
-            </div>
-             <span id="emails" class="badge bg-success">System Active</span>
-          </div>
+          <div class="dropdown">
+            <button
+            class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+            type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="emails">User Loading...</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+          </ul>
         </div>
-        
-        <div class="row" style="height: 90%;">
-          <div class="col-12 h-100">
-            <div class="card h-100 p-1 position-relative">
-              <div id="map"></div>
-              
-              <div id="map-legend">
-                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
-                <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (90+)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-89)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
-                <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
+      </div>
+      
+      <div class="row" style="height: 88%;">
+        <div class="col-12 h-100">
+          <div class="card h-100 p-1 position-relative">
+            <div id="map"></div>
+            
+            <div id="layer-controls">
+              <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 12px;">DISPLAY RISKS</h6>
+              <div class="form-check mb-1">
+                <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
+                <label class="form-check-label text-dark" for="chkSevere">Severe</label>
+              </div>
+              <div class="form-check mb-1">
+                <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
+                <label class="form-check-label text-dark" for="chkHigh">High</label>
+              </div>
+              <div class="form-check mb-1">
+                <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
+                <label class="form-check-label text-dark" for="chkModerate">Moderate</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
+                <label class="form-check-label text-dark" for="chkLow">Low / Safe</label>
               </div>
             </div>
+            <div id="map-legend2">
+              <div class="dropdown w-100 ">
+                <button class="btn rounded btn-sm shadow-sm w-100 d-flex align-items-center 
+                justify-content-between dropdown-toggle text-dark" 
+                type="button" data-bs-toggle="dropdown">
+                <div class="d-flex align-items-center text-dark">
+                  <i class="text-dark bi bi-water me-2"></i>
+                  <span>River Stations</span>
+                </div>
+              </button>
+              
+              <ul class="dropdown-menu dropdown-menu-start shadow border-0 w-100" 
+              id="riverDropdownMenu" 
+              style="max-height:300px; overflow-y:auto;">
+            </ul>
           </div>
         </div>
         
-        
-      </main>
+        <div id="map-legend">
+          <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
+          <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (90+)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-89)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
+          <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
+        </div>
+      </div>
     </div>
   </div>
   
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <script>
-    window.onload = function() {
-      // Check if the user is logged in
-      if (sessionStorage.getItem('loggedIn') !== 'true') {
-        // Redirect to login page if session is not set
-        window.location.href = 'log.html';
-      }
-       document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
-    };
+</main>
+</div>
+</div>
 
-    // Firebase Config (from template)
-    const firebaseConfig = {
-      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-      authDomain: "flooded-95eeb.firebaseapp.com",
-      projectId: "flooded-95eeb",
-      storageBucket: "flooded-95eeb.firebasestorage.app",
-      messagingSenderId: "142547476223",
-      appId: "1:142547476223:web:70de7014c664e26d0636ca"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    // Mapbox Config
-    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-      center: [120.716062, 18.106858],
-      zoom: 9.5,
-      pitch: 55
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  window.onload = function() {
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = 'log.html';
+    }
+    document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+  };
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+    authDomain: "flooded-95eeb.firebaseapp.com",
+    projectId: "flooded-95eeb",
+    storageBucket: "flooded-95eeb.firebasestorage.app",
+    messagingSenderId: "142547476223",
+    appId: "1:142547476223:web:70de7014c664e26d0636ca"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
+  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+    center: [120.716062, 18.106858],
+    zoom: 9.5,
+    pitch: 55
+  });
+  
+  // Risk categorization logic
+  const getRiskCategory = (v) => {
+    if(v >= 90) return 'severe';
+    if(v >= 50) return 'high';
+    if(v >= 20) return 'moderate';
+    return 'low';
+  };
+  
+  const getFloodColor = (v) => {
+    if(v >= 90) return 'rgba(255,0,0,0.6)';
+    if(v >= 50) return 'rgba(255, 140, 0, 0.6)';
+    if(v >= 20) return 'rgba(255,255,0,0.6)';
+    return 'rgba(2, 251, 2, 0.6)';
+  };
+  
+  const floodLayers = [];
+  
+  map.on('load', () => {
+    // Add Terrain
+    map.addSource('mapbox-dem', {
+      'type': 'raster-dem',
+      'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      'tileSize': 512,
+      'maxzoom': 14
     });
+      // Moves the zoom and compass controls to the bottom-right corner
+map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
     
-    const getFloodColor = (v) => {
-      if(v >= 90) return 'rgba(255,0,0,0.6)';
-      if(v >= 50) return 'rgba(255, 140, 0, 0.6)';
-      if(v >= 20) return 'rgba(255,255,0,0.6)';
-      return 'rgba(2, 251, 2, 0.6)';
-    };
-    
-    const floodLayers = [];
-    
-    map.on('load', () => {
-      // Add Terrain
-      map.addSource('mapbox-dem', {
-        'type': 'raster-dem',
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512,
-        'maxzoom': 14
-      });
-      map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+    // Load Firebase Flooded Areas
+    db.ref('Flooded_Areas').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
       
-      // Load Firebase Flooded Areas
-      db.ref('Flooded_Areas').once('value').then(snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
+      Object.entries(data).forEach(([id, f], i) => {
+        const geo = f.geojson;
+        if (!geo) return;
         
-        Object.entries(data).forEach(([id, f], i) => {
-          const geo = f.geojson;
-          if (!geo) return;
-          
-          const sourceId = `flood-src-${i}`;
-          const layerId = `flood-layer-${i}`;
-          map.addSource(sourceId, { type: 'geojson', data: geo });
-          
-          if (f.type?.toLowerCase() === 'municipality') {
-            map.addLayer({
-              id: `border-${i}`,
-              type: 'line',
-              source: sourceId,
-              paint: { 'line-color': '#800000', 'line-width': 2 }
-            });
-          } else {
-            map.addLayer({
-              id: layerId,
-              type: 'fill',
-              source: sourceId,
-              paint: { 
-                'fill-color': getFloodColor(f.vulnerability || 0), 
-                'fill-opacity': 0.5 
-              }
-            });
-            floodLayers.push({ layerId, props: f });
-          }
-        });
+        const sourceId = `flood-src-${i}`;
+        const layerId = `flood-layer-${i}`;
+        map.addSource(sourceId, { type: 'geojson', data: geo });
+        
+        if (f.type?.toLowerCase() === 'municipality') {
+          map.addLayer({
+            id: `border-${i}`,
+            type: 'line',
+            source: sourceId,
+            paint: { 'line-color': '#800000', 'line-width': 2 }
+          });
+        } else {
+          map.addLayer({
+            id: layerId,
+            type: 'fill',
+            source: sourceId,
+            paint: { 
+              'fill-color': getFloodColor(f.vulnerability || 0), 
+              'fill-opacity': 0.5 
+            }
+          });
+          // Store layer ID and vulnerability for filtering later
+          floodLayers.push({ layerId, props: f });
+        }
       });
     });
-    
-    // Interaction Logic
-    // Interaction Logic: Risk based on Elevation
-    map.on('click', async (e) => {
-      const { lng, lat } = e.lngLat;
-      const elevation = map.queryTerrainElevation(e.lngLat) || 0;
+  });
+  
+  // Checkbox Toggle Logic
+  document.querySelectorAll('.risk-filter').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      // Get all currently checked categories
+      const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
       
-      // 1. Calculate Risk Percentage based on Elevation
-      // Logic: Below 5m = 100% risk. Risk decreases as elevation rises.
-      // At 50m and above, risk is near 0%.
-      const minElev = 5;  // Severe Risk Threshold (meters)
-      const maxElev = 50; // Safe Threshold (meters)
-      
-      let calcRisk = 0;
-      if (elevation <= minElev) {
-        calcRisk = 100;
-      } else if (elevation >= maxElev) {
-        calcRisk = 5; // Base minimum risk
-      } else {
-        // Linear interpolation: Higher elevation = Lower %
-        calcRisk = 100 - ((elevation - minElev) / (maxElev - minElev) * 100);
-      }
-      const finalRisk = Math.round(calcRisk);
-      
-      // 2. Determine Color and Label based on calculated risk
-      let riskColor, riskLabel, badgeClass;
-      if (finalRisk >= 90) { 
-        riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
-      } else if (finalRisk >= 50) { 
-        riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
-      } else if (finalRisk >= 20) { 
-        riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
-      } else { 
-        riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
-      }
-      
-      // 3. Reverse Geocoding for Address/Barangay
-      const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
-      
-      let address = "Scanning...";
-      let barangay = "N/A";
-      let municipality = "N/A";
-      
-      try {
-        const resp = await fetch(geoQuery);
-        const data = await resp.json();
-        if (data.features && data.features.length > 0) {
-          address = data.features[0].place_name.split(',')[0];
-          data.features[0].context.forEach(ctx => {
-            if (ctx.id.includes('neighborhood')) barangay = ctx.text;
-            if (ctx.id.includes('place')) municipality = ctx.text;
-          });
+      floodLayers.forEach(item => {
+        const vuln = item.props.vulnerability || 0;
+        const category = getRiskCategory(vuln);
+        
+        if (activeCategories.includes(category)) {
+          map.setLayoutProperty(item.layerId, 'visibility', 'visible');
+        } else {
+          map.setLayoutProperty(item.layerId, 'visibility', 'none');
         }
-      } catch (err) { address = "Location unavailable"; }
-      
-      // 4. Generate Popup HTML
-      const html = `
+      });
+    });
+  });
+  
+  // Interaction Logic: Risk based on Elevation
+  map.on('click', async (e) => {
+    const { lng, lat } = e.lngLat;
+    const elevation = map.queryTerrainElevation(e.lngLat) || 0;
+    
+    const minElev = 5; 
+    const maxElev = 50; 
+    
+    let calcRisk = 0;
+    if (elevation <= minElev) {
+      calcRisk = 100;
+    } else if (elevation >= maxElev) {
+      calcRisk = 5; 
+    } else {
+      calcRisk = 100 - ((elevation - minElev) / (maxElev - minElev) * 100);
+    }
+    const finalRisk = Math.round(calcRisk);
+    
+    let riskColor, riskLabel, badgeClass;
+    if (finalRisk >= 90) { 
+      riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
+    } else if (finalRisk >= 50) { 
+      riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
+    } else if (finalRisk >= 20) { 
+      riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
+    } else { 
+      riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
+    }
+    
+    const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
+    
+    let address = "Scanning...";
+    let barangay = "N/A";
+    let municipality = "N/A";
+    
+    try {
+      const resp = await fetch(geoQuery);
+      const data = await resp.json();
+      if (data.features && data.features.length > 0) {
+        address = data.features[0].place_name.split(',')[0];
+        data.features[0].context.forEach(ctx => {
+          if (ctx.id.includes('neighborhood')) barangay = ctx.text;
+          if (ctx.id.includes('place')) municipality = ctx.text;
+        });
+      }
+    } catch (err) { address = "Location unavailable"; }
+    
+    const html = `
         <div style="padding:10px; min-width: 230px;">
             <h6 class="fw-bold border-bottom mb-2 pb-1" style="color: #800000;">
                 <i class="bi bi-water me-1"></i> Elevation Analysis
@@ -378,94 +452,94 @@
                 <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
             </div>
         </div>`;
-      
-      new mapboxgl.Popup({ maxWidth: '300px' })
-      .setLngLat(e.lngLat)
-      .setHTML(html)
-      .addTo(map);
-    });
     
-    // River Markers with Template-style Chart Popups
-    // River Markers with Template-style Chart Popups
-    const rivers = [
-    ["Baldi River", 18.337086, 120.613098, [2.1, 2.4, 2.8, 3.0, 3.4]],
-    ["Padsan River", 18.192422, 120.591328, [2.1, 2.4, 2.8, 3.0, 3.4]],
-    ["Bacarra-Vintar River", 18.247178, 120.622658, [1.8, 2.0, 2.3, 2.1, 2.5]],
-    ["Guisit River", 18.163531, 120.719962, [1.5, 1.7, 1.9, 2.2, 2.4]],
-    ["Agua Grande River", 18.570544, 120.899848, [0.8, 1.0, 1.2, 1.3, 1.5]],
-    ["Baruyen River", 18.516827, 120.706686, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Pusuak Creek", 18.529664, 120.613062, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Solsona Dam", 18.084367, 120.814453, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Bagbag, Solsona River", 18.119279, 120.749626, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Dingras, Padsan River", 18.094932, 120.714017, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Currimao River", 17.994427, 120.502793, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Nueva Era River", 17.917148, 120.661374, [1.2, 1.4, 1.6, 1.8, 2.0]],
-    ["Badoc River", 17.926813, 120.489637, [1.2, 1.4, 1.6, 1.8, 2.0]]
-    ];
+    new mapboxgl.Popup({ maxWidth: '300px' })
+    .setLngLat(e.lngLat)
+    .setHTML(html)
+    .addTo(map);
+  });
+  
+  // River Markers with Template-style Chart Popups
+  const rivers = [
+  ["Baldi River", 18.337086, 120.613098, [2.1, 2.4, 2.8, 3.0, 3.4]],
+  ["Padsan River", 18.192422, 120.591328, [2.1, 2.4, 2.8, 3.0, 3.4]],
+  ["Bacarra-Vintar River", 18.247178, 120.622658, [1.8, 2.0, 2.3, 2.1, 2.5]],
+  ["Guisit River", 18.163531, 120.719962, [1.5, 1.7, 1.9, 2.2, 2.4]],
+  ["Agua Grande River", 18.570544, 120.899848, [0.8, 1.0, 1.2, 1.3, 1.5]],
+  ["Baruyen River", 18.516827, 120.706686, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Pusuak Creek", 18.529664, 120.613062, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Solsona Dam", 18.084367, 120.814453, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Bagbag, Solsona River", 18.119279, 120.749626, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Dingras, Padsan River", 18.094932, 120.714017, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Currimao River", 17.994427, 120.502793, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Nueva Era River", 17.917148, 120.661374, [1.2, 1.4, 1.6, 1.8, 2.0]],
+  ["Badoc River", 17.926813, 120.489637, [1.2, 1.4, 1.6, 1.8, 2.0]]
+  ];
+  
+  const riverMenu = document.getElementById('riverDropdownMenu');
+  
+  rivers.forEach(([name, lat, lng, history], idx) => {
+    const chartId = `riverChart-${idx}`;
     
-    const riverMenu = document.getElementById('riverDropdownMenu');
-    
-    rivers.forEach(([name, lat, lng, history], idx) => {
-      const chartId = `riverChart-${idx}`;
-      
-      // Create the Popup
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div class="popup-chart-container">
             <h6 class="fw-bold mb-2 text-dark border-bottom pb-1">${name}</h6>
             <canvas id="${chartId}"></canvas>
         </div>
     `);
-      
-      // Create the Marker
-      const marker = new mapboxgl.Marker({ color: '#800000' })
-      .setLngLat([lng, lat])
-      .setPopup(popup)
-      .addTo(map);
-      
-      // Dropdown Selection
-      const li = document.createElement('li');
-      li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt text-danger"></i> ${name}</a>`;
-      li.onclick = () => {
-        map.flyTo({ center: [lng, lat], zoom: 14 });
-        if (!marker.getPopup().isOpen()) marker.togglePopup();
-      };
-      riverMenu.appendChild(li);
-      
-      // Draw Chart when opened
-      popup.on('open', () => {
-        setTimeout(() => {
-          const ctx = document.getElementById(chartId);
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
-              datasets: [{ 
-                data: history, 
-                borderColor: '#800000', 
-                backgroundColor: 'rgba(128,0,0,0.1)', 
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3
-              }]
-            },
-            options: {
-              plugins: { legend: { display: false } },
-              maintainAspectRatio: false,
-              scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { ticks: { font: { size: 10 } } }
-              }
+    
+    const marker = new mapboxgl.Marker({ color: '#800000' })
+    .setLngLat([lng, lat])
+    .setPopup(popup)
+    .addTo(map);
+    
+    const li = document.createElement('li');
+    li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt text-danger"></i> ${name}</a>`;
+    li.onclick = () => {
+      map.flyTo({ center: [lng, lat], zoom: 14 });
+      if (!marker.getPopup().isOpen()) marker.togglePopup();
+    };
+    riverMenu.appendChild(li);
+    
+    popup.on('open', () => {
+      setTimeout(() => {
+        const ctx = document.getElementById(chartId);
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
+            datasets: [{ 
+              data: history, 
+              borderColor: '#800000', 
+              backgroundColor: 'rgba(128,0,0,0.1)', 
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+              y: { ticks: { font: { size: 10 } } }
             }
-          });
-        }, 200); // Small delay to ensure the popup is fully visible
-      });
+          }
+        });
+      }, 200); 
     });
-    document.getElementById('logoutLink').addEventListener('click', function(e) {
-      e.preventDefault();
-      sessionStorage.clear(); // Clear all session storage
-      window.location.href = 'log.html'; // Redirect to login page
-    });
-  </script>
+  });
   
+  document.getElementById('logoutLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    sessionStorage.clear(); 
+    window.location.href = 'log.html'; 
+  });
+  function logoutUser(){
+    sessionStorage.clear(); 
+    window.location.href = 'log.html'; 
+  }
+</script>
+
 </body>
 </html>

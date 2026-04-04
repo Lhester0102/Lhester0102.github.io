@@ -113,13 +113,34 @@
       
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
-        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-          <button class="btn btn-danger d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="bi bi-list"></i>
+        <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+          <div class="d-flex align-items-center gap-3">
+            <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+              <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="d-flex align-items-baseline gap-2">
+              <h5 class="mb-0 fw-bold text-dark">Municipal Boundaries</h5>
+              <span id="lastUpdated" class="text-muted small">
+              </span>
+            </div>
+          </div>
+          
+          <div class="dropdown">
+            <button
+            class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+            type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="emails">User Loading...</span>
           </button>
-          <h5 class="mb-0 fw-bold text-dark">Municipal Boundaries Analysis</h5>
-          <div class="badge bg-success p-2">Spatio-temporal Live</div>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+          </ul>
         </div>
+      </div>
         
         <div class="top-bar d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
@@ -157,6 +178,7 @@
         // Redirect to login page if session is not set
         window.location.href = 'log.html';
       }
+      document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
     };
     // Firebase Init
     const firebaseConfig = {
