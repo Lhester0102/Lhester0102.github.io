@@ -58,13 +58,11 @@
         .lvl-med { background: #fff3e0; color: #ef6c00; }
         .lvl-low { background: #e8f5e9; color: #2e7d32; }
         
-        /* Responsive Layout Logic */
         @media (min-width: 768px) {
             .sidebar { min-height: 100vh; height: 100vh; }
             .main-content { height: 100vh; overflow-y: auto; }
         }
         
-        /* Small Sidebar Branding for Mobile */
         .mobile-brand {
             display: flex;
             align-items: center;
@@ -76,7 +74,6 @@
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
         
-        /* Custom Scrollbar */
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         
@@ -86,34 +83,11 @@
         @media print {
             @page { margin: 1cm; }
             body { background: white; margin: 0; padding: 0; }
-            
-            /* Hide UI Elements Not Needed for Print */
-            .sidebar, .mobile-brand, #filterCard, .btn, .navbar { 
-                display: none !important; 
-            }
-            
-            /* Expand main content to full width */
-            .main-content { 
-                width: 100% !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
-                height: auto !important; 
-                overflow: visible !important;
-            }
-            
-            .col-lg-10, .col-md-9 { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
-            
-            /* Adjust Card for Print */
+            .sidebar, .mobile-brand, #filterCard, .btn, .navbar, .dropdown { display: none !important; }
+            .main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
             .card { box-shadow: none !important; border: 1px solid #ddd !important; }
-            .table { font-size: 0.8rem; }
             .table thead th { background-color: #f8f9fa !important; color: black !important; border-bottom: 2px solid #000 !important; }
-            
-            /* Show Print Header */
-            .print-header { 
-                display: block !important; 
-                text-align: center; 
-                margin-bottom: 20px; 
-            }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
             .print-header h4 { margin: 0; font-weight: bold; color: #800000; }
         }
     </style>
@@ -122,7 +96,6 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
@@ -133,7 +106,6 @@
                     <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                         <i class="bi bi-x-lg"></i>
                     </button>
-                    
                 </div>
                 
                 <div class="text-center mb-4 d-none d-md-block">
@@ -160,23 +132,22 @@
                 </ul>
                 
                 <div class="mt-4 pt-3 border-top border-secondary">
-                    <a id="logoutLink" href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
+                    <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
                 </div>
             </nav>
             
             <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+                <div class="print-header">
+                    <h4>Geospatial DSS: Flood Risk Reports</h4>
+                    <small id="printTimestamp"></small>
+                </div>
                 
-                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 p-2 bg-white rounded shadow-sm">
                     <div class="d-flex align-items-center gap-3">
                         <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
-                        
-                        <div class="d-flex align-items-baseline gap-2">
-                            <h5 class="mb-0 fw-bold text-dark">Data Reports</h5>
-                            <span id="lastUpdated" class="text-muted small">
-                            </span>
-                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Data Reports</h5>
                     </div>
                     
                     <div class="dropdown">
@@ -194,10 +165,10 @@
                     </ul>
                 </div>
             </div>
+            
             <div class="card shadow-sm mb-3" id="filterCard">
                 <div class="card-body">
                     <div class="row g-2 align-items-end">
-                        
                         <div class="col-md-2">
                             <label class="form-label small text-muted mb-1">Time Period</label>
                             <select id="filterPeriodType" class="form-select form-select-sm">
@@ -209,8 +180,7 @@
                             </select>
                         </div>
                         
-                        <div class="col-md-5" id="dynamicInputContainer">
-                        </div>
+                        <div class="col-md-3" id="dynamicInputContainer"></div>
                         
                         <div class="col-md-2">
                             <label class="form-label small text-muted mb-1">City/Municipality</label>
@@ -224,12 +194,11 @@
                         <div class="col-md-1">
                             <label class="form-label small text-muted mb-1">Rows</label>
                             <select id="filterRowLimit" class="form-select form-select-sm">
-                                <option value="5">5</option>
+                                <option value="5" selected>5</option>
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
-                                <option value="100">100</option>
-                                <option value="all" selected>All</option>
+                                <option value="all">All</option>
                             </select>
                         </div>
                         
@@ -237,9 +206,11 @@
                             <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
                             <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
                         </div>
-                        <div class="col-md-2 d-flex gap-1">
-                            <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
-                            <button class="btn btn-sm btn-secondary w-100 " onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12 d-flex justify-content-end gap-1">
+                            <button id="btnExportCSV" class="btn btn-sm btn-success "><i class="bi bi-filetype-csv me-1"></i>CSV</button>
+                            <button class="btn btn-sm btn-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
                         </div>
                     </div>
                 </div>
@@ -253,7 +224,7 @@
                                 <tr>
                                     <th class="ps-4">Date</th>
                                     <th>Time</th>
-                                    <th>City/Municpality</th>
+                                    <th>City/Municipality</th>
                                     <th>Barangay</th>
                                     <th>Water Level</th>
                                     <th>Rainfall</th>
@@ -286,9 +257,8 @@
         if (sessionStorage.getItem('loggedIn') !== 'true') {
             window.location.href = 'log.html';
         }
-        document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
         document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
-        
     };
     
     const firebaseConfig = {
@@ -305,39 +275,36 @@
     const dataRef = ref(db, 'data');
     
     let allReports = []; 
-    let currentFilteredData = []; // New array to hold the currently filtered data for CSV export
+    let currentFilteredData = [];
     
-    // Dynamic Filter UI Logic
     const periodTypeSelect = document.getElementById('filterPeriodType');
     const dynamicContainer = document.getElementById('dynamicInputContainer');
+    const rowLimitSelect = document.getElementById('filterRowLimit');
     
+    // Dynamic Filter UI Logic
     periodTypeSelect.addEventListener('change', function() {
         const val = this.value;
-        dynamicContainer.innerHTML = ''; // clear
+        dynamicContainer.innerHTML = '';
         
         if (val === 'annually') {
             dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Select Year</label>
-                    <input type="number" id="inputAnnual" class="form-control form-control-sm" placeholder="YYYY" min="2000" max="2100">
-                `;
+                    <label class="form-label small text-muted mb-1">Year</label>
+                    <input type="number" id="inputAnnual" class="form-control form-control-sm" placeholder="YYYY" value="${new Date().getFullYear()}">`;
         } else if (val === 'monthly') {
             dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Select Month</label>
-                    <input type="month" id="inputMonthly" class="form-control form-control-sm">
-                `;
+                    <label class="form-label small text-muted mb-1">Month</label>
+                    <input type="month" id="inputMonthly" class="form-control form-control-sm">`;
         } else if (val === 'weekly') {
             dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Select Week</label>
-                    <input type="week" id="inputWeekly" class="form-control form-control-sm">
-                `;
+                    <label class="form-label small text-muted mb-1">Week</label>
+                    <input type="week" id="inputWeekly" class="form-control form-control-sm">`;
         } else if (val === 'custom') {
             dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1 w-100">Date Range (From - To)</label>
+                    <label class="form-label small text-muted mb-1">Date Range</label>
                     <div class="d-flex gap-1">
                         <input type="date" id="inputDateFrom" class="form-control form-control-sm">
                         <input type="date" id="inputDateTo" class="form-control form-control-sm">
-                    </div>
-                `;
+                    </div>`;
         }
     });
     
@@ -357,52 +324,38 @@
         return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
     }
     
-    onValue(dataRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            allReports = Object.keys(data).map(key => data[key]).reverse();
-        } else {
-            allReports = [];
-        }
-        renderTable(); 
-    });
-    
+    // Main Render Function
     function renderTable() {
         const tableBody = document.getElementById('flood-data-table');
-        tableBody.innerHTML = ''; 
+        tableBody.innerHTML = '';
         
         const periodType = periodTypeSelect.value;
         const cityFilter = document.getElementById('filterCity').value.toLowerCase();
         const brgyFilter = document.getElementById('filterBrgy').value.toLowerCase();
-        const rowLimit = document.getElementById('filterRowLimit').value;
+        const rowLimit = rowLimitSelect.value;
         
-        // Apply Filters
+        // Step 1: Filter Data
         currentFilteredData = allReports.filter(item => {
             let match = true;
             
-            // Time Period Filtering
             if (periodType !== 'all') {
                 if (!item.date) {
                     match = false;
                 } else {
                     const itemDate = new Date(item.date);
-                    
                     if (periodType === 'annually') {
                         const y = document.getElementById('inputAnnual')?.value;
                         if (y && itemDate.getFullYear().toString() !== y) match = false;
-                    } 
-                    else if (periodType === 'monthly') {
+                    } else if (periodType === 'monthly') {
                         const m = document.getElementById('inputMonthly')?.value;
                         if (m) {
                             const itemMonthStr = `${itemDate.getFullYear()}-${(itemDate.getMonth()+1).toString().padStart(2, '0')}`;
                             if (itemMonthStr !== m) match = false;
                         }
-                    } 
-                    else if (periodType === 'weekly') {
+                    } else if (periodType === 'weekly') {
                         const w = document.getElementById('inputWeekly')?.value;
                         if (w && getISOWeekString(itemDate) !== w) match = false;
-                    } 
-                    else if (periodType === 'custom') {
+                    } else if (periodType === 'custom') {
                         const from = document.getElementById('inputDateFrom')?.value;
                         const to = document.getElementById('inputDateTo')?.value;
                         if (from && itemDate < new Date(from)) match = false;
@@ -411,103 +364,90 @@
                 }
             }
             
-            // Location Filtering
             if (cityFilter && (!item.city || !item.city.toLowerCase().includes(cityFilter))) match = false;
             if (brgyFilter && (!item.barangay || !item.barangay.toLowerCase().includes(brgyFilter))) match = false;
             
             return match;
         });
         
-        // Apply Row Limit
+        // Step 2: Truncate by Row Limit
+        let displayData = [...currentFilteredData];
         if (rowLimit !== 'all') {
-            currentFilteredData = currentFilteredData.slice(0, parseInt(rowLimit));
+            displayData = displayData.slice(0, parseInt(rowLimit));
         }
         
-        // Render Results
-        if (currentFilteredData.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
+        // Step 3: Handle Empty State
+        if (displayData.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
             return;
         }
         
-        currentFilteredData.forEach(item => {
+        // Step 4: Render Rows
+        displayData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);
-            const cityDisp = item.city || 'N/A';
-            const brgyDisp = item.barangay || 'N/A';
-            
             const rowHTML = `
                     <tr>
-                        <td class="ps-4"><div class="fw-bold text-dark">${item.date || 'N/A'}</div> </td>
+                        <td class="ps-4"><div class="fw-bold text-dark">${item.date || 'N/A'}</div></td>
                         <td><div class="fw-bold text-dark">${item.time || ''}</div></td>
-                        <td><div class="fw-bold text-dark">${cityDisp}</div></td>
-                        <td><div class="fw-bold text-dark">Brgy. ${brgyDisp}</div></td>
+                        <td><div class="fw-bold text-dark">${item.city || 'N/A'}</div></td>
+                        <td><div class="fw-bold text-dark">Brgy. ${item.barangay || 'N/A'}</div></td>
                         <td><span class="badge-metric ${depthMeta.class}">${item.level} m</span></td>
                         <td>${item.rain} mm</td>
                         <td>${item.flow} m³/s</td>
                         <td class="fw-bold text-dark">${depthMeta.depthCalc}</td>
                         <td><span class="badge rounded-pill ${depthMeta.class}">${depthMeta.label}</span></td>
-                    </tr>
-                `;
+                    </tr>`;
             tableBody.innerHTML += rowHTML;
         });
     }
     
-    // CSV Export Function
+    // Firebase Listener
+    onValue(dataRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            // Map to array and reverse so newest is first
+            allReports = Object.keys(data).map(key => data[key]).reverse();
+        } else {
+            allReports = [];
+        }
+        renderTable();
+    });
+    
+    // CSV Export
     function exportToCSV() {
         if (currentFilteredData.length === 0) {
-            alert("No data available to export based on your current filters.");
+            alert("No data to export.");
             return;
         }
-        
-        // Setup CSV Header
-        let csvContent = "Date,Time,City,Barangay,Water Level (m),Rainfall (mm),Flow (m3/s),Calculated Depth,Status\n";
-        
-        // Populate CSV Rows
+        let csvContent = "Date,Time,City,Barangay,Water Level,Rainfall,Flow,Depth,Status\n";
         currentFilteredData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);
-            
-            // Wrap strings in quotes to prevent issues with commas in strings (if any)
-            const date = `"${item.date || 'N/A'}"`;
-            const time = `"${item.time || 'N/A'}"`;
-            const city = `"${item.city || 'N/A'}"`;
-            const brgy = `"${item.barangay || 'N/A'}"`;
-            const level = `"${item.level || '0'}"`;
-            const rain = `"${item.rain || '0'}"`;
-            const flow = `"${item.flow || '0'}"`;
-            const depth = `"${depthMeta.depthCalc}"`;
-            const status = `"${depthMeta.label}"`;
-            
-            csvContent += `${date},${time},${city},${brgy},${level},${rain},${flow},${depth},${status}\n`;
+            csvContent += `"${item.date}","${item.time}","${item.city}","${item.barangay}","${item.level}","${item.rain}","${item.flow}","${depthMeta.depthCalc}","${depthMeta.label}"\n`;
         });
-        
-        // Create Download Link
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        link.setAttribute("download", `Flood_Reports_${timestamp}.csv`);
-        link.style.visibility = 'hidden';
-        
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `Flood_Report_${new Date().getTime()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
     
-    // Attach Event Listeners
+    // Controls
     document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
-    
     document.getElementById('btnResetFilters').addEventListener('click', () => {
         periodTypeSelect.value = 'all';
         dynamicContainer.innerHTML = '';
         document.getElementById('filterCity').value = '';
         document.getElementById('filterBrgy').value = '';
-        document.getElementById('filterRowLimit').value = 'all';
+        rowLimitSelect.value = '5'; // Default back to 5
         renderTable();
     });
-    
     document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
-    
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = 'log.html';
+    });
     document.getElementById('logoutLink').addEventListener('click', (e) => {
         e.preventDefault();
         sessionStorage.clear();
