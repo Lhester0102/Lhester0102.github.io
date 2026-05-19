@@ -164,31 +164,31 @@
     const database = firebase.database();
     var id = "-Ot-72ZLoDJh23tBhB32";
     
-    window.onload = () => {
-      // Correctly calling the function when the window loads
-      deleteFloodedArea(id);
-    };
+    // window.onload = () => {
+    //   // Correctly calling the function when the window loads
+    //   deleteFloodedArea(id);
+    // };
     
-    function deleteFloodedArea(id) {
-      if (!id) {
-        alert("Please provide a valid ID.");
-        return;
-      }
+    // function deleteFloodedArea(id) {
+    //   if (!id) {
+    //     alert("Please provide a valid ID.");
+    //     return;
+    //   }
       
-      // References the path 'Flooded_Areas/ID' and removes it completely
-      database.ref('Flooded_Areas/' + id).remove()
-      .then(() => {
-        alert(`Successfully deleted record with ID: ${id} from Flooded_Areas.`);
+    //   // References the path 'Flooded_Areas/ID' and removes it completely
+    //   database.ref('Flooded_Areas/' + id).remove()
+    //   .then(() => {
+    //     alert(`Successfully deleted record with ID: ${id} from Flooded_Areas.`);
         
-        // Using optional chaining (?.) to prevent crashes if 'deleteIdInput' doesn't exist on this page
-        const inputEl = document.getElementById('deleteIdInput');
-        if (inputEl) inputEl.value = ''; 
-      })
-      .catch((error) => {
-        console.error("Error deleting data: ", error);
-        alert("Failed to delete record: " + error.message);
-      });
-    }
+    //     // Using optional chaining (?.) to prevent crashes if 'deleteIdInput' doesn't exist on this page
+    //     const inputEl = document.getElementById('deleteIdInput');
+    //     if (inputEl) inputEl.value = ''; 
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error deleting data: ", error);
+    //     alert("Failed to delete record: " + error.message);
+    //   });
+    // }
     
     document.addEventListener('DOMContentLoaded', function() {
       if(sessionStorage.getItem('loggedIn') == 'true') window.location.href = "newindex3.html";
