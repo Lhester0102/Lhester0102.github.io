@@ -383,7 +383,7 @@
   * Reusable Core Analysis & Popup Framework
   * Accepts a mapboxgl.LngLat object
   */
-  async function triggerAnalysis(lngLat) {
+async function triggerAnalysis(lngLat) {
     const elevation = map.queryTerrainElevation(lngLat) || 0;
     const elevInput = document.getElementById('elevation');
     if (elevInput) {
@@ -411,6 +411,18 @@
       interpretColor = "#fd7e14"; 
       recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed given Water Level at ${currentWater}m and Rainfall accumulation at ${currentRain}mm. Secure low-lying equipment, prevent water retention structures from exceeding capacity, and draft proactive sandbag lines.`;
     }
+
+    // --- Dynamic Interpretation for Water Level ---
+    let waterInterpretText = "Normal";
+    let waterInterpretColor = "#198754"; // Green
+
+    if (currentWater > 5.0) { // Example threshold for critical water level
+      waterInterpretText = "Critical";
+      waterInterpretColor = "#dc3545"; // Red
+    } else if (currentWater > 2.5) { // Example threshold for elevated level
+      waterInterpretText = "Elevated";
+      waterInterpretColor = "#fd7e14"; // Orange
+    }
     
     const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place`;
     let locName = "Selected Coordinate Point";
@@ -424,35 +436,8 @@
       console.error("Geocode error lookup details:", err); 
     }
     
-    new mapboxgl.Popup({ maxWidth: '320px' }) // Adjusted to a responsive max-width layout structure
-    .setLngLat(lngLat)
-    .setHTML(`
-        <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
-            <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
-            <small class="d-block mb-2 text-muted" style="font-size: 0.75rem;">${locName}</small>
-        
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted">Target Elevation:</span>
-                    <span class="fw-semibold">${elevation.toFixed(1)}m</span>
-                </div>
-                
-                <div class="mt-2 pt-2 border-top">
-                    <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
-                    <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.92rem;">${interpretText}</span>
-                </div>
-                
-                <div class="mt-2">
-                    <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                    <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px;">${recommendation}</p>
-                </div>
-        </div>
-    `)
-    .addTo(map);
-    const infoPanel = document.getElementById('details'); 
-
-// 2. Inject the HTML template directly into its innerHTML
-if (infoPanel) {
-    infoPanel.innerHTML = `
+    // UI Template Helper to avoid code duplication between Popup and Side Panel
+    const generateHtmlContent = () => `
         <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
             <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
             <small class="d-block mb-2 text-muted" style="font-size: 0.75rem;">${locName}</small>
@@ -460,6 +445,14 @@ if (infoPanel) {
             <div class="d-flex justify-content-between">
                 <span class="text-muted">Target Elevation:</span>
                 <span class="fw-semibold">${elevation.toFixed(1)}m</span>
+            </div>
+
+            <!-- Added Water Level Indicator and Status -->
+            <div class="d-flex justify-content-between mt-1">
+                <span class="text-muted">Current Water Level:</span>
+                <span class="fw-semibold">${currentWater.toFixed(2)}m 
+                    <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 4px;">(${waterInterpretText})</small>
+                </span>
             </div>
             
             <div class="mt-2 pt-2 border-top">
@@ -473,11 +466,21 @@ if (infoPanel) {
             </div>
         </div>
     `;
-} else {
-    console.error("Element with the specified ID was not found in the DOM.");
+
+    // 1. Render mapbox popup window
+    new mapboxgl.Popup({ maxWidth: '320px' }) 
+    .setLngLat(lngLat)
+    .setHTML(generateHtmlContent())
+    .addTo(map);
+
+    // 2. Inject the HTML template directly into side panel innerHTML if it exists
+    const infoPanel = document.getElementById('details'); 
+    if (infoPanel) {
+        infoPanel.innerHTML = generateHtmlContent();
+    } else {
+        console.error("Element with the specified ID was not found in the DOM.");
+    }
 }
-  }
-  
   function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
   // Local Browser-side HTML5 CSV Parsing Logic
   document.getElementById('csvFileInput').addEventListener('change', function(e) {
