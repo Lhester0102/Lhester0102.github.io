@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Flash Flood DSS - Pro</title>
+    <title>GDSS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="icon" href="GDSS.png">
@@ -22,7 +22,7 @@
         
         /* Sidebar Styles */
         .sidebar { 
-            background-color: #800000; 
+            background-color: #20a7db; 
             transition: all 0.3s;
             z-index: 1050;
             overflow-y: auto;
@@ -127,7 +127,7 @@
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3">
                 <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
                     <div class="d-flex align-items-center gap-3">
-                        <button style="background-color: #800000; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                        <button style="background-color: #20a7db; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
                         <div class="d-flex align-items-baseline gap-2">
@@ -306,10 +306,8 @@ function getFloodColor(vulnerability) {
     return 'rgba(144, 238, 144, 0.3)';                           // Very Light Green (LightGreen)
 }
 
-// Global active marker instance to ensure only one custom pin exists at a time
 let activeMarker = null;
-        
-// Map Load Event Handler Setup
+
 map.on('load', async () => {
     map.addSource('mapbox-dem', { 'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1', 'tileSize': 512 });
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
@@ -328,18 +326,15 @@ map.on('load', async () => {
                 type: f.type === 'municipality' ? 'line' : 'fill',
                 source: sourceId,
                 paint: f.type === 'municipality' ? 
-                { 'line-color': '#800000', 'line-width': 2 } : 
+                { 'line-color': '#20a7db', 'line-width': 2 } : 
                 { 'fill-color': getFloodColor(f.vulnerability || 0), 'fill-opacity': 0.5 }
             });
         });
     });
 
-    // --- ADD CUSTOM PIN ON LOAD ---
-    // Convert the coordinates to a Mapbox LngLat object
     const startPoint = mapboxgl.LngLat.convert(initialCenter);
-    
-    // Instantiate and drop the custom pin
-    activeMarker = new mapboxgl.Marker({ color: '#800000' }) // Custom pin color matches header
+
+    activeMarker = new mapboxgl.Marker({ color: '#20a7db' }) 
         .setLngLat(startPoint)
         .addTo(map);
 
@@ -353,7 +348,7 @@ map.on('click', async (e) => {
     if (activeMarker) {
         activeMarker.setLngLat(e.lngLat);
     } else {
-        activeMarker = new mapboxgl.Marker({ color: '#800000' })
+        activeMarker = new mapboxgl.Marker({ color: '#20a7db' })
             .setLngLat(e.lngLat)
             .addTo(map);
     }
@@ -411,7 +406,7 @@ async function triggerAnalysis(lngLat) {
     .setLngLat(lngLat)
     .setHTML(`
         <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
-            <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#800000; font-size: 0.95rem;">System Field Analysis</h6>
+            <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#20a7db; font-size: 0.95rem;">System Field Analysis</h6>
             <small class="d-block mb-2 text-muted" style="font-size: 0.75rem;">${locName}</small>
         
                 <div class="d-flex justify-content-between">
@@ -633,7 +628,7 @@ function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v
             if (rocChart) rocChart.destroy();
             rocChart = new Chart(rCtx, {
                 type: 'line',
-                data: { labels: points.map(p => p.fpr.toFixed(2)), datasets: [{ data: points.map(p => p.tpr), borderColor: '#800000', fill: true, backgroundColor: 'rgba(128,0,0,0.1)', tension: 0.2 }] },
+                data: { labels: points.map(p => p.fpr.toFixed(2)), datasets: [{ data: points.map(p => p.tpr), borderColor: '#20a7db', fill: true, backgroundColor: 'rgba(128,0,0,0.1)', tension: 0.2 }] },
                 options: { 
                     plugins: { legend: { display: false } }, 
                     scales: { x: { display: false }, y: { display: false } }
@@ -650,7 +645,7 @@ function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v
                     if (window.mRoc) window.mRoc.destroy();
                     window.mRoc = new Chart(document.getElementById("rocChartModal"), {
                         type: 'line',
-                        data: { labels: lastRocPoints.map(p => p.fpr.toFixed(2)), datasets: [{ label: 'ROC Curve', data: lastRocPoints.map(p => p.tpr), borderColor: '#800000' }, { label: 'Baseline', data: [0, 1], borderColor: '#ccc', borderDash: [5, 5] }] }
+                        data: { labels: lastRocPoints.map(p => p.fpr.toFixed(2)), datasets: [{ label: 'ROC Curve', data: lastRocPoints.map(p => p.tpr), borderColor: '#20a7db' }, { label: 'Baseline', data: [0, 1], borderColor: '#ccc', borderDash: [5, 5] }] }
                     });
                 }, 300);
             };
@@ -696,7 +691,7 @@ function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v
             //         if (window.mProb) window.mProb.destroy();
             //         window.mProb = new Chart(document.getElementById("probChartModal"), {
             //             type:'line',
-            //             data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'Flood Probability (%)', data: lastProbData, borderColor: '#800000', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
+            //             data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'Flood Probability (%)', data: lastProbData, borderColor: '#20a7db', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
             //             options: { scales: { y: { beginAtZero: true, max: 100 } } }
             //         });
             //     }, 300);
