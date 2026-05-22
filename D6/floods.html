@@ -294,6 +294,35 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const storageRef = firebase.storage().ref();
+
+  // 1. Declare the variable globally so your whole script can use it
+var waterlevel = null; 
+
+/**
+ * Automatically listens for changes and updates the waterlevel variable
+ */
+function trackWaterLevel() {
+  const levelRef = db.ref('data/level');
+
+  levelRef.on('value', (snapshot) => {
+    if (snapshot.exists()) {
+      // 2. Assign the live database value to your variable
+      waterlevel = snapshot.val(); 
+      document.getElementById("waterLevel").value=waterlevel;
+      console.log("Variable 'waterlevel' automatically updated to:", waterlevel);
+      
+      // 3. Trigger any functions that depend on the new waterlevel here
+      // handleWaterLevelChange(); 
+    } else {
+      console.log("No data exists at data/level");
+    }
+  }, (error) => {
+    console.error("The read failed: ", error.code);
+  });
+}
+
+// Start the listener
+trackWaterLevel();
   
   mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
   const initialCenter = [120.5927871, 18.1959782];
