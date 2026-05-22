@@ -331,6 +331,8 @@ function trackLatestUnknownIdLevel() {
            document.getElementById("discharge").value=dlevel;
           document.getElementById("kpiDischarge").innerHTML=dlevel;
             console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
+             console.log(`Variable rainfall updated to:`, rlevel);
+              console.log(`Variable stream flow updated to:`, dlevel);
           
           // Trigger your UI updates or game functions here
           // handleWaterLevelUpdate(waterlevel);

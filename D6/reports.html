@@ -152,98 +152,93 @@
                     
                     <div class="dropdown">
                         <button
-                        class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
-                        type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle"></i>
-                        <span id="emails">User Loading...</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                        <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
-                        <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
-                    </ul>
+                            class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+                            type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="emails">User Loading...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+                            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
             
-            <div class="card shadow-sm mb-4" id="filterCard">
-                <div class="card-body">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted mb-1">Time Period</label>
-                            <select id="filterPeriodType" class="form-select form-select-sm">
-                                <option value="all">All</option>
-                                <option value="annually">Annually</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="custom">From-To Date</option>
-                            </select>
+                <div class="card shadow-sm mb-4" id="filterCard">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Time Period</label>
+                                <select id="filterPeriodType" class="form-select form-select-sm">
+                                    <option value="all">All</option>
+                                    <option value="annually">Annually</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="custom">From-To Date</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4" id="dynamicInputContainer"></div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Station</label>
+                                <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Station name...">
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1">Rows</label>
+                                <select id="filterRowLimit" class="form-select form-select-sm">
+                                    <option value="5" selected>5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
                         </div>
-                        
-                        <div class="col-md-4" id="dynamicInputContainer"></div>
-                        
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted mb-1">City/Municipality</label>
-                            <input type="text" id="filterCity" class="form-control form-control-sm" placeholder="City...">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted mb-1">Barangay</label>
-                            <input type="text" id="filterBrgy" class="form-control form-control-sm" placeholder="Brgy...">
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted mb-1">Rows</label>
-                            <select id="filterRowLimit" class="form-select form-select-sm">
-                                <option value="5" selected>5</option>
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="all">All</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2 d-flex gap-1">
-                            <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
-                            <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
-                        </div>
-                        <div class="col-md-2 d-flex gap-1">
-                            <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
-                            <button class="btn btn-sm btn-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                        <div class="row mt-2">
+                            <div class="col-md-2 d-flex gap-1">
+                                <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
+                                <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
+                            </div>
+                            <div class="col-md-2 d-flex gap-1">
+                                <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
+                                <button class="btn btn-sm btn-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             
-            <div class="card shadow-sm table-card">
-                <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 400px;">
-                        <table class="table table-hover mb-0 align-middle">
-                           <thead class="sticky-top bg-white" style="z-index: 1;">
-                                <tr>
-                                    <th class="ps-4">Date</th>
-                                    <th>Time</th>
-                                    <th>City/Municipality</th>
-                                    <th>Barangay</th>
-                                    <th>Water Level</th>
-                                    <th>Rainfall</th>
-                                    <th>Flow/Discharge</th>
-                                    <th>Flood Depth</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="flood-data-table">
-                                <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">Connecting to Firebase...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="card shadow-sm table-card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-hover mb-0 align-middle">
+                               <thead class="sticky-top bg-white" style="z-index: 1;">
+                                    <tr>
+                                        <th class="ps-4">Date</th>
+                                        <th>Time</th>
+                                        <th>Station</th>
+                                        <th>Water Level</th>
+                                        <th>Rainfall</th>
+                                        <th>Flow/Discharge</th>
+                                        <th>Flood Depth</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="flood-data-table">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4 text-muted">Connecting to Firebase...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -329,8 +324,7 @@
         tableBody.innerHTML = '';
         
         const periodType = periodTypeSelect.value;
-        const cityFilter = document.getElementById('filterCity').value.toLowerCase();
-        const brgyFilter = document.getElementById('filterBrgy').value.toLowerCase();
+        const stationFilter = document.getElementById('filterStation').value.toLowerCase();
         const rowLimit = rowLimitSelect.value;
         
         // Step 1: Filter Data
@@ -363,8 +357,9 @@
                 }
             }
             
-            if (cityFilter && (!item.city || !item.city.toLowerCase().includes(cityFilter))) match = false;
-            if (brgyFilter && (!item.barangay || !item.barangay.toLowerCase().includes(brgyFilter))) match = false;
+            // Checks either item.station or matches existing item.city fallback structure
+            const stationValue = item.station || item.city || '';
+            if (stationFilter && !stationValue.toLowerCase().includes(stationFilter)) match = false;
             
             return match;
         });
@@ -377,7 +372,7 @@
         
         // Step 3: Handle Empty State
         if (displayData.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
             return;
         }
         
@@ -388,8 +383,7 @@
                     <tr>
                         <td class="ps-4"><div class="fw-bold text-dark">${item.date || 'N/A'}</div></td>
                         <td><div class="fw-bold text-dark">${item.time || ''}</div></td>
-                        <td><div class="fw-bold text-dark">${item.city || 'N/A'}</div></td>
-                        <td><div class="fw-bold text-dark">Brgy. ${item.barangay || 'N/A'}</div></td>
+                        <td><div class="fw-bold text-dark">${item.station || item.city || 'N/A'}</div></td>
                         <td><span class="badge-metric ${depthMeta.class}">${item.level} m</span></td>
                         <td>${item.rain} mm</td>
                         <td>${item.flow} m³/s</td>
@@ -418,10 +412,11 @@
             alert("No data to export.");
             return;
         }
-        let csvContent = "Date,Time,City,Barangay,Water Level,Rainfall,Flow,Depth,Status\n";
+        let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
         currentFilteredData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);
-            csvContent += `"${item.date}","${item.time}","${item.city}","${item.barangay}","${item.level}","${item.rain}","${item.flow}","${depthMeta.depthCalc}","${depthMeta.label}"\n`;
+            const stationValue = item.station || item.city || 'N/A';
+            csvContent += `"${item.date}","${item.time}","${stationValue}","${item.level}","${item.rain}","${item.flow}","${depthMeta.depthCalc}","${depthMeta.label}"\n`;
         });
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
@@ -437,13 +432,12 @@
     document.getElementById('btnResetFilters').addEventListener('click', () => {
         periodTypeSelect.value = 'all';
         dynamicContainer.innerHTML = '';
-        document.getElementById('filterCity').value = '';
-        document.getElementById('filterBrgy').value = '';
+        document.getElementById('filterStation').value = '';
         rowLimitSelect.value = '5'; // Default back to 5
         renderTable();
     });
     document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
-    document.getElementById('signOutBtn').addEventListener('click', () => {
+    document.getElementById('signOutBtn')?.addEventListener('click', () => {
         sessionStorage.clear();
         window.location.href = 'log.html';
     });
