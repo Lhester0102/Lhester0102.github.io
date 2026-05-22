@@ -295,34 +295,47 @@
   const db = firebase.database();
   const storageRef = firebase.storage().ref();
 
-  // 1. Declare the variable globally so your whole script can use it
+
+// Global variable to hold the level value
 var waterlevel = null; 
 
 /**
- * Automatically listens for changes and updates the waterlevel variable
+ * Automatically fetches the newest dynamic ID under 'data' 
+ * and extracts its 'level' value into 'waterlevel'.
  */
-function trackWaterLevel() {
-  const levelRef = db.ref('data/level');
+function trackLatestUnknownIdLevel() {
+  // 1. Point to the parent 'data' folder
+  // 2. Sort entries by chronological key order and limit to the 1 newest entry
+  const latestDataQuery = db.ref('data').orderByKey().limitToLast(1);
 
-  levelRef.on('value', (snapshot) => {
+  latestDataQuery.on('value', (snapshot) => {
     if (snapshot.exists()) {
-      // 2. Assign the live database value to your variable
-      waterlevel = snapshot.val(); 
-      document.getElementById("waterLevel").value=waterlevel;
-      console.log("Variable 'waterlevel' automatically updated to:", waterlevel);
-      
-      // 3. Trigger any functions that depend on the new waterlevel here
-      // handleWaterLevelChange(); 
+      snapshot.forEach((childSnapshot) => {
+        const unknownId = childSnapshot.key; // This is your dynamic ID string
+        const idData = childSnapshot.val();  // This holds the inner contents
+        
+        // Check if 'level' exists inside this dynamic ID object
+        if (idData && idData.level !== undefined) {
+          waterlevel = idData.level;
+          console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
+          
+          // Trigger your UI updates or game functions here
+          // handleWaterLevelUpdate(waterlevel);
+        } else {
+          console.log(`Newest ID "${unknownId}" found, but it has no 'level' property.`);
+        }
+      });
     } else {
-      console.log("No data exists at data/level");
+      console.log("No data paths exist under 'data/' yet.");
     }
   }, (error) => {
-    console.error("The read failed: ", error.code);
+    console.error("The dynamic read failed: ", error.code);
   });
 }
 
-// Start the listener
-trackWaterLevel();
+// Start tracking the live database node
+trackLatestUnknownIdLevel();
+
   
   mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
   const initialCenter = [120.5927871, 18.1959782];
