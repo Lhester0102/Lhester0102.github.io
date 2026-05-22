@@ -375,10 +375,16 @@ trackLatestUnknownIdLevel();
   
   // Map Load Event Handler Setup
   map.on('load', async () => {
-    //map.addSource('mapbox-dem', { 'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1', 'tileSize': 512 });
-    //map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    
+        if (!map.getSource('mapbox-dem')) {
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+        } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        
     // Fetch Firebase Realtime DB layers
     db.ref('Flooded_Areas').once('value').then(snapshot => {
       const data = snapshot.val();
