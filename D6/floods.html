@@ -298,6 +298,8 @@
 
 // Global variable to hold the level value
 var waterlevel = null; 
+var rlevel = null; 
+var dlevel = null; 
 
 /**
  * Automatically fetches the newest dynamic ID under 'data' 
@@ -317,7 +319,18 @@ function trackLatestUnknownIdLevel() {
         // Check if 'level' exists inside this dynamic ID object
         if (idData && idData.level !== undefined) {
           waterlevel = idData.level;
-          console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
+          rlevel = idData.rain;
+          dlevel = idData.flow;
+          document.getElementById("waterLevel").value=waterlevel;
+          document.getElementById("kpiWater").innerHTML=waterlevel;
+
+
+           document.getElementById("rainfall").value=rlevel;
+          document.getElementById("kpiRain").innerHTML=rlevel;
+
+           document.getElementById("discharge").value=dlevel;
+          document.getElementById("kpiDischarge").innerHTML=dlevel;
+            console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
           
           // Trigger your UI updates or game functions here
           // handleWaterLevelUpdate(waterlevel);
@@ -360,8 +373,8 @@ trackLatestUnknownIdLevel();
   
   // Map Load Event Handler Setup
   map.on('load', async () => {
-    map.addSource('mapbox-dem', { 'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1', 'tileSize': 512 });
-    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+    //map.addSource('mapbox-dem', { 'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1', 'tileSize': 512 });
+    //map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
     map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
     // Fetch Firebase Realtime DB layers
@@ -840,7 +853,6 @@ async function triggerAnalysis(lngLat) {
   document.getElementById('saveBtn').onclick = saveModel;
   document.getElementById('loadBtn').onclick = loadModel;
   document.getElementById('predictBtn').onclick = manualPredict;
-  document.getElementById('logoutLink').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
   document.getElementById('dropdownLogout').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
 </script>
 </body>
