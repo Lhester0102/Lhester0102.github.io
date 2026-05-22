@@ -211,203 +211,209 @@
                                 </div>
                             </div>
                         </div>
-                          <div class="card mb-1 mt-2 p-1">
+                        <div class="card mb-1 mt-2 p-1">
                             <p id="status" class="small text-muted mt-1">Please select a local CSV file</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-    
-    <div class="modal fade" id="probModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Detailed Forecast Probability</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <canvas id="probChartModal"></canvas>
-                    <p class="small text-muted mt-2">Projection based on simulated environmental factor increments.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal fade" id="confModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Model Classification Performance</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <canvas id="confChartModal"></canvas>
-                    <div class="mt-3 p-2 bg-light rounded border small">
-                        <b>TP:</b> True Positives | <b>FP:</b> False Positives<br>
-                        <b>TN:</b> True Negatives | <b>FN:</b> False Negatives
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal fade" id="rocModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ROC Analysis & AUC Metric</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-8"><canvas id="rocChartModal"></canvas></div>
-                        <div class="col-md-4">
-                            <div class="p-3 bg-light rounded border">
-                                <h6 class="fw-bold">Performance Summary</h6><hr>
-                                <label class="small fw-bold text-muted">Area Under Curve (AUC)</label>
-                                <h3 class="text-primary mb-0" id="modalAUC">0.0000</h3>
-                                <p class="small text-muted mt-2">A higher AUC (closer to 1.0) represents superior predictive discrimination.</p>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    
-    <script>
-        let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
-        let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
-        let parsedCsvFeatures = [], parsedCsvLabels = [];
-        
-        window.onload = function() {
-            if (sessionStorage.getItem('loggedIn') !== 'true') {
-                window.location.href = 'log.html';
-            }
-            document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
-            updateKPIs();
-        }
-        
-        function updateKPIs() {
-            document.getElementById("kpiWater").innerHTML = document.getElementById("waterLevel").value;
-            document.getElementById("kpiRain").innerHTML = document.getElementById("rainfall").value;
-            document.getElementById("kpiDischarge").innerHTML = document.getElementById("discharge").value;
-        }
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-            authDomain: "flooded-95eeb.firebaseapp.com",
-            projectId: "flooded-95eeb",
-            storageBucket: "flooded-95eeb.firebasestorage.app",
-            messagingSenderId: "142547476223",
-            appId: "1:142547476223:web:70de7014c664e26d0636ca"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const storageRef = firebase.storage().ref();
-        
-        mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-            center: [120.5927871, 18.1959782],
-            zoom: 17,
-            pitch: 55
-        });
+</div>
 
-function getFloodColor(vulnerability) {
-    if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     // Red (#dc3545)
-    if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    // Orange (#fd7e14)
-    if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     // Yellow (#ffc107)
-    return 'rgba(144, 238, 144, 0.3)';                           // Very Light Green (LightGreen)
-}
+<div class="modal fade" id="probModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detailed Forecast Probability</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <canvas id="probChartModal"></canvas>
+                <p class="small text-muted mt-2">Projection based on simulated environmental factor increments.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Model Classification Performance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="confChartModal"></canvas>
+                <div class="mt-3 p-2 bg-light rounded border small">
+                    <b>TP:</b> True Positives | <b>FP:</b> False Positives<br>
+                    <b>TN:</b> True Negatives | <b>FN:</b> False Negatives
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rocModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ROC Analysis & AUC Metric</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8"><canvas id="rocChartModal"></canvas></div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="fw-bold">Performance Summary</h6><hr>
+                            <label class="small fw-bold text-muted">Area Under Curve (AUC)</label>
+                            <h3 class="text-primary mb-0" id="modalAUC">0.0000</h3>
+                            <p class="small text-muted mt-2">A higher AUC (closer to 1.0) represents superior predictive discrimination.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+<script>
+    let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
+    let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
+    let parsedCsvFeatures = [], parsedCsvLabels = [];
+    
+    window.onload = function() {
+        if (sessionStorage.getItem('loggedIn') !== 'true') {
+            window.location.href = 'log.html';
+        }
+        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
+        updateKPIs();
+    }
+    
+    function updateKPIs() {
+        document.getElementById("kpiWater").innerHTML = document.getElementById("waterLevel").value;
+        document.getElementById("kpiRain").innerHTML = document.getElementById("rainfall").value;
+        document.getElementById("kpiDischarge").innerHTML = document.getElementById("discharge").value;
+    }
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+    
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+        center: [120.5927871, 18.1959782],
+        zoom: 17,
+        pitch: 55
+    });
+    
+    function getFloodColor(vulnerability) {
+        if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     // Red (#dc3545)
+        if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    // Orange (#fd7e14)
+        if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     // Yellow (#ffc107)
+        return 'rgba(144, 238, 144, 0.3)';                           // Very Light Green (LightGreen)
+    }
+    
+    // Map Load Event Handler Setup
+    map.on('load', () => {
+        if (!map.getSource('mapbox-dem')) {
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+        } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
         
-        // Map Load Event Handler Setup
-        map.on('load', () => {
-            map.addSource('mapbox-dem', { 'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1', 'tileSize': 512 });
-            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-            map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-            
-            db.ref('Flooded_Areas').once('value').then(snapshot => {
-                const data = snapshot.val();
-                if (!data) return;
-                Object.entries(data).forEach(([id, f], i) => {
-                    if (!f.geojson) return;
-                    const sourceId = `flood-src-${i}`;
-                    map.addSource(sourceId, { type: 'geojson', data: f.geojson });
-                    map.addLayer({
-                        id: `flood-layer-${i}`,
-                        type: f.type === 'municipality' ? 'line' : 'fill',
-                        source: sourceId,
-                        paint: f.type === 'municipality' ? 
-                        { 'line-color': '#1c96c5', 'line-width': 2 } : 
-                        { 'fill-color': getFloodColor(f.vulnerability || 0), 'fill-opacity': 0.5 }
-                    });
+        db.ref('Flooded_Areas').once('value').then(snapshot => {
+            const data = snapshot.val();
+            if (!data) return;
+            Object.entries(data).forEach(([id, f], i) => {
+                if (!f.geojson) return;
+                const sourceId = `flood-src-${i}`;
+                map.addSource(sourceId, { type: 'geojson', data: f.geojson });
+                map.addLayer({
+                    id: `flood-layer-${i}`,
+                    type: f.type === 'municipality' ? 'line' : 'fill',
+                    source: sourceId,
+                    paint: f.type === 'municipality' ? 
+                    { 'line-color': '#1c96c5', 'line-width': 2 } : 
+                    { 'fill-color': getFloodColor(f.vulnerability || 0), 'fill-opacity': 0.5 }
                 });
             });
         });
+    });
+    
+    // Map Click Interaction Layer
+    // Map Click Interaction Layer
+    map.on('click', async (e) => {
+        const elevation = map.queryTerrainElevation(e.lngLat) || 0;
+        const elevInput = document.getElementById('elevation');
+        if (elevInput) {
+            elevInput.value = Math.round(elevation);
+            // Auto-trigger prediction framework on map interaction matrix
+            await manualPredict(); 
+        }
         
-        // Map Click Interaction Layer
-// Map Click Interaction Layer
-        map.on('click', async (e) => {
-            const elevation = map.queryTerrainElevation(e.lngLat) || 0;
-            const elevInput = document.getElementById('elevation');
-            if (elevInput) {
-                elevInput.value = Math.round(elevation);
-                // Auto-trigger prediction framework on map interaction matrix
-                await manualPredict(); 
+        // Retrieve current environmental inputs used during prediction
+        const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
+        const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
+        const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
+        
+        // Extract the calculated near-term probability string from the UI KPI matrix
+        // parses string formatting safely e.g., "75% - Severe" -> 75
+        const riskKpiText = document.getElementById("kpiRisk").innerText || "0";
+        const finalRisk = parseInt(riskKpiText) || 0;
+        
+        // Contextual classification flags
+        let interpretText = "Low Risk Scenario";
+        let interpretColor = "#198754"; // Bootstrap Green
+        let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
+        
+        if (finalRisk > 70) {
+            interpretText = "Severe Flood Risk";
+            interpretColor = "#dc3545"; // Bootstrap Red
+            recommendation = `CRITICAL: High threat detected! Current factors (Water: ${currentWater}m, Rain: ${currentRain}mm, Discharge: ${currentDischarge}m³/s) combined with an elevation of ${elevation.toFixed(1)}m indicate imminent flash flooding. Initiate localized drainage clearance, prepare immediate high-ground evacuation protocols, and monitor warnings closely.`;
+        } else if (finalRisk > 30) {
+            interpretText = "Moderate Flood Risk";
+            interpretColor = "#fd7e14"; // Bootstrap Orange
+            recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed given Water Level at ${currentWater}m and Rainfall accumulation at ${currentRain}mm. Secure low-lying equipment, prevent water retention structures from exceeding capacity, and draft proactive sandbag lines.`;
+        }
+        
+        // Geocode Location query parameters assembly
+        const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${e.lngLat.lng},${e.lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place`;
+        let locName = "Selected Coordinate Point";
+        try {
+            const resp = await fetch(geoQuery);
+            const data = await resp.json();
+            if (data.features?.length > 0) {
+                locName = data.features[0].place_name.split(',')[0];
             }
-
-            // Retrieve current environmental inputs used during prediction
-            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-            const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
-
-            // Extract the calculated near-term probability string from the UI KPI matrix
-            // parses string formatting safely e.g., "75% - Severe" -> 75
-            const riskKpiText = document.getElementById("kpiRisk").innerText || "0";
-            const finalRisk = parseInt(riskKpiText) || 0;
-            
-            // Contextual classification flags
-            let interpretText = "Low Risk Scenario";
-            let interpretColor = "#198754"; // Bootstrap Green
-            let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
-            
-            if (finalRisk > 70) {
-                interpretText = "Severe Flood Risk";
-                interpretColor = "#dc3545"; // Bootstrap Red
-                recommendation = `CRITICAL: High threat detected! Current factors (Water: ${currentWater}m, Rain: ${currentRain}mm, Discharge: ${currentDischarge}m³/s) combined with an elevation of ${elevation.toFixed(1)}m indicate imminent flash flooding. Initiate localized drainage clearance, prepare immediate high-ground evacuation protocols, and monitor warnings closely.`;
-            } else if (finalRisk > 30) {
-                interpretText = "Moderate Flood Risk";
-                interpretColor = "#fd7e14"; // Bootstrap Orange
-                recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed given Water Level at ${currentWater}m and Rainfall accumulation at ${currentRain}mm. Secure low-lying equipment, prevent water retention structures from exceeding capacity, and draft proactive sandbag lines.`;
-            }
-
-            // Geocode Location query parameters assembly
-            const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${e.lngLat.lng},${e.lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place`;
-            let locName = "Selected Coordinate Point";
-            try {
-                const resp = await fetch(geoQuery);
-                const data = await resp.json();
-                if (data.features?.length > 0) {
-                    locName = data.features[0].place_name.split(',')[0];
-                }
-            } catch (err) { 
-                console.error("Geocode error lookup details:", err); 
-            }
-            
-            // Build and display modernized popup component layout
-            new mapboxgl.Popup({ width: '1000px' })
-            .setLngLat(e.lngLat)
-            .setHTML(`
+        } catch (err) { 
+            console.error("Geocode error lookup details:", err); 
+        }
+        
+        // Build and display modernized popup component layout
+        new mapboxgl.Popup({ width: '1000px' })
+        .setLngLat(e.lngLat)
+        .setHTML(`
                 <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
                     <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
                     <small class="d-block mb-2 text-muted" style="font-size: 0.75rem;">${locName}</small>
@@ -428,150 +434,129 @@ function getFloodColor(vulnerability) {
                         </div>
                 </div>
             `)
-            .addTo(map);
-        }); 
-        function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
-
-        // Local Browser-side HTML5 CSV Parsing Logic
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const text = evt.target.result;
-                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                if(lines.length < 2) return alert("Insufficient data structural lines in selected CSV.");
-
-                // Check headers row safely
-                const firstLine = lines[0].toLowerCase();
-                let indexOffset = 0;
-                if (firstLine.includes('water') || firstLine.includes('rain') || firstLine.includes('label')) {
-                    indexOffset = 1;
-                }
-
-                parsedCsvFeatures = [];
-                parsedCsvLabels = [];
-
-                for(let i = indexOffset; i < lines.length; i++) {
-                    const columns = lines[i].split(',').map(v => parseFloat(v.trim()));
-                    if(columns.length >= 5 && !columns.some(isNaN)) {
-                        // Layout sequence map: water_level, rainfall, discharge, elevation, flood_label
-                        parsedCsvFeatures.push([columns[0], columns[1], columns[2], columns[3]]);
-                        parsedCsvLabels.push(columns[4]);
-                    }
-                }
-
-                if(parsedCsvFeatures.length === 0) {
-                    document.getElementById("status").innerHTML = "Error parsing file format matrices.";
-                    document.getElementById('trainBtn').disabled = true;
-                } else {
-                    document.getElementById("status").innerHTML = `Parsed ${parsedCsvFeatures.length} records locally. Ready to train.`;
-                    document.getElementById('trainBtn').disabled = false;
-                }
-            };
-            reader.readAsText(file);
-        });
+        .addTo(map);
+    }); 
+    function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
+    
+    // Local Browser-side HTML5 CSV Parsing Logic
+    document.getElementById('csvFileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
         
-        async function autoTrain(){
-            if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
-            document.getElementById("status").innerHTML="Slicing data vectors locally...";
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const text = evt.target.result;
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if(lines.length < 2) return alert("Insufficient data structural lines in selected CSV.");
             
-            const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
-            let trainX = parsedCsvFeatures.slice(0, splitIndex);
-            let testX  = parsedCsvFeatures.slice(splitIndex);
-            let trainY = parsedCsvLabels.slice(0, splitIndex);
-            let testY  = parsedCsvLabels.slice(splitIndex);
-            
-            minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
-            maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
-            trainX = trainX.map(normalize);
-            testX  = testX.map(normalize);
-            
-            const xsTrain = tf.tensor2d(trainX);
-            const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
-            const xsTest = tf.tensor2d(testX);
-            const ysTest = tf.tensor2d(testY, [testY.length, 1]);
-            
-            model = tf.sequential();
-            model.add(tf.layers.dense({inputShape: [4], units: 128, activation: 'relu'}));
-            model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-            model.add(tf.layers.dense({units: 32, activation: 'relu'}));
-            model.add(tf.layers.dense({units: 16, activation: 'relu'}));
-            model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-            model.compile({optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
-            
-            document.getElementById("status").innerHTML = "Optimizing weights matrix...";
-            await model.fit(xsTrain, ysTrain, {epochs: 150, batchSize: 16, shuffle: true, validationData: [xsTest, ysTest]});
-            document.getElementById("status").innerHTML = "Training Complete";
-            
-            evaluateModel(xsTest, ysTest);
-            manualPredict();
-        }
-        
-        async function evaluateModel(xs, ys) {
-            const predVals = await model.predict(xs).data();
-            const trueVals = await ys.data();
-            let tp = 0, tn = 0, fp = 0, fn = 0;
-            
-            for (let i = 0; i < predVals.length; i++) {
-                let p = predVals[i] >= 0.5 ? 1 : 0;
-                if (p == 1 && trueVals[i] == 1) tp++;
-                else if (p == 0 && trueVals[i] == 0) tn++;
-                else if (p == 1 && trueVals[i] == 0) fp++;
-                else fn++;
+            // Check headers row safely
+            const firstLine = lines[0].toLowerCase();
+            let indexOffset = 0;
+            if (firstLine.includes('water') || firstLine.includes('rain') || firstLine.includes('label')) {
+                indexOffset = 1;
             }
             
-            lastConfData = [tp, fp, tn, fn];
-            let accuracy = (tp + tn) / (tp + tn + fp + fn || 1);
-            let precision = tp / (tp + fp || 1), recall = tp / (tp + fn || 1);
-            let f1 = 2 * ((precision * recall) / (precision + recall || 1));
+            parsedCsvFeatures = [];
+            parsedCsvLabels = [];
             
-            if (confChart) confChart.destroy();
-            const cCtx = document.getElementById("confMatrix");
-            confChart = new Chart(cCtx, {
-                type: 'bar',
-                data: {
-                    labels: ["TP", "FP", "TN", "FN"],
-                    datasets: [{
-                        data: lastConfData,
-                        backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107']
-                    }]
-                },
-                options: {
-                    layout: { padding: { top: 20 } },
-                    plugins: { legend: { display: false } }
-                },
-                plugins: [{
-                    id: 'topLabels',
-                    afterDatasetsDraw(chart) {
-                        const { ctx } = chart;
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'bottom';
-                        ctx.font = 'bold 12px Arial';
-                        ctx.fillStyle = '#000';
-                        
-                        chart.data.datasets.forEach((dataset, i) => {
-                            chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                                const value = dataset.data[index];
-                                ctx.fillText(value, bar.x, bar.y - 5);
-                            });
-                        });
-                        ctx.restore();
-                    }
+            for(let i = indexOffset; i < lines.length; i++) {
+                const columns = lines[i].split(',').map(v => parseFloat(v.trim()));
+                if(columns.length >= 5 && !columns.some(isNaN)) {
+                    // Layout sequence map: water_level, rainfall, discharge, elevation, flood_label
+                    parsedCsvFeatures.push([columns[0], columns[1], columns[2], columns[3]]);
+                    parsedCsvLabels.push(columns[4]);
+                }
+            }
+            
+            if(parsedCsvFeatures.length === 0) {
+                document.getElementById("status").innerHTML = "Error parsing file format matrices.";
+                document.getElementById('trainBtn').disabled = true;
+            } else {
+                document.getElementById("status").innerHTML = `Parsed ${parsedCsvFeatures.length} records locally. Ready to train.`;
+                document.getElementById('trainBtn').disabled = false;
+            }
+        };
+        reader.readAsText(file);
+    });
+    
+    async function autoTrain(){
+        if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
+        document.getElementById("status").innerHTML="Slicing data vectors locally...";
+        
+        const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
+        let trainX = parsedCsvFeatures.slice(0, splitIndex);
+        let testX  = parsedCsvFeatures.slice(splitIndex);
+        let trainY = parsedCsvLabels.slice(0, splitIndex);
+        let testY  = parsedCsvLabels.slice(splitIndex);
+        
+        minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
+        maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
+        trainX = trainX.map(normalize);
+        testX  = testX.map(normalize);
+        
+        const xsTrain = tf.tensor2d(trainX);
+        const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
+        const xsTest = tf.tensor2d(testX);
+        const ysTest = tf.tensor2d(testY, [testY.length, 1]);
+        
+        model = tf.sequential();
+        model.add(tf.layers.dense({inputShape: [4], units: 128, activation: 'relu'}));
+        model.add(tf.layers.dense({units: 64, activation: 'relu'}));
+        model.add(tf.layers.dense({units: 32, activation: 'relu'}));
+        model.add(tf.layers.dense({units: 16, activation: 'relu'}));
+        model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+        model.compile({optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
+        
+        document.getElementById("status").innerHTML = "Optimizing weights matrix...";
+        await model.fit(xsTrain, ysTrain, {epochs: 150, batchSize: 16, shuffle: true, validationData: [xsTest, ysTest]});
+        document.getElementById("status").innerHTML = "Training Complete";
+        
+        evaluateModel(xsTest, ysTest);
+        manualPredict();
+    }
+    
+    async function evaluateModel(xs, ys) {
+        const predVals = await model.predict(xs).data();
+        const trueVals = await ys.data();
+        let tp = 0, tn = 0, fp = 0, fn = 0;
+        
+        for (let i = 0; i < predVals.length; i++) {
+            let p = predVals[i] >= 0.5 ? 1 : 0;
+            if (p == 1 && trueVals[i] == 1) tp++;
+            else if (p == 0 && trueVals[i] == 0) tn++;
+            else if (p == 1 && trueVals[i] == 0) fp++;
+            else fn++;
+        }
+        
+        lastConfData = [tp, fp, tn, fn];
+        let accuracy = (tp + tn) / (tp + tn + fp + fn || 1);
+        let precision = tp / (tp + fp || 1), recall = tp / (tp + fn || 1);
+        let f1 = 2 * ((precision * recall) / (precision + recall || 1));
+        
+        if (confChart) confChart.destroy();
+        const cCtx = document.getElementById("confMatrix");
+        confChart = new Chart(cCtx, {
+            type: 'bar',
+            data: {
+                labels: ["TP", "FP", "TN", "FN"],
+                datasets: [{
+                    data: lastConfData,
+                    backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107']
                 }]
-            });
-            
-            const topLabelsPlugin = {
+            },
+            options: {
+                layout: { padding: { top: 20 } },
+                plugins: { legend: { display: false } }
+            },
+            plugins: [{
                 id: 'topLabels',
                 afterDatasetsDraw(chart) {
                     const { ctx } = chart;
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'bottom';
-                    ctx.font = 'bold 12px sans-serif';
-                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.fillStyle = '#000';
                     
                     chart.data.datasets.forEach((dataset, i) => {
                         chart.getDatasetMeta(i).data.forEach((bar, index) => {
@@ -581,175 +566,196 @@ function getFloodColor(vulnerability) {
                     });
                     ctx.restore();
                 }
-            };
-            
-            cCtx.onclick = () => {
-                new bootstrap.Modal(document.getElementById('confModal')).show();
-                setTimeout(() => {
-                    if (window.mConf) window.mConf.destroy();
-                    window.mConf = new Chart(document.getElementById("confChartModal"), {
-                        type: 'bar',
-                        plugins: [topLabelsPlugin], 
-                        data: { 
-                            labels: ["True Positive", "False Positive", "True Negative", "False Negative"], 
-                            datasets: [{ 
-                                data: lastConfData, 
-                                backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107'] 
-                            }] 
-                        },
-                        options: { 
-                            layout: { padding: { top: 20 } },
-                            plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true } }
-                        }
+            }]
+        });
+        
+        const topLabelsPlugin = {
+            id: 'topLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillStyle = '#333';
+                
+                chart.data.datasets.forEach((dataset, i) => {
+                    chart.getDatasetMeta(i).data.forEach((bar, index) => {
+                        const value = dataset.data[index];
+                        ctx.fillText(value, bar.x, bar.y - 5);
                     });
-                }, 300);
-            };
-            
-            let points = [];
-            for (let t = 0; t <= 1.01; t += 0.05) {
-                let tp_t = 0, fp_t = 0, tn_t = 0, fn_t = 0;
-                for (let i = 0; i < predVals.length; i++) {
-                    let p = predVals[i] >= t ? 1 : 0;
-                    if (p == 1 && trueVals[i] == 1) tp_t++;
-                    else if (p == 1 && trueVals[i] == 0) fp_t++;
-                    else if (p == 0 && trueVals[i] == 0) tn_t++;
-                    else fn_t++;
-                }
-                points.push({ fpr: fp_t / (fp_t + tn_t || 1), tpr: tp_t / (tp_t + fn_t || 1) });
+                });
+                ctx.restore();
             }
-            points.sort((a, b) => a.fpr - b.fpr);
-            lastRocPoints = points;
-            
-            let auc = 0;
-            for (let i = 0; i < points.length - 1; i++) {
-                auc += (points[i+1].fpr - points[i].fpr) * (points[i+1].tpr + points[i].tpr) / 2;
+        };
+        
+        cCtx.onclick = () => {
+            new bootstrap.Modal(document.getElementById('confModal')).show();
+            setTimeout(() => {
+                if (window.mConf) window.mConf.destroy();
+                window.mConf = new Chart(document.getElementById("confChartModal"), {
+                    type: 'bar',
+                    plugins: [topLabelsPlugin], 
+                    data: { 
+                        labels: ["True Positive", "False Positive", "True Negative", "False Negative"], 
+                        datasets: [{ 
+                            data: lastConfData, 
+                            backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107'] 
+                        }] 
+                    },
+                    options: { 
+                        layout: { padding: { top: 20 } },
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }, 300);
+        };
+        
+        let points = [];
+        for (let t = 0; t <= 1.01; t += 0.05) {
+            let tp_t = 0, fp_t = 0, tn_t = 0, fn_t = 0;
+            for (let i = 0; i < predVals.length; i++) {
+                let p = predVals[i] >= t ? 1 : 0;
+                if (p == 1 && trueVals[i] == 1) tp_t++;
+                else if (p == 1 && trueVals[i] == 0) fp_t++;
+                else if (p == 0 && trueVals[i] == 0) tn_t++;
+                else fn_t++;
             }
-            lastAUC = Math.abs(auc);
-            
-            const rCtx = document.getElementById("rocChart");
-            if (rocChart) rocChart.destroy();
-            rocChart = new Chart(rCtx, {
-                type: 'line',
-                data: { labels: points.map(p => p.fpr.toFixed(2)), datasets: [{ data: points.map(p => p.tpr), borderColor: '#1c96c5', fill: true, backgroundColor: 'rgba(128,0,0,0.1)', tension: 0.2 }] },
-                options: { 
-                    plugins: { legend: { display: false } }, 
-                    scales: { x: { display: false }, y: { display: false } }
-                }
-            });
-
-            document.getElementById("status").innerHTML +=
-            `&emsp;<b>Accuracy:</b> ${accuracy.toFixed(3)}&emsp;<b>Precision:</b> ${precision.toFixed(3)}&emsp;<b>Recall:</b> ${recall.toFixed(3)}, &emsp;<b>F1:</b> ${f1.toFixed(3)}`;
-            
-            rCtx.onclick = () => {
-                document.getElementById('modalAUC').innerText = lastAUC.toFixed(4);
-                new bootstrap.Modal(document.getElementById('rocModal')).show();
-                setTimeout(() => {
-                    if (window.mRoc) window.mRoc.destroy();
-                    window.mRoc = new Chart(document.getElementById("rocChartModal"), {
-                        type: 'line',
-                        data: { labels: lastRocPoints.map(p => p.fpr.toFixed(2)), datasets: [{ label: 'ROC Curve', data: lastRocPoints.map(p => p.tpr), borderColor: '#1c96c5' }, { label: 'Baseline', data: [0, 1], borderColor: '#ccc', borderDash: [5, 5] }] }
-                    });
-                }, 300);
-            };
+            points.push({ fpr: fp_t / (fp_t + tn_t || 1), tpr: tp_t / (tp_t + fn_t || 1) });
         }
+        points.sort((a, b) => a.fpr - b.fpr);
+        lastRocPoints = points;
         
-        async function manualPredict(){
-            if(!model) return;
-            const input = [
-                parseFloat(document.getElementById('waterLevel').value), 
-                parseFloat(document.getElementById('rainfall').value), 
-                parseFloat(document.getElementById('discharge').value), 
-                parseFloat(document.getElementById('elevation').value)
-            ];
-            updateKPIs();
-            generateForecastChart(input);
+        let auc = 0;
+        for (let i = 0; i < points.length - 1; i++) {
+            auc += (points[i+1].fpr - points[i].fpr) * (points[i+1].tpr + points[i].tpr) / 2;
         }
+        lastAUC = Math.abs(auc);
         
-        async function generateForecastChart(current){
-            const horizons = [3,6,12,24,48];
-            let last = [...current];
-            const predictions = [];
-            for(const h of horizons){
-                const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
-                predictions.push(pred[0] * 100);
-                last[0] += 0.05; // Simulate shifting water parameters across intervals
+        const rCtx = document.getElementById("rocChart");
+        if (rocChart) rocChart.destroy();
+        rocChart = new Chart(rCtx, {
+            type: 'line',
+            data: { labels: points.map(p => p.fpr.toFixed(2)), datasets: [{ data: points.map(p => p.tpr), borderColor: '#1c96c5', fill: true, backgroundColor: 'rgba(128,0,0,0.1)', tension: 0.2 }] },
+            options: { 
+                plugins: { legend: { display: false } }, 
+                scales: { x: { display: false }, y: { display: false } }
             }
-            lastProbData = predictions;
-            const v = Math.round(predictions[0]);
-            const r = v < 30 ? ["Low","green"] : v < 70 ? ["Moderate","orange"] : ["Severe","red"];
-            document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
-            
-            if(probChart) probChart.destroy();
-            const pCtx = document.getElementById("probChart");
-            probChart = new Chart(pCtx, {
-                type:'line',
-                data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'%', data: predictions, borderColor:'red', fill:true }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero:true, max:100 } } }
-            });
-            
-            pCtx.onclick = () => {
-                new bootstrap.Modal(document.getElementById('probModal')).show();
-                setTimeout(() => {
-                    if (window.mProb) window.mProb.destroy();
-                    window.mProb = new Chart(document.getElementById("probChartModal"), {
-                        type:'line',
-                        data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'Flood Probability (%)', data: lastProbData, borderColor: '#1c96c5', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
-                        options: { scales: { y: { beginAtZero: true, max: 100 } } }
-                    });
-                }, 300);
-            };
-        }
+        });
         
-        async function saveModel() {
-            if (!model) return alert("Train first!");
-            const status = document.getElementById("status");
-            status.innerHTML = "Saving serialized data...";
-            await model.save(tf.io.withSaveHandler(async (artifacts) => {
-                const weightsBlob = new Blob([artifacts.weightData], {type: 'application/octet-stream'});
-                await storageRef.child('models/flood_weights.bin').put(weightsBlob);
-                const modelConfig = { modelTopology: artifacts.modelTopology, weightSpecs: artifacts.weightSpecs, metadata: { minVals, maxVals } };
-                const configBlob = new Blob([JSON.stringify(modelConfig)], {type: 'application/json'});
-                await storageRef.child('models/flood_model.json').put(configBlob);
-                status.innerHTML = "Saved to Cloud Storage!";
-                return { modelArtifactsInfo: { dateSaved: new Date() } };
-            }));
-        }
+        document.getElementById("status").innerHTML +=
+        `&emsp;<b>Accuracy:</b> ${accuracy.toFixed(3)}&emsp;<b>Precision:</b> ${precision.toFixed(3)}&emsp;<b>Recall:</b> ${recall.toFixed(3)}, &emsp;<b>F1:</b> ${f1.toFixed(3)}`;
         
-        async function loadModel() {
-            const status = document.getElementById("status");
-            status.innerHTML = "Downloading Architecture Down...";
+        rCtx.onclick = () => {
+            document.getElementById('modalAUC').innerText = lastAUC.toFixed(4);
+            new bootstrap.Modal(document.getElementById('rocModal')).show();
+            setTimeout(() => {
+                if (window.mRoc) window.mRoc.destroy();
+                window.mRoc = new Chart(document.getElementById("rocChartModal"), {
+                    type: 'line',
+                    data: { labels: lastRocPoints.map(p => p.fpr.toFixed(2)), datasets: [{ label: 'ROC Curve', data: lastRocPoints.map(p => p.tpr), borderColor: '#1c96c5' }, { label: 'Baseline', data: [0, 1], borderColor: '#ccc', borderDash: [5, 5] }] }
+                });
+            }, 300);
+        };
+    }
+    
+    async function manualPredict(){
+        if(!model) return;
+        const input = [
+        parseFloat(document.getElementById('waterLevel').value), 
+        parseFloat(document.getElementById('rainfall').value), 
+        parseFloat(document.getElementById('discharge').value), 
+        parseFloat(document.getElementById('elevation').value)
+        ];
+        updateKPIs();
+        generateForecastChart(input);
+    }
+    
+    async function generateForecastChart(current){
+        const horizons = [3,6,12,24,48];
+        let last = [...current];
+        const predictions = [];
+        for(const h of horizons){
+            const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
+            predictions.push(pred[0] * 100);
+            last[0] += 0.05; // Simulate shifting water parameters across intervals
+        }
+        lastProbData = predictions;
+        const v = Math.round(predictions[0]);
+        const r = v < 30 ? ["Low","green"] : v < 70 ? ["Moderate","orange"] : ["Severe","red"];
+        document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
+        
+        if(probChart) probChart.destroy();
+        const pCtx = document.getElementById("probChart");
+        probChart = new Chart(pCtx, {
+            type:'line',
+            data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'%', data: predictions, borderColor:'red', fill:true }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero:true, max:100 } } }
+        });
+        
+        pCtx.onclick = () => {
+            new bootstrap.Modal(document.getElementById('probModal')).show();
+            setTimeout(() => {
+                if (window.mProb) window.mProb.destroy();
+                window.mProb = new Chart(document.getElementById("probChartModal"), {
+                    type:'line',
+                    data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'Flood Probability (%)', data: lastProbData, borderColor: '#1c96c5', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
+                    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+            }, 300);
+        };
+    }
+    
+    async function saveModel() {
+        if (!model) return alert("Train first!");
+        const status = document.getElementById("status");
+        status.innerHTML = "Saving serialized data...";
+        await model.save(tf.io.withSaveHandler(async (artifacts) => {
+            const weightsBlob = new Blob([artifacts.weightData], {type: 'application/octet-stream'});
+            await storageRef.child('models/flood_weights.bin').put(weightsBlob);
+            const modelConfig = { modelTopology: artifacts.modelTopology, weightSpecs: artifacts.weightSpecs, metadata: { minVals, maxVals } };
+            const configBlob = new Blob([JSON.stringify(modelConfig)], {type: 'application/json'});
+            await storageRef.child('models/flood_model.json').put(configBlob);
+            status.innerHTML = "Saved to Cloud Storage!";
+            return { modelArtifactsInfo: { dateSaved: new Date() } };
+        }));
+    }
+    
+    async function loadModel() {
+        const status = document.getElementById("status");
+        status.innerHTML = "Downloading Architecture Down...";
+        
+        try {
+            const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+            const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
             
-            try {
-                const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-                const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-                
-                const config = await (await fetch(jsonUrl)).json();
-                const weights = await (await fetch(weightsUrl)).arrayBuffer();
-                
-                minVals = config.metadata.minVals;
-                maxVals = config.metadata.maxVals;
-                
-                model = await tf.loadLayersModel(tf.io.fromMemory(
-                    config.modelTopology,
-                    config.weightSpecs,
-                    weights
-                ));
-                
-                status.innerHTML = "Model Loaded Active";
-                manualPredict();
-            } catch (err) {
-                status.innerHTML = "Load Error: Check CORS configurations.";
-                console.error(err);
-            }
+            const config = await (await fetch(jsonUrl)).json();
+            const weights = await (await fetch(weightsUrl)).arrayBuffer();
+            
+            minVals = config.metadata.minVals;
+            maxVals = config.metadata.maxVals;
+            
+            model = await tf.loadLayersModel(tf.io.fromMemory(
+            config.modelTopology,
+            config.weightSpecs,
+            weights
+            ));
+            
+            status.innerHTML = "Model Loaded Active";
+            manualPredict();
+        } catch (err) {
+            status.innerHTML = "Load Error: Check CORS configurations.";
+            console.error(err);
         }
-        
-        document.getElementById('trainBtn').onclick = autoTrain;
-        document.getElementById('saveBtn').onclick = saveModel;
-        document.getElementById('loadBtn').onclick = loadModel;
-        document.getElementById('predictBtn').onclick = manualPredict;
-        document.getElementById('logoutLink').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
-        document.getElementById('dropdownLogout').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
-    </script>
+    }
+    
+    document.getElementById('trainBtn').onclick = autoTrain;
+    document.getElementById('saveBtn').onclick = saveModel;
+    document.getElementById('loadBtn').onclick = loadModel;
+    document.getElementById('predictBtn').onclick = manualPredict;
+    document.getElementById('logoutLink').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
+    document.getElementById('dropdownLogout').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
+</script>
 </body>
 </html>

@@ -305,12 +305,14 @@
   
   map.on('load', () => {
     // Add Terrain
+if (!map.getSource('mapbox-dem')) {
     map.addSource('mapbox-dem', {
-      'type': 'raster-dem',
-      'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-      'tileSize': 512,
-      'maxzoom': 14
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
     });
+}
     // Moves the zoom and compass controls to the bottom-right corner
     map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
