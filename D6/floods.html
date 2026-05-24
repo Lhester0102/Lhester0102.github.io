@@ -260,7 +260,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
+<script src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
 <script>
   let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
   let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
@@ -363,6 +363,7 @@ trackLatestUnknownIdLevel();
     pitch: 55
   });
   
+
   function getFloodColor(vulnerability) {
     if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     // Red (#dc3545)
     if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    // Orange (#fd7e14)
@@ -374,7 +375,10 @@ trackLatestUnknownIdLevel();
   let activeMarker = null;
   
   // Map Load Event Handler Setup
+ 
   map.on('load', async () => {
+       const search = new mapboxsearch.MapboxSearchBox();
+       search.accessToken = mapboxgl.accessToken;
         if (!map.getSource('mapbox-dem')) {
             map.addSource('mapbox-dem', {
                 'type': 'raster-dem',
@@ -384,6 +388,7 @@ trackLatestUnknownIdLevel();
             });
         } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
         map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        map.addControl(search);
         
     // Fetch Firebase Realtime DB layers
     db.ref('Flooded_Areas').once('value').then(snapshot => {
