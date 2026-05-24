@@ -314,6 +314,52 @@
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
     
+    function trackLatestUnknownIdLevel() {
+  // 1. Point to the parent 'data' folder
+  // 2. Sort entries by chronological key order and limit to the 1 newest entry
+  const latestDataQuery = db.ref('data').orderByKey().limitToLast(1);
+
+  latestDataQuery.on('value', (snapshot) => {
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        const unknownId = childSnapshot.key; // This is your dynamic ID string
+        const idData = childSnapshot.val();  // This holds the inner contents
+        
+        // Check if 'level' exists inside this dynamic ID object
+        if (idData && idData.level !== undefined) {
+          waterlevel = idData.level;
+          rlevel = idData.rain;
+          dlevel = idData.flow;
+          document.getElementById("waterLevel").value=waterlevel;
+          document.getElementById("kpiWater").innerHTML=waterlevel;
+
+
+           document.getElementById("rainfall").value=rlevel;
+          document.getElementById("kpiRain").innerHTML=rlevel;
+
+           document.getElementById("discharge").value=dlevel;
+          document.getElementById("kpiDischarge").innerHTML=dlevel;
+            console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
+             console.log(`Variable rainfall updated to:`, rlevel);
+              console.log(`Variable stream flow updated to:`, dlevel);
+          
+          // Trigger your UI updates or game functions here
+          // handleWaterLevelUpdate(waterlevel);
+        } else {
+          console.log(`Newest ID "${unknownId}" found, but it has no 'level' property.`);
+        }
+      });
+    } else {
+      console.log("No data paths exist under 'data/' yet.");
+    }
+  }, (error) => {
+    console.error("The dynamic read failed: ", error.code);
+  });
+}
+
+// Start tracking the live database node
+trackLatestUnknownIdLevel();
+
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
     const map = new mapboxgl.Map({
         container: 'map',
@@ -749,6 +795,7 @@
             console.error(err);
         }
     }
+    
     
     document.getElementById('trainBtn').onclick = autoTrain;
     document.getElementById('saveBtn').onclick = saveModel;
