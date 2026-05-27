@@ -12,6 +12,8 @@
   
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -260,21 +262,21 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-<script src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
+
 <script>
   let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
+  let geocoder;
   let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
   let parsedCsvFeatures = [], parsedCsvLabels = [];
   
-  window.onload = function() {
+  window.onload = async function() {
     // if (sessionStorage.getItem('loggedIn') !== 'true') {
     //     window.location.href = 'log.html';
     // }
     document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
     updateKPIs();
-    loadModel();
-    manualPredict();
-    
+    await loadModel();
+    document.getElementById('status').innerHTML = 'Model loaded. Select an area or use search on the map.';
   }
   
   function updateKPIs() {
@@ -348,8 +350,94 @@ function trackLatestUnknownIdLevel() {
   });
 }
 
-// Start tracking the live database node
-trackLatestUnknownIdLevel();
+// No static DB listener here; use municipality-specific live subscriptions based on map click/search.
+// trackLatestUnknownIdLevel();
+
+let currentMunicipality = null;
+let currentDataListener = null;
+
+function detachCurrentDataListener() {
+  if (currentDataListener && currentDataListener.off) {
+    currentDataListener.off('value');
+  }
+  currentDataListener = null;
+}
+
+function processMunicipalitySnapshot(snapshot, sourceName) {
+  if (!snapshot.exists()) {
+    if (sourceName === 'data2') {
+      loadData2JsonFallback();
+    } else {
+      document.getElementById('status').innerHTML = `${sourceName} has no latest value yet.`;
+    }
+    return;
+  }
+  snapshot.forEach(child => {
+    const v = child.val();
+    const level = v.level ?? v.water ?? v.water_level ?? null;
+    const rain = v.rain ?? v.rainfall ?? null;
+    const flow = v.flow ?? v.discharge ?? null;
+    setSensorInputs(level, rain, flow);
+  });
+  document.getElementById('status').innerHTML = `${sourceName} updated — auto refreshed.`;
+  manualPredict();
+}
+
+async function loadData2JsonFallback() {
+  try {
+    const url = await storageRef.child('data2.json').getDownloadURL();
+    const resp = await fetch(url);
+    const payload = await resp.json();
+    let level = payload.level ?? payload.water ?? payload.water_level ?? null;
+    let rain = payload.rain ?? payload.rainfall ?? null;
+    let flow = payload.flow ?? payload.discharge ?? null;
+    if ((level === null && rain === null && flow === null) && payload.features && payload.features[0] && payload.features[0].properties) {
+      const p = payload.features[0].properties;
+      level = level ?? p.level ?? p.water ?? p.water_level ?? null;
+      rain = rain ?? p.rain ?? p.rainfall ?? null;
+      flow = flow ?? p.flow ?? p.discharge ?? null;
+    }
+    setSensorInputs(level, rain, flow);
+    document.getElementById('status').innerHTML = 'data2.json fallback loaded.';
+    await manualPredict();
+  } catch (err) {
+    console.error('Failed to load data2.json fallback:', err);
+  }
+}
+
+function subscribeToMunicipalityData(municipality) {
+  if (!municipality) return;
+  if (currentMunicipality === municipality) return;
+  detachCurrentDataListener();
+  currentMunicipality = municipality;
+  if (municipality === 'Laoag') {
+    const ref = db.ref('data2').orderByKey().limitToLast(1);
+    currentDataListener = ref;
+    ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
+    document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data2 updates.';
+  } else if (municipality === 'Pasuquin') {
+    const ref = db.ref('data').orderByKey().limitToLast(1);
+    currentDataListener = ref;
+    ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
+    document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin data updates.';
+  }
+}
+
+// Helper to set sensor input fields and KPIs
+function setSensorInputs(level, rain, flow) {
+  if (typeof level !== 'undefined' && level !== null) {
+    document.getElementById('waterLevel').value = level;
+    document.getElementById('kpiWater').innerHTML = level;
+  }
+  if (typeof rain !== 'undefined' && rain !== null) {
+    document.getElementById('rainfall').value = rain;
+    document.getElementById('kpiRain').innerHTML = rain;
+  }
+  if (typeof flow !== 'undefined' && flow !== null) {
+    document.getElementById('discharge').value = flow;
+    document.getElementById('kpiDischarge').innerHTML = flow;
+  }
+}
 
   
   mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
@@ -363,32 +451,50 @@ trackLatestUnknownIdLevel();
     pitch: 55
   });
   
-
   function getFloodColor(vulnerability) {
-    if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     // Red (#dc3545)
-    if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    // Orange (#fd7e14)
-    if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     // Yellow (#ffc107)
-    return 'rgba(144, 238, 144, 0.3)';                           // Very Light Green (LightGreen)
+    if (vulnerability > 80) return 'rgba(255, 0, 0, 1)';     // Red (#dc3545)
+    if (vulnerability > 50) return 'rgba(253, 155, 0, 1)';    // Orange (#fd7e14)
+    if (vulnerability > 20) return 'rgba(255, 230, 0, 1)';     // Yellow (#ffc107)
+    return 'rgba(144, 238, 144, .2)';                           // Very Light Green (LightGreen)
   }
   
   // Global active marker instance to ensure only one custom pin exists at a time
   let activeMarker = null;
   
   // Map Load Event Handler Setup
- 
   map.on('load', async () => {
-       const search = new mapboxsearch.MapboxSearchBox();
-       search.accessToken = mapboxgl.accessToken;
         if (!map.getSource('mapbox-dem')) {
             map.addSource('mapbox-dem', {
                 'type': 'raster-dem',
                 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
                 'tileSize': 512,
-                'maxzoom': 14
+                'maxzoom': 17,
+                'pitch': 60
             });
         } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
         map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-        map.addControl(search);
+
+        geocoder = new MapboxGeocoder({
+          accessToken: mapboxgl.accessToken,
+          mapboxgl: mapboxgl,
+          marker: false,
+          placeholder: 'Search location',
+          proximity: initialCenter,
+          types: 'country,region,place,locality,neighborhood,address'
+        });
+        map.addControl(geocoder, 'top-left');
+
+        geocoder.on('result', async (event) => {
+          const [lng, lat] = event.result.center;
+          const point = { lng, lat };
+          if (activeMarker) {
+            activeMarker.setLngLat(point);
+          } else {
+            activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
+          }
+          map.flyTo({ center: point, zoom: 17, pitch: 55 });
+          await triggerAnalysis(point);
+        });
         
     // Fetch Firebase Realtime DB layers
     db.ref('Flooded_Areas').once('value').then(snapshot => {
@@ -428,8 +534,7 @@ trackLatestUnknownIdLevel();
     .setLngLat(startPoint)
     .addTo(map);
     
-    // Trigger analysis calculation and pop up generation immediately
-    await triggerAnalysis(startPoint);
+    // No analysis on initial map load. User should select an area or search.
   });
   
   // Map Click Interaction Layer
@@ -492,16 +597,40 @@ async function triggerAnalysis(lngLat) {
       waterInterpretColor = "#fd7e14"; // Orange
     }
     
-    const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place`;
+    const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
     let locName = "Selected Coordinate Point";
+    let municipality = null;
     try {
       const resp = await fetch(geoQuery);
       const data = await resp.json();
       if (data.features?.length > 0) {
-        locName = data.features[0].place_name.split(',')[0];
+        const f = data.features[0];
+        locName = f.place_name.split(',')[0];
+        if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
+        if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
+        if (!municipality && f.context) {
+          f.context.forEach(ctx => {
+            if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
+            if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+          });
+        }
       }
-    } catch (err) { 
-      console.error("Geocode error lookup details:", err); 
+    } catch (err) {
+      console.error("Geocode error lookup details:", err);
+    }
+
+    // If municipality detected, subscribe to live updates and update inputs automatically
+    try {
+      if (municipality === 'Laoag') {
+        subscribeToMunicipalityData('Laoag');
+      } else if (municipality === 'Pasuquin') {
+        subscribeToMunicipalityData('Pasuquin');
+      } else {
+        detachCurrentDataListener();
+        document.getElementById('status').innerHTML = 'Area outside Laoag/Pasuquin — select targeted area or search.';
+      }
+    } catch (err) {
+      console.error('Error loading municipality sensor values:', err);
     }
     
     // UI Template Helper to avoid code duplication between Popup and Side Panel
@@ -535,13 +664,7 @@ async function triggerAnalysis(lngLat) {
         </div>
     `;
 
-    // 1. Render mapbox popup window
-    new mapboxgl.Popup({ maxWidth: '320px' }) 
-    .setLngLat(lngLat)
-    .setHTML(generateHtmlContent())
-    .addTo(map);
-
-    // 2. Inject the HTML template directly into side panel innerHTML if it exists
+    // Inject the HTML template directly into side panel innerHTML if it exists
     const infoPanel = document.getElementById('details'); 
     if (infoPanel) {
         infoPanel.innerHTML = generateHtmlContent();
@@ -781,7 +904,7 @@ async function triggerAnalysis(lngLat) {
     parseFloat(document.getElementById('elevation').value)
     ];
     updateKPIs();
-    generateForecastChart(input);
+    await generateForecastChart(input);
   }
   
   async function generateForecastChart(current){
@@ -854,8 +977,7 @@ async function triggerAnalysis(lngLat) {
       weights
       ));
       
-      status.innerHTML = "Model Loaded Active";
-      manualPredict();
+      status.innerHTML = "Model Loaded Active. Select an area or search on the map to view flood risk.";
     } catch (err) {
       status.innerHTML = "Load Error: Check CORS configurations.";
       console.error(err);

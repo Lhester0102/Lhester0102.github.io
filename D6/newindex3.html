@@ -11,7 +11,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -157,7 +159,7 @@
                 
                 <div class="row g-3">
                     <div class="col-lg-3">
-                        <div class="card p-3">
+                        <div class="card p-3 shadow-sm mb-3">
                             <h6 class="mb-1">Model Control</h6>
                             <div class="mb-2">
                                 <label class="form-label small text-muted mb-1">Upload Training CSV</label>
@@ -174,7 +176,11 @@
                             <input value="192" id="discharge" class="form-control mb-1" placeholder="Discharge">
                             <input value="15" id="elevation" class="form-control mb-1" placeholder="Elevation">
                             <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
-                            
+                        </div>
+                        
+                        <div class="card p-3 shadow-sm" id="detailsCard">
+                            <h6 class="fw-bold border-bottom pb-1" style="color:#1c96c5;">System Field Analysis</h6>
+                            <div id="details"><span class="text-muted small">Click map or perform a search to visualize location analysis matrix.</span></div>
                         </div>
                     </div>
                     
@@ -216,8 +222,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 </div>
 
@@ -287,6 +293,7 @@
     let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
     let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
     let parsedCsvFeatures = [], parsedCsvLabels = [];
+    let activeMarker = null;
     
     window.onload = function() {
         if (sessionStorage.getItem('loggedIn') !== 'true') {
@@ -295,7 +302,6 @@
         document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
         updateKPIs();
         loadModel();
-        manualPredict();
     }
     
     function updateKPIs() {
@@ -315,70 +321,87 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
-    
-    function trackLatestUnknownIdLevel() {
-  // 1. Point to the parent 'data' folder
-  // 2. Sort entries by chronological key order and limit to the 1 newest entry
-  const latestDataQuery = db.ref('data').orderByKey().limitToLast(1);
+    const dataRef = db.ref('data');
+    const data2Ref = db.ref('data2');
 
-  latestDataQuery.on('value', (snapshot) => {
-    if (snapshot.exists()) {
-      snapshot.forEach((childSnapshot) => {
-        const unknownId = childSnapshot.key; // This is your dynamic ID string
-        const idData = childSnapshot.val();  // This holds the inner contents
-        
-        // Check if 'level' exists inside this dynamic ID object
-        if (idData && idData.level !== undefined) {
-          waterlevel = idData.level;
-          rlevel = idData.rain;
-          dlevel = idData.flow;
-          document.getElementById("waterLevel").value=waterlevel;
-          document.getElementById("kpiWater").innerHTML=waterlevel;
+    let currentMunicipality = null;
+    let currentDataListener = null;
 
-
-           document.getElementById("rainfall").value=rlevel;
-          document.getElementById("kpiRain").innerHTML=rlevel;
-
-           document.getElementById("discharge").value=dlevel;
-          document.getElementById("kpiDischarge").innerHTML=dlevel;
-            console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
-             console.log(`Variable rainfall updated to:`, rlevel);
-              console.log(`Variable stream flow updated to:`, dlevel);
-          
-          // Trigger your UI updates or game functions here
-          // handleWaterLevelUpdate(waterlevel);
-        } else {
-          console.log(`Newest ID "${unknownId}" found, but it has no 'level' property.`);
-        }
-      });
-    } else {
-      console.log("No data paths exist under 'data/' yet.");
+    function detachCurrentDataListener() {
+      if (currentDataListener && currentDataListener.off) {
+        currentDataListener.off('value');
+      }
+      currentDataListener = null;
+      currentMunicipality = null;
     }
-  }, (error) => {
-    console.error("The dynamic read failed: ", error.code);
-  });
-}
 
-// Start tracking the live database node
-trackLatestUnknownIdLevel();
+    function setSensorInputs(level, rain, flow) {
+      if (level !== undefined && level !== null) {
+        document.getElementById("waterLevel").value = level;
+        document.getElementById("kpiWater").innerHTML = level;
+      }
+      if (rain !== undefined && rain !== null) {
+        document.getElementById("rainfall").value = rain;
+        document.getElementById("kpiRain").innerHTML = rain;
+      }
+      if (flow !== undefined && flow !== null) {
+        document.getElementById("discharge").value = flow;
+        document.getElementById("kpiDischarge").innerHTML = flow;
+      }
+    }
+
+    function processMunicipalitySnapshot(snapshot, sourceName) {
+      if (!snapshot.exists()) {
+        document.getElementById('status').innerHTML = `${sourceName} has no latest value yet.`;
+        return;
+      }
+      snapshot.forEach(child => {
+        const v = child.val();
+        const level = v.level ?? v.water ?? v.water_level ?? null;
+        const rain = v.rain ?? v.rainfall ?? null;
+        const flow = v.flow ?? v.discharge ?? null;
+        setSensorInputs(level, rain, flow);
+      });
+      document.getElementById('status').innerHTML = `${sourceName} latest values loaded.`;
+      manualPredict();
+    }
+
+    function subscribeToMunicipalityData(municipality) {
+      if (!municipality) return;
+      if (currentMunicipality === municipality) return;
+      detachCurrentDataListener();
+      currentMunicipality = municipality;
+
+      if (municipality === 'Laoag') {
+        const ref = data2Ref.orderByKey().limitToLast(1);
+        currentDataListener = ref;
+        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
+        document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data2 updates.';
+      } else if (municipality === 'Pasuquin') {
+        const ref = dataRef.orderByKey().limitToLast(1);
+        currentDataListener = ref;
+        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
+        document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin data updates.';
+      }
+    }
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    const initialCenter = [120.5927871, 18.1959782];
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-        center: [120.5927871, 18.1959782],
+        center: initialCenter,
         zoom: 17,
         pitch: 55
     });
     
     function getFloodColor(vulnerability) {
-        if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     // Red (#dc3545)
-        if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    // Orange (#fd7e14)
-        if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     // Yellow (#ffc107)
-        return 'rgba(144, 238, 144, 0.3)';                           // Very Light Green (LightGreen)
+        if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     
+        if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    
+        if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     
+        return 'rgba(144, 238, 144, 0.3)';                           
     }
     
-    // Map Load Event Handler Setup
     map.on('load', () => {
         if (!map.getSource('mapbox-dem')) {
             map.addSource('mapbox-dem', {
@@ -389,6 +412,28 @@ trackLatestUnknownIdLevel();
             });
         } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
         map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            marker: false,
+            placeholder: 'Search location',
+            proximity: initialCenter,
+            types: 'country,region,place,locality,neighborhood,address'
+        });
+        map.addControl(geocoder, 'top-left');
+
+        geocoder.on('result', async (event) => {
+            const [lng, lat] = event.result.center;
+            const point = { lng, lat };
+            if (activeMarker) {
+                activeMarker.setLngLat(point);
+            } else {
+                activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
+            }
+            map.flyTo({ center: point, zoom: 17, pitch: 55 });
+            await triggerAnalysis(point);
+        });
         
         db.ref('Flooded_Areas').once('value').then(snapshot => {
             const data = snapshot.val();
@@ -410,83 +455,148 @@ trackLatestUnknownIdLevel();
     });
     
     // Map Click Interaction Layer
-    // Map Click Interaction Layer
     map.on('click', async (e) => {
-        const elevation = map.queryTerrainElevation(e.lngLat) || 0;
+        if (activeMarker) {
+            activeMarker.setLngLat(e.lngLat);
+        } else {
+            activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
+            .setLngLat(e.lngLat)
+            .addTo(map);
+        }
+        
+        // Execute the fully synchronized analytical workflow
+        await triggerAnalysis(e.lngLat);
+    }); 
+
+    /**
+    * Dynamic Interpretation Engine
+    */
+    async function triggerAnalysis(lngLat) {
+        const elevation = map.queryTerrainElevation(lngLat) || 0;
         const elevInput = document.getElementById('elevation');
         if (elevInput) {
             elevInput.value = Math.round(elevation);
-            // Auto-trigger prediction framework on map interaction matrix
-            await manualPredict(); 
         }
         
-        // Retrieve current environmental inputs used during prediction
         const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
         const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
         const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
         
-        // Extract the calculated near-term probability string from the UI KPI matrix
-        // parses string formatting safely e.g., "75% - Severe" -> 75
-        const riskKpiText = document.getElementById("kpiRisk").innerText || "0";
-        const finalRisk = parseInt(riskKpiText) || 0;
+        // 1. EXECUTE NN PREDICTION FIRST: Intercept data matrix pipeline before template assignments
+        let finalRisk = 0;
+        if (model) {
+            const input = [currentWater, currentRain, currentDischarge, elevation];
+            updateKPIs();
+            finalRisk = await generateForecastChart(input); 
+        }
         
-        // Contextual classification flags
         let interpretText = "Low Risk Scenario";
-        let interpretColor = "#198754"; // Bootstrap Green
+        let interpretColor = "#198754"; 
         let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
         
         if (finalRisk > 70) {
-            interpretText = "Severe Flood Risk";
-            interpretColor = "#dc3545"; // Bootstrap Red
+            interpretText = `Severe Flood Risk (${finalRisk}%)`;
+            interpretColor = "#dc3545"; 
             recommendation = `CRITICAL: High threat detected! Current factors (Water: ${currentWater}m, Rain: ${currentRain}mm, Discharge: ${currentDischarge}m³/s) combined with an elevation of ${elevation.toFixed(1)}m indicate imminent flash flooding. Initiate localized drainage clearance, prepare immediate high-ground evacuation protocols, and monitor warnings closely.`;
         } else if (finalRisk > 30) {
-            interpretText = "Moderate Flood Risk";
-            interpretColor = "#fd7e14"; // Bootstrap Orange
+            interpretText = `Moderate Flood Risk (${finalRisk}%)`;
+            interpretColor = "#fd7e14"; 
             recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed given Water Level at ${currentWater}m and Rainfall accumulation at ${currentRain}mm. Secure low-lying equipment, prevent water retention structures from exceeding capacity, and draft proactive sandbag lines.`;
+        } else {
+            interpretText = `Low Risk Scenario (${finalRisk}%)`;
+        }
+
+        // --- Contextual Evaluation for Water Level Indicators ---
+        let waterInterpretText = "Normal";
+        let waterInterpretColor = "#198754"; 
+
+        if (currentWater > 5.0) { 
+            waterInterpretText = "Critical";
+            waterInterpretColor = "#dc3545"; 
+        } else if (currentWater > 2.5) { 
+            waterInterpretText = "Elevated";
+            waterInterpretColor = "#fd7e14"; 
         }
         
-        // Geocode Location query parameters assembly
-        const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${e.lngLat.lng},${e.lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place`;
+        const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
         let locName = "Selected Coordinate Point";
+        let municipality = null;
+        let statusMessage = "";
         try {
             const resp = await fetch(geoQuery);
             const data = await resp.json();
             if (data.features?.length > 0) {
-                locName = data.features[0].place_name.split(',')[0];
+                const f = data.features[0];
+                locName = f.place_name.split(',')[0];
+                if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
+                if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
+                if (!municipality && f.context) {
+                    f.context.forEach(ctx => {
+                        if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
+                        if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+                    });
+                }
             }
         } catch (err) { 
             console.error("Geocode error lookup details:", err); 
         }
+
+        if (municipality === 'Laoag') {
+            statusMessage = 'Address detected in Laoag — using local Laoag reference.';
+            subscribeToMunicipalityData('Laoag');
+        } else if (municipality === 'Pasuquin') {
+            statusMessage = 'Address detected in Pasuquin — using local Pasuquin reference.';
+            subscribeToMunicipalityData('Pasuquin');
+        } else {
+            statusMessage = 'Location outside Laoag/Pasuquin. Search or click within those areas for local reference.';
+            detachCurrentDataListener();
+        }
+        document.getElementById('status').innerHTML = statusMessage;
         
-        // Build and display modernized popup component layout
-        new mapboxgl.Popup({ width: '1000px' })
-        .setLngLat(e.lngLat)
-        .setHTML(`
-                <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
-                    <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
-                    <small class="d-block mb-2 text-muted" style="font-size: 0.75rem;">${locName}</small>
-                
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted">Target Elevation:</span>
-                            <span class="fw-semibold">${elevation.toFixed(1)}m</span>
-                        </div>
-                        
-                        <div class="mt-2 pt-2 border-top">
-                            <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
-                            <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.92rem;">${interpretText}</span>
-                        </div>
-                        
-                        <div class="mt-2">
-                            <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                            <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px;">${recommendation}</p>
-                        </div>
+        // Unified UI Generator to prevent template duplication
+        const generateHtmlContent = () => `
+            <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
+                <small class="d-block mb-2 text-muted" style="font-size: 0.75rem; font-weight:500;">${locName}</small>
+            
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted small">Target Elevation:</span>
+                    <span class="fw-semibold small">${elevation.toFixed(1)}m</span>
                 </div>
-            `)
+
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted small">Water Level:</span>
+                    <span class="fw-semibold small">${currentWater.toFixed(2)}m 
+                        <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 2px;">(${waterInterpretText})</small>
+                    </span>
+                </div>
+                
+                <div class="mt-2 pt-2 border-top">
+                    <span class="text-muted d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
+                    <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.9rem;">${interpretText}</span>
+                </div>
+                
+                <div class="mt-2">
+                    <span class="text-muted d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
+                    <p class="mb-0 text-dark text-start" style="font-size: 0.75rem; text-align: justify; margin-top: 2px; line-height:1.25;">${recommendation}</p>
+                </div>
+            </div>
+        `;
+
+        // 1. Render Mapbox Popup
+        new mapboxgl.Popup({ maxWidth: '300px' })
+        .setLngLat(lngLat)
+        .setHTML(generateHtmlContent())
         .addTo(map);
-    }); 
+
+        // 2. Inject identical structure into sidebar details window
+        const infoPanel = document.getElementById('details'); 
+        if (infoPanel) {
+            infoPanel.innerHTML = generateHtmlContent();
+        }
+    }
+    
     function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
     
-    // Local Browser-side HTML5 CSV Parsing Logic
     document.getElementById('csvFileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -497,7 +607,6 @@ trackLatestUnknownIdLevel();
             const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             if(lines.length < 2) return alert("Insufficient data structural lines in selected CSV.");
             
-            // Check headers row safely
             const firstLine = lines[0].toLowerCase();
             let indexOffset = 0;
             if (firstLine.includes('water') || firstLine.includes('rain') || firstLine.includes('label')) {
@@ -510,7 +619,6 @@ trackLatestUnknownIdLevel();
             for(let i = indexOffset; i < lines.length; i++) {
                 const columns = lines[i].split(',').map(v => parseFloat(v.trim()));
                 if(columns.length >= 5 && !columns.some(isNaN)) {
-                    // Layout sequence map: water_level, rainfall, discharge, elevation, flood_label
                     parsedCsvFeatures.push([columns[0], columns[1], columns[2], columns[3]]);
                     parsedCsvLabels.push(columns[4]);
                 }
@@ -560,7 +668,11 @@ trackLatestUnknownIdLevel();
         document.getElementById("status").innerHTML = "Training Complete";
         
         evaluateModel(xsTest, ysTest);
-        manualPredict();
+        if(activeMarker) {
+            triggerAnalysis(activeMarker.getLngLat());
+        } else {
+            manualPredict();
+        }
     }
     
     async function evaluateModel(xs, ys) {
@@ -711,13 +823,13 @@ trackLatestUnknownIdLevel();
     async function manualPredict(){
         if(!model) return;
         const input = [
-        parseFloat(document.getElementById('waterLevel').value), 
-        parseFloat(document.getElementById('rainfall').value), 
-        parseFloat(document.getElementById('discharge').value), 
-        parseFloat(document.getElementById('elevation').value)
+            parseFloat(document.getElementById('waterLevel').value), 
+            parseFloat(document.getElementById('rainfall').value), 
+            parseFloat(document.getElementById('discharge').value), 
+            parseFloat(document.getElementById('elevation').value)
         ];
         updateKPIs();
-        generateForecastChart(input);
+        return await generateForecastChart(input);
     }
     
     async function generateForecastChart(current){
@@ -727,7 +839,7 @@ trackLatestUnknownIdLevel();
         for(const h of horizons){
             const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
             predictions.push(pred[0] * 100);
-            last[0] += 0.05; // Simulate shifting water parameters across intervals
+            last[0] += 0.05; 
         }
         lastProbData = predictions;
         const v = Math.round(predictions[0]);
@@ -748,11 +860,13 @@ trackLatestUnknownIdLevel();
                 if (window.mProb) window.mProb.destroy();
                 window.mProb = new Chart(document.getElementById("probChartModal"), {
                     type:'line',
-                    data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'Flood Probability (%)', data: lastProbData, borderColor: '#1c96c5', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
+                    data: { labels: horizons.map(h => h + 'h'), datasets:[{ label: 'Flood Probability (%)', data: lastProbData, borderColor: '#1c96c5', backgroundColor: 'rgba(128,0,0,0.1)', fill: true }] },
                     options: { scales: { y: { beginAtZero: true, max: 100 } } }
                 });
             }, 300);
         };
+
+        return v; // Return calculated percentage into triggerAnalysis workflow
     }
     
     async function saveModel() {
@@ -784,20 +898,21 @@ trackLatestUnknownIdLevel();
             minVals = config.metadata.minVals;
             maxVals = config.metadata.maxVals;
             
-            model = await tf.loadLayersModel(tf.io.fromMemory(
-            config.modelTopology,
-            config.weightSpecs,
-            weights
-            ));
+            // CRITICAL FIX: Wrap separate parameters into a proper ModelArtifacts configuration object
+            model = await tf.loadLayersModel(tf.io.fromMemory({
+                modelTopology: config.modelTopology,
+                weightSpecs: config.weightSpecs,
+                weightData: weights
+            }));
             
             status.innerHTML = "Model Loaded Active";
-            manualPredict();
+            await manualPredict();
+            return model;
         } catch (err) {
             status.innerHTML = "Load Error: Check CORS configurations.";
             console.error(err);
         }
     }
-    
     
     document.getElementById('trainBtn').onclick = autoTrain;
     document.getElementById('saveBtn').onclick = saveModel;

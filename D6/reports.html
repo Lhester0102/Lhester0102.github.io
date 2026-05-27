@@ -267,7 +267,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const dataRef = ref(db, 'data');
-    
+    const data2Ref = ref(db, 'data2');
+
+    let dataReports = [];
+    let data2Reports = [];
     let allReports = []; 
     let currentFilteredData = [];
     
@@ -317,6 +320,10 @@
         if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
         return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
     }
+
+    function formatField(f) {
+        return (f === undefined || f === null || f === 'N/A') ? '' : f;
+    }
     
     // Main Render Function
     function renderTable() {
@@ -363,6 +370,14 @@
             
             return match;
         });
+
+        // Require Date, Station, and Water Level — drop rows missing any
+        currentFilteredData = currentFilteredData.filter(item => {
+            const dateStr = formatField(item.date);
+            const stationStr = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
+            return (dateStr !== '' && stationStr !== '' && levelVal !== '');
+        });
         
         // Step 2: Truncate by Row Limit
         let displayData = [...currentFilteredData];
@@ -379,44 +394,101 @@
         // Step 4: Render Rows
         displayData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);
+            const dateStr = formatField(item.date);
+            const timeStr = formatField(item.time);
+            const stationStr = formatField(item.station || item.city);
+            const levelStr = (item.level === undefined || item.level === null || item.level === '') ? '' : `${item.level} m`;
+            const rainStr = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : `${item.rain} mm`;
+            const flowStr = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : `${item.flow} m³/s`;
+            const depthCalcStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.depthCalc;
+            const statusStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.label;
+
             const rowHTML = `
                     <tr>
-                        <td class="ps-4"><div class="fw-bold text-dark">${item.date || 'N/A'}</div></td>
-                        <td><div class="fw-bold text-dark">${item.time || ''}</div></td>
-                        <td><div class="fw-bold text-dark">${item.station || item.city || 'N/A'}</div></td>
-                        <td><span class="badge-metric ${depthMeta.class}">${item.level} m</span></td>
-                        <td>${item.rain} mm</td>
-                        <td>${item.flow} m³/s</td>
-                        <td class="fw-bold text-dark">${depthMeta.depthCalc}</td>
-                        <td><span class="badge rounded-pill ${depthMeta.class}">${depthMeta.label}</span></td>
+                        <td class="ps-4"><div class="fw-bold text-dark">${dateStr}</div></td>
+                        <td><div class="fw-bold text-dark">${timeStr}</div></td>
+                        <td><div class="fw-bold text-dark">${stationStr}</div></td>
+                        <td>${levelStr ? `<span class="badge-metric ${depthMeta.class}">${levelStr}</span>` : ''}</td>
+                        <td>${rainStr}</td>
+                        <td>${flowStr}</td>
+                        <td class="fw-bold text-dark">${depthCalcStr}</td>
+                        <td>${statusStr ? `<span class="badge rounded-pill ${depthMeta.class}">${statusStr}</span>` : ''}</td>
                     </tr>`;
             tableBody.innerHTML += rowHTML;
         });
     }
     
-    // Firebase Listener
+    // Firebase Listeners for both `data` and `data2`
+    function getItemTimestamp(item) {
+        if (!item) return Date.now();
+        if (item.date) {
+            try {
+                const timePart = item.time ? (' ' + item.time) : '';
+                const dt = new Date(item.date + timePart);
+                if (!isNaN(dt)) return dt.getTime();
+            } catch (e) {}
+        }
+        if (item.timestamp) return Number(item.timestamp) || Date.now();
+        return Date.now();
+    }
+
+    function mergeAndRender() {
+        // combine arrays and sort by derived timestamp (newest first)
+        allReports = [...dataReports, ...data2Reports];
+        allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+        renderTable();
+    }
+
     onValue(dataRef, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            // Map to array and reverse so newest is first
-            allReports = Object.keys(data).map(key => data[key]).reverse();
+            dataReports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data' }));
+            // keep original newest-first behavior for single-source but merging will re-sort
+            dataReports = dataReports.reverse();
         } else {
-            allReports = [];
+            dataReports = [];
         }
-        renderTable();
+        mergeAndRender();
+    });
+
+    onValue(data2Ref, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            data2Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data2' }));
+            data2Reports = data2Reports.reverse();
+        } else {
+            data2Reports = [];
+        }
+        mergeAndRender();
     });
     
     // CSV Export
     function exportToCSV() {
-        if (currentFilteredData.length === 0) {
+        // Only export rows that have Date, Station, and Water Level
+        const exportData = currentFilteredData.filter(item => {
+            const dateStr = formatField(item.date);
+            const stationStr = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
+            return (dateStr !== '' && stationStr !== '' && levelVal !== '');
+        });
+
+        if (exportData.length === 0) {
             alert("No data to export.");
             return;
         }
+
         let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
-        currentFilteredData.forEach(item => {
+        exportData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);
-            const stationValue = item.station || item.city || 'N/A';
-            csvContent += `"${item.date}","${item.time}","${stationValue}","${item.level}","${item.rain}","${item.flow}","${depthMeta.depthCalc}","${depthMeta.label}"\n`;
+            const dateStr = formatField(item.date);
+            const timeStr = formatField(item.time);
+            const stationValue = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : item.level;
+            const rainVal = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : item.rain;
+            const flowVal = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : item.flow;
+            const depthCalc = levelVal ? depthMeta.depthCalc : '';
+            const statusLabel = levelVal ? depthMeta.label : '';
+            csvContent += `"${dateStr}","${timeStr}","${stationValue}","${levelVal}","${rainVal}","${flowVal}","${depthCalc}","${statusLabel}"\n`;
         });
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
