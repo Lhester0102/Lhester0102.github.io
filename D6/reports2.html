@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Geospatial DSS | Flood Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="GDSS.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        /* Theme Core */
+        body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Sidebar Styles */
+        .sidebar { 
+            background-color: #1c96c5; 
+            transition: all 0.3s;
+            z-index: 1050;
+            overflow-y: auto;
+        }
+        
+        .nav-link { 
+            color: rgba(255,255,255,0.8); 
+            transition: 0.2s; 
+            border-radius: 5px; 
+            margin-bottom: 2px; 
+        }
+        
+        .nav-link:hover { 
+            background-color: #212529; 
+            color: #fff; 
+        }
+        
+        .nav-link.active { 
+            background-color: #212529 !important; 
+            color: white !important; 
+        }
+        
+        /* Card & UI Refinement */
+        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
+        
+        /* Table Aesthetics */
+        .table thead th { 
+            background-color: #212529; 
+            color: white; 
+            font-size: 0.85rem;
+            padding: 15px;
+            border-bottom: none;
+        }
+        .table tbody td { font-size: 0.85rem; vertical-align: middle; padding: 12px 15px; }
+        
+        /* Specific Badges for Flood Data */
+        .badge-metric { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .lvl-high { background: #ffebee; color: #c62828; }
+        .lvl-med { background: #fff3e0; color: #ef6c00; }
+        .lvl-low { background: #e8f5e9; color: #2e7d32; }
+        
+        @media (min-width: 768px) {
+            .sidebar { min-height: 100vh; height: 100vh; }
+            .main-content { height: 100vh; overflow-y: auto; }
+        }
+        
+        .mobile-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+        }
+        .mobile-brand img { width: 35px; height: 35px; }
+        .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
+        
+        .main-content::-webkit-scrollbar { width: 6px; }
+        .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        #station-charts { max-height: calc(100vh - 320px); overflow-y: auto; }
+        .station-chart-card { min-height: 320px; }
+        .station-chart { width: 100% !important; height: 280px !important; }
+        
+        /* Print Specific Styles */
+        .print-header { display: none; }
+        
+        @media print {
+            @page { margin: 1cm; }
+            body { background: white; margin: 0; padding: 0; }
+            .sidebar, .mobile-brand, #filterCard, .btn, .navbar, .dropdown { display: none !important; }
+            .main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+            .table thead th { background-color: #f8f9fa !important; color: black !important; border-bottom: 2px solid #000 !important; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            .print-header h4 { margin: 0; font-weight: bold; color: #1c96c5; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
+                <div class="d-md-none mobile-brand">
+                    <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+                    <div>
+                        <h6 class="text-white">Geospatial DSS</h6>
+                        <small class="text-white-50" style="font-size: 0.7rem;">Flood Reports</small>
+                    </div>
+                    <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center mb-4 d-none d-md-block">
+                    <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+                    <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="mb-1"><a class="nav-link text-white" href="newindex3.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+                            <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
+                        </a>
+                        <div class="collapse" id="manageMenu">
+                            <ul class="list-unstyled ps-3 small">
+                                <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
+                                <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
+                    <li class="mb-1"><a class="nav-link text-white active" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+                </ul>
+                
+                <div class="mt-4 pt-3 border-top border-secondary">
+                    <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
+                </div>
+            </nav>
+            
+            <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+                <div class="print-header">
+                    <h4>Geospatial DSS: Flood Risk Reports</h4>
+                    <small id="printTimestamp"></small>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 p-2 bg-white rounded shadow-sm">
+                    <div class="d-flex align-items-center gap-3">
+                        <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <h5 class="mb-0 fw-bold text-dark">Data Reports</h5>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button
+                            class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+                            type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="emails">User Loading...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+                            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            
+                <div class="card shadow-sm mb-2" id="filterCard">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Time Period</label>
+                                <select id="filterPeriodType" class="form-select form-select-sm">
+                                    <option value="all">All</option>
+                                    <option value="annually">Annually</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="custom">From-To Date</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4" id="dynamicInputContainer"></div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Station</label>
+                                <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Station name...">
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1">Rows</label>
+                                <select id="filterRowLimit" class="form-select form-select-sm">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="all" selected>All</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-2 d-flex gap-1">
+                                <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
+                                <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
+                            </div>
+                            <div class="col-md-2 d-flex gap-1">
+                                <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
+                                <button class="btn btn-sm btn-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                    <div class="card shadow-sm chart-card">
+                    <div class="card-body">
+                        <!-- <div id="station-probabilities" class="row g-3 mb-3">
+                            <div class="col-12">
+                                <div class="card p-3 shadow-sm mb-3">
+                                    <div class="row gx-2 gy-1 align-items-center text-uppercase small text-muted fw-bold">
+                                        <div class="col-6">Station</div>
+                                        <div class="col-6 text-end">Probability</div>
+                                    </div>
+                                    <div id="station-probability-list" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div> -->
+                        <div id="station-charts" class="row g-3 py-2">
+                            <div class="col-12 text-center text-muted py-5" id="chart-placeholder">Connecting to Firebase...</div>
+                        </div>
+                        <!-- <div id="forecast-card" class="row g-3 py-2">
+                            <div class="col-12">
+                                <div class="card p-3 shadow-sm mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <h6 class="mb-1">Flood Probability Forecast</h6>
+                                            <small class="text-muted">Hourly probability forecast using TensorFlow and recent Firebase records.</small>
+                                        </div>
+                                    </div>
+                                    <div style="position: relative; min-height: 320px;">
+                                        <canvas id="dailyForecastChart" class="station-chart"></canvas>
+                                        <div id="forecast-placeholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-center text-muted" style="background: rgba(255,255,255,0.9); display: none; padding: 1rem;">
+                                            Forecast appears as soon as the latest record is available and TensorFlow is loaded.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref as dbRef, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getStorage, ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    
+    // Session Guard
+    window.onload = async function() {
+        if (sessionStorage.getItem('loggedIn') !== 'true') {
+            window.location.href = 'log.html';
+        }
+        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
+        document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
+        await loadForecastModel();
+    };
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+    const dataRef = dbRef(db, 'data');
+    const data2Ref = dbRef(db, 'data2');
+
+    let model = null;
+    let minVals = [];
+    let maxVals = [];
+    let dataReports = [];
+    let data2Reports = [];
+    let allReports = []; 
+    let currentFilteredData = [];
+    let stationCharts = [];
+    let forecastChart = null;
+    let isRendering = false;
+    let isBuildingForecastChart = false;
+    
+    const periodTypeSelect = document.getElementById('filterPeriodType');
+    const dynamicContainer = document.getElementById('dynamicInputContainer');
+    const rowLimitSelect = document.getElementById('filterRowLimit');
+    
+    // Dynamic Filter UI Logic
+    periodTypeSelect.addEventListener('change', function() {
+        const val = this.value;
+        dynamicContainer.innerHTML = '';
+        
+        if (val === 'annually') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Year</label>
+                    <input type="number" id="inputAnnual" class="form-control form-control-sm" placeholder="YYYY" value="${new Date().getFullYear()}">`;
+        } else if (val === 'monthly') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Month</label>
+                    <input type="month" id="inputMonthly" class="form-control form-control-sm">`;
+        } else if (val === 'weekly') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Week</label>
+                    <input type="week" id="inputWeekly" class="form-control form-control-sm">`;
+        } else if (val === 'custom') {
+            dynamicContainer.innerHTML = `
+                    <label class="form-label small text-muted mb-1">Date Range</label>
+                    <div class="d-flex gap-1">
+                        <input type="date" id="inputDateFrom" class="form-control form-control-sm">
+                        <input type="date" id="inputDateTo" class="form-control form-control-sm">
+                    </div>`;
+        }
+    });
+    
+    function getISOWeekString(dateObj) {
+        const date = new Date(dateObj.getTime());
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+        const week1 = new Date(date.getFullYear(), 0, 4);
+        const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        return `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+    }
+    
+    function getDepthInfo(level) {
+        const l = parseFloat(level);
+        if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
+        if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
+        return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
+    }
+
+    function normalizeInput(values) {
+        if (!minVals.length || !maxVals.length) return values;
+        return values.map((val, index) => {
+            const min = minVals[index] ?? 0;
+            const max = maxVals[index] ?? 1;
+            return max === min ? 0 : (parseFloat(val) - min) / (max - min);
+        });
+    }
+
+    async function loadForecastModel() {
+        try {
+            console.log('Starting to load forecast model from Firebase storage...');
+            const jsonUrl = await getDownloadURL(storageRef(storage, 'models/flood_model.json'));
+            console.log('Model JSON URL:', jsonUrl.substring(0, 50) + '...');
+            const weightsUrl = await getDownloadURL(storageRef(storage, 'models/flood_weights.bin'));
+            console.log('Weights URL:', weightsUrl.substring(0, 50) + '...');
+            
+            const config = await (await fetch(jsonUrl)).json();
+            console.log('Model config loaded. Topology:', config.modelTopology?.class || 'unknown');
+            
+            const weights = await (await fetch(weightsUrl)).arrayBuffer();
+            console.log('Weights loaded. Size:', weights.byteLength, 'bytes');
+            
+            minVals = config.metadata?.minVals || [];
+            maxVals = config.metadata?.maxVals || [];
+            console.log('Normalization params - min:', minVals, 'max:', maxVals);
+            
+            model = await tf.loadLayersModel(tf.io.fromMemory({
+                modelTopology: config.modelTopology,
+                weightSpecs: config.weightSpecs,
+                weightData: weights
+            }));
+            console.log('✓ Forecast model loaded successfully. Model summary:', model.summary ? 'available' : 'not available');
+        } catch (err) {
+            console.error('Failed to load forecast model from storage:', err.message || err);
+            model = null;
+        }
+    }
+
+    async function predictFloodProbability(features) {
+        if (!model) {
+            console.warn('predictFloodProbability: model is not loaded');
+            return null;
+        }
+        try {
+            const normalized = normalizeInput(features);
+            console.log('Input features:', features, '-> normalized:', normalized);
+            const input = tf.tensor2d([normalized]);
+            const output = model.predict(input);
+            const pred = await output.data();
+            input.dispose();
+            output.dispose();
+            const probability = pred[0] * 100;
+            console.log('Prediction:', pred[0], '-> probability:', probability.toFixed(1) + '%');
+            return probability;
+        } catch (err) {
+            console.error('Error in predictFloodProbability:', err.message || err);
+            return null;
+        }
+    }
+
+    function formatField(f) {
+        return (f === undefined || f === null || f === 'N/A') ? '' : f;
+    }
+
+    function formatMonthDay(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date)) return dateStr;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function parseMonthKey(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date)) return null;
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function formatMonthLabel(monthKey) {
+        const [year, month] = monthKey.split('-');
+        const label = new Date(Number(year), Number(month) - 1, 1).toLocaleString('default', { month: 'short' });
+        return `${label} ${year}`;
+    }
+
+    function destroyStationCharts() {
+        stationCharts.forEach(chart => chart.destroy());
+        stationCharts = [];
+    }
+
+    function destroyForecastChart() {
+        if (forecastChart) {
+            forecastChart.destroy();
+            forecastChart = null;
+        }
+    }
+
+    function parseDateKey(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date)) return null;
+        return date.toISOString().slice(0, 10);
+    }
+
+    function getItemDateKey(item) {
+        if (item?.date) {
+            return parseDateKey(item.date);
+        }
+        if (item?.timestamp) {
+            const tsDate = new Date(item.timestamp);
+            if (!isNaN(tsDate)) return tsDate.toISOString().slice(0, 10);
+        }
+        return null;
+    }
+
+    function addDaysToDateKey(dateKey, offset) {
+        const dt = new Date(dateKey);
+        dt.setDate(dt.getDate() + offset);
+        return dt.toISOString().slice(0, 10);
+    }
+
+    function collectDailyAverages() {
+        const dailyMap = {};
+        currentFilteredData.forEach(item => {
+            const dayKey = getItemDateKey(item);
+            if (!dayKey) return;
+            const level = parseFloat(item.level);
+            const rain = parseFloat(item.rain);
+            const flow = parseFloat(item.flow);
+            const bucket = dailyMap[dayKey] || { levelSum: 0, rainSum: 0, flowSum: 0, levelCount: 0, rainCount: 0, flowCount: 0 };
+            if (!isNaN(level)) { bucket.levelSum += level; bucket.levelCount += 1; }
+            if (!isNaN(rain)) { bucket.rainSum += rain; bucket.rainCount += 1; }
+            if (!isNaN(flow)) { bucket.flowSum += flow; bucket.flowCount += 1; }
+            dailyMap[dayKey] = bucket;
+        });
+
+        return Object.keys(dailyMap).sort().map(date => {
+            const bucket = dailyMap[date];
+            return {
+                date,
+                level: bucket.levelCount ? bucket.levelSum / bucket.levelCount : null,
+                rain: bucket.rainCount ? bucket.rainSum / bucket.rainCount : 0,
+                flow: bucket.flowCount ? bucket.flowSum / bucket.flowCount : 0
+            };
+        }).filter(row => row.level !== null);
+    }
+
+    async function trainDailyForecastModel(dailyRows) {
+        if (!window.tf || dailyRows.length < 2) return null;
+        const inputs = [];
+        const labels = [];
+        for (let i = 1; i < dailyRows.length; i++) {
+            const prev = dailyRows[i - 1];
+            const next = dailyRows[i];
+            inputs.push([prev.level, prev.rain, prev.flow]);
+            labels.push(next.level);
+        }
+        const xs = tf.tensor2d(inputs);
+        const ys = tf.tensor2d(labels, [labels.length, 1]);
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ inputShape: [3], units: 64, activation: 'relu' }));
+        model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+        model.add(tf.layers.dense({ units: 1 }));
+        model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+        await model.fit(xs, ys, { epochs: 80, batchSize: 8, shuffle: true, verbose: 0 });
+        xs.dispose();
+        ys.dispose();
+        return model;
+    }
+
+    function levelToProbability(level) {
+        const low = 2.5;
+        const high = 5.0;
+        const normalized = (level - low) / (high - low);
+        return Math.max(0, Math.min(1, normalized)) * 100;
+    }
+
+    async function forecastNextLevels(model, dailyRows, horizon = 3) {
+        const results = [];
+        let last = { ...dailyRows[dailyRows.length - 1] };
+        for (let day = 1; day <= horizon; day++) {
+            const input = tf.tensor2d([[last.level, last.rain, last.flow]]);
+            const prediction = await model.predict(input).data();
+            input.dispose();
+            const nextLevel = parseFloat(prediction[0].toFixed(2));
+            const nextDate = addDaysToDateKey(last.date, 1);
+            results.push({ date: nextDate, level: nextLevel, probability: levelToProbability(nextLevel) });
+            last = {
+                date: nextDate,
+                level: nextLevel,
+                rain: last.rain * 1.02,
+                flow: last.flow * 1.02
+            };
+        }
+        return results;
+    }
+
+    function getLatestRecord() {
+        if (!currentFilteredData.length) return null;
+        return currentFilteredData.slice().sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a))[0];
+    }
+
+    async function buildForecastChart() {
+        if (isBuildingForecastChart) return;
+        isBuildingForecastChart = true;
+        
+        try {
+            const placeholder = document.getElementById('forecast-placeholder');
+            const canvas = document.getElementById('dailyForecastChart');
+            if (!canvas) {
+                console.warn('buildForecastChart: canvas not found');
+                isBuildingForecastChart = false;
+                return;
+            }
+            destroyForecastChart();
+            console.log('Building forecast chart...');
+
+        if (!window.tf) {
+            console.error('TensorFlow not loaded');
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'TensorFlow is not loaded. Forecast is unavailable.';
+            return;
+        }
+
+        const latest = getLatestRecord();
+        if (!latest) {
+            console.warn('No latest record found in filtered data');
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'No latest sensor record available to generate a forecast.';
+            return;
+        }
+        console.log('Latest record:', latest);
+
+        const level = parseFloat(latest.level);
+        const rain = parseFloat(latest.rain);
+        const flow = parseFloat(latest.flow);
+        const elevation = parseFloat(latest.elevation) || 0;
+
+        if (isNaN(level) || isNaN(rain) || isNaN(flow)) {
+            console.error('Invalid values - level:', level, 'rain:', rain, 'flow:', flow);
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'Latest record does not have valid level/rain/flow values.';
+            return;
+        }
+
+        if (!model) {
+            console.log('Model not loaded, attempting to load...');
+            await loadForecastModel();
+        }
+        if (!model) {
+            console.error('Model failed to load');
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'No forecast model available from Firebase storage.';
+            return;
+        }
+        console.log('Model loaded successfully');
+
+        placeholder.style.display = 'none';
+        let currentInput = [level, rain, flow, elevation];
+        const horizons = [1, 3, 6, 12, 24, 48];
+        const labels = [];
+        const forecastData = [];
+        console.log('Starting predictions with horizons:', horizons);
+        for (const horizon of horizons) {
+            const prob = await predictFloodProbability(currentInput);
+            if (prob === null) {
+                console.warn('Prediction returned null, stopping forecast generation');
+                break;
+            }
+            labels.push(`${horizon}h`);
+            forecastData.push(parseFloat(prob.toFixed(1)));
+            currentInput = [
+                currentInput[0] + 0.05,
+                currentInput[1] + 3,
+                currentInput[2] + 8,
+                currentInput[3]
+            ];
+        }
+        console.log('Forecast data generated:', forecastData);
+
+        if (forecastData.length === 0) {
+            console.error('No forecast data generated');
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'Forecast model loaded but no valid probability predictions could be generated.';
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        forecastChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Flood Probability (%)',
+                        data: forecastData,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Forecast Horizon' } },
+                    y: { title: { display: true, text: 'Flood Probability (%)' }, beginAtZero: true, max: 100 }
+                }
+            }
+        });
+        } finally {
+            isBuildingForecastChart = false;
+        }
+    }
+
+    async function buildStationCharts() {
+        const container = document.getElementById('station-charts');
+        const probList = document.getElementById('station-probability-list');
+        container.innerHTML = '';
+        if (probList) probList.innerHTML = '';
+        destroyStationCharts();
+
+        if (currentFilteredData.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center text-muted py-5">No records match your filters.</div>';
+            if (probList) probList.innerHTML = '<div class="text-muted small p-2">No station probabilities available.</div>';
+            return;
+        }
+
+        const stationGroups = {};
+        currentFilteredData.forEach(item => {
+            const station = formatField(item.station || item.city) || 'Unknown Station';
+            const dateKey = getItemDateKey(item);
+            if (!dateKey) return;
+
+            const level = parseFloat(item.level);
+            const rain = parseFloat(item.rain);
+            const flow = parseFloat(item.flow);
+            stationGroups[station] = stationGroups[station] || {};
+            const bucket = stationGroups[station][dateKey] || { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
+            if (!isNaN(level)) { bucket.levelSum += level; }
+            if (!isNaN(rain)) { bucket.rainSum += rain; }
+            if (!isNaN(flow)) { bucket.flowSum += flow; }
+            bucket.count += 1;
+            stationGroups[station][dateKey] = bucket;
+        });
+
+        const stationNames = Object.keys(stationGroups);
+        if (stationNames.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center text-muted py-5">No valid data points available.</div>';
+            if (probList) probList.innerHTML = '<div class="text-muted small p-2">No station probabilities available.</div>';
+            return;
+        }
+
+        const stationDailyPoints = {};
+        stationNames.forEach(station => {
+            stationDailyPoints[station] = Object.keys(stationGroups[station]).sort().map(dateKey => {
+                const bucket = stationGroups[station][dateKey];
+                const avgLevel = bucket.count ? bucket.levelSum / bucket.count : null;
+                const avgRain = bucket.count ? bucket.rainSum / bucket.count : null;
+                const avgFlow = bucket.count ? bucket.flowSum / bucket.count : null;
+                return {
+                    dateKey,
+                    label: formatMonthDay(dateKey),
+                    level: avgLevel,
+                    rain: avgRain,
+                    flow: avgFlow
+                };
+            });
+        });
+
+        if (probList) {
+            const listHtml = stationNames.sort().map(station => {
+                const points = stationDailyPoints[station];
+                const latest = points[points.length - 1];
+                const prob = latest?.level !== null && latest?.level !== undefined ? `${levelToProbability(latest.level).toFixed(0)}%` : 'N/A';
+                return `
+                    <div class="row gx-2 gy-1 align-items-center border-bottom py-2">
+                        <div class="col-6">${station}</div>
+                        <div class="col-6 text-end fw-semibold">${prob}</div>
+                    </div>`;
+            }).join('');
+            probList.innerHTML = listHtml;
+        }
+
+        for (let index = 0; index < stationNames.length; index += 1) {
+            const station = stationNames[index];
+            const points = stationDailyPoints[station];
+            const labels = points.map(pt => pt.label);
+            const probabilityData = points.map(pt => pt.level !== null ? levelToProbability(pt.level) : null);
+
+            const forecastLabels = [];
+            const forecastData = [];
+            const latestPoint = points[points.length - 1];
+
+            if (model && latestPoint && latestPoint.level !== null) {
+                let futureInput = [latestPoint.level, latestPoint.rain || 0, latestPoint.flow || 0, 0];
+                for (let day = 1; day <= 3; day += 1) {
+                    const nextDateKey = addDaysToDateKey(latestPoint.dateKey, day);
+                    const forecastProb = await predictFloodProbability(futureInput);
+                    if (forecastProb === null) break;
+                    forecastLabels.push(formatMonthDay(nextDateKey));
+                    forecastData.push(parseFloat(forecastProb.toFixed(1)));
+                    futureInput = [
+                        futureInput[0] + 0.05,
+                        futureInput[1] + 3,
+                        futureInput[2] + 8,
+                        futureInput[3]
+                    ];
+                }
+            }
+
+            const combinedLabels = [...labels, ...forecastLabels];
+            const actualSeries = [...probabilityData, ...forecastLabels.map(() => null)];
+            const forecastSeries = [...labels.map(() => null), ...forecastData];
+
+            const col = document.createElement('div');
+            col.className = 'col-12 col-md-6 station-chart-card';
+            col.innerHTML = `
+                <div class="card p-3 shadow-sm h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6 class="mb-1">${station}</h6>
+                            <small class="text-muted">Daily level, rain, and flow</small>
+                        </div>
+                    </div>
+                    <canvas id="station-chart-${index}" class="station-chart mb-3"></canvas>
+                    <div class="border-top pt-3 mt-3">
+                        <h6 class="mb-1">Probability Forecast</h6>
+                        <small class="text-muted">Observed and 3-day forecast probability</small>
+                        <canvas id="station-probability-chart-${index}" class="station-chart mt-2"></canvas>
+                    </div>
+                </div>`;
+            container.appendChild(col);
+
+            const ctx = document.getElementById(`station-chart-${index}`);
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Level',
+                            data: points.map(pt => pt.level !== null ? parseFloat(pt.level.toFixed(2)) : null),
+                            borderColor: '#1f77b4',
+                            backgroundColor: 'rgba(31, 119, 180, 0.15)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Rain',
+                            data: points.map(pt => pt.rain !== null ? parseFloat(pt.rain.toFixed(2)) : null),
+                            borderColor: '#2ca02c',
+                            backgroundColor: 'rgba(44, 160, 44, 0.15)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Flow',
+                            data: points.map(pt => pt.flow !== null ? parseFloat(pt.flow.toFixed(2)) : null),
+                            borderColor: '#ff7f0e',
+                            backgroundColor: 'rgba(255, 127, 14, 0.15)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 12, padding: 16 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date' },
+                            ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Level' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Rain / Flow' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+            stationCharts.push(chart);
+
+            const pCtx = document.getElementById(`station-probability-chart-${index}`);
+            const probChart = new Chart(pCtx, {
+                type: 'line',
+                data: {
+                    labels: combinedLabels,
+                    datasets: [
+                        {
+                            label: 'Observed Probability (%)',
+                            data: actualSeries,
+                            borderColor: '#1f77b4',
+                            backgroundColor: 'rgba(31, 119, 180, 0.15)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Forecast Probability (%)',
+                            data: forecastSeries,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 12, padding: 16 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date' },
+                            ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Flood Probability (%)' },
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            stationCharts.push(probChart);
+        }
+    }
+
+    // Main Render Function
+    async function renderTable() {
+        if (isRendering) return;
+        isRendering = true;
+        
+        try {
+            const periodType = periodTypeSelect.value;
+            const stationFilter = document.getElementById('filterStation').value.toLowerCase();
+            const rowLimit = rowLimitSelect.value;
+
+        // Step 1: Filter Data
+        currentFilteredData = allReports.filter(item => {
+            let match = true;
+
+            if (periodType !== 'all') {
+                if (!item.date) {
+                    match = false;
+                } else {
+                    const itemDate = new Date(item.date);
+                    if (periodType === 'annually') {
+                        const y = document.getElementById('inputAnnual')?.value;
+                        if (y && itemDate.getFullYear().toString() !== y) match = false;
+                    } else if (periodType === 'monthly') {
+                        const m = document.getElementById('inputMonthly')?.value;
+                        if (m) {
+                            const itemMonthStr = `${itemDate.getFullYear()}-${(itemDate.getMonth()+1).toString().padStart(2, '0')}`;
+                            if (itemMonthStr !== m) match = false;
+                        }
+                    } else if (periodType === 'weekly') {
+                        const w = document.getElementById('inputWeekly')?.value;
+                        if (w && getISOWeekString(itemDate) !== w) match = false;
+                    } else if (periodType === 'custom') {
+                        const from = document.getElementById('inputDateFrom')?.value;
+                        const to = document.getElementById('inputDateTo')?.value;
+                        if (from && itemDate < new Date(from)) match = false;
+                        if (to && itemDate > new Date(to)) match = false;
+                    }
+                }
+            }
+
+            const stationValue = item.station || item.city || '';
+            if (stationFilter && !stationValue.toLowerCase().includes(stationFilter)) match = false;
+
+            return match;
+        });
+
+        // Require Date, Station, and Water Level — drop rows missing any
+        currentFilteredData = currentFilteredData.filter(item => {
+            const dateStr = formatField(item.date);
+            const stationStr = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
+            return (dateStr !== '' && stationStr !== '' && levelVal !== '');
+        });
+
+        if (rowLimit !== 'all') {
+            currentFilteredData = currentFilteredData.slice(0, parseInt(rowLimit));
+        }
+
+        await buildStationCharts();
+        await buildForecastChart();
+        } finally {
+            isRendering = false;
+        }
+    }
+
+    // Firebase Listeners for both `data` and `data2`
+    function getItemTimestamp(item) {
+        if (!item) return Date.now();
+        if (item.date) {
+            try {
+                const timePart = item.time ? (' ' + item.time) : '';
+                const dt = new Date(item.date + timePart);
+                if (!isNaN(dt)) return dt.getTime();
+            } catch (e) {}
+        }
+        if (item.timestamp) return Number(item.timestamp) || Date.now();
+        return Date.now();
+    }
+
+    function mergeAndRender() {
+        // combine arrays and sort by derived timestamp (newest first)
+        allReports = [...dataReports, ...data2Reports];
+        allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+        renderTable();
+    }
+
+    onValue(dataRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            dataReports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data' }));
+            // keep original newest-first behavior for single-source but merging will re-sort
+            dataReports = dataReports.reverse();
+        } else {
+            dataReports = [];
+        }
+        mergeAndRender();
+    });
+
+    onValue(data2Ref, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            data2Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data2' }));
+            data2Reports = data2Reports.reverse();
+        } else {
+            data2Reports = [];
+        }
+        mergeAndRender();
+    });
+    
+    // CSV Export
+    function exportToCSV() {
+        // Only export rows that have Date, Station, and Water Level
+        const exportData = currentFilteredData.filter(item => {
+            const dateStr = formatField(item.date);
+            const stationStr = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
+            return (dateStr !== '' && stationStr !== '' && levelVal !== '');
+        });
+
+        if (exportData.length === 0) {
+            alert("No data to export.");
+            return;
+        }
+
+        let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
+        exportData.forEach(item => {
+            const depthMeta = getDepthInfo(item.level);
+            const dateStr = formatField(item.date);
+            const timeStr = formatField(item.time);
+            const stationValue = formatField(item.station || item.city);
+            const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : item.level;
+            const rainVal = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : item.rain;
+            const flowVal = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : item.flow;
+            const depthCalc = levelVal ? depthMeta.depthCalc : '';
+            const statusLabel = levelVal ? depthMeta.label : '';
+            csvContent += `"${dateStr}","${timeStr}","${stationValue}","${levelVal}","${rainVal}","${flowVal}","${depthCalc}","${statusLabel}"\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `Flood_Report_${new Date().getTime()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    // Controls
+    document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+        periodTypeSelect.value = 'all';
+        dynamicContainer.innerHTML = '';
+        document.getElementById('filterStation').value = '';
+        rowLimitSelect.value = 'all';
+        renderTable();
+    });
+    document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
+    document.getElementById('signOutBtn')?.addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = 'log.html';
+    });
+    document.getElementById('logoutLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        sessionStorage.clear();
+        window.location.href = 'log.html';
+    });
+</script>
+</body>
+</html>
