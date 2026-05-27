@@ -376,7 +376,7 @@
         const ref = data2Ref.orderByKey().limitToLast(1);
         currentDataListener = ref;
         ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
-        document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data2 updates.';
+        document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data updates.';
       } else if (municipality === 'Pasuquin') {
         const ref = dataRef.orderByKey().limitToLast(1);
         currentDataListener = ref;
