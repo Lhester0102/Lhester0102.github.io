@@ -118,8 +118,8 @@
                             </ul>
                         </div>
                     </li>
-                    <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-                    <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
                 </ul>
                 <div class="mt-4 pt-3 border-top border-secondary">
                     <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
@@ -323,68 +323,68 @@
     const storageRef = firebase.storage().ref();
     const dataRef = db.ref('data');
     const data2Ref = db.ref('data2');
-
+    
     let currentMunicipality = null;
     let currentDataListener = null;
-
+    
     function detachCurrentDataListener() {
-      if (currentDataListener && currentDataListener.off) {
-        currentDataListener.off('value');
-      }
-      currentDataListener = null;
-      currentMunicipality = null;
+        if (currentDataListener && currentDataListener.off) {
+            currentDataListener.off('value');
+        }
+        currentDataListener = null;
+        currentMunicipality = null;
     }
-
+    
     function setSensorInputs(level, rain, flow) {
-      if (level !== undefined && level !== null) {
-        document.getElementById("waterLevel").value = level;
-        document.getElementById("kpiWater").innerHTML = level;
-      }
-      if (rain !== undefined && rain !== null) {
-        document.getElementById("rainfall").value = rain;
-        document.getElementById("kpiRain").innerHTML = rain;
-      }
-      if (flow !== undefined && flow !== null) {
-        document.getElementById("discharge").value = flow;
-        document.getElementById("kpiDischarge").innerHTML = flow;
-      }
+        if (level !== undefined && level !== null) {
+            document.getElementById("waterLevel").value = level;
+            document.getElementById("kpiWater").innerHTML = level;
+        }
+        if (rain !== undefined && rain !== null) {
+            document.getElementById("rainfall").value = rain;
+            document.getElementById("kpiRain").innerHTML = rain;
+        }
+        if (flow !== undefined && flow !== null) {
+            document.getElementById("discharge").value = flow;
+            document.getElementById("kpiDischarge").innerHTML = flow;
+        }
     }
-
+    
     function processMunicipalitySnapshot(snapshot, sourceName) {
-      if (!snapshot.exists()) {
-        document.getElementById('status').innerHTML = `${sourceName} has no latest value yet.`;
-        return;
-      }
-      snapshot.forEach(child => {
-        const v = child.val();
-        const level = v.level ?? v.water ?? v.water_level ?? null;
-        const rain = v.rain ?? v.rainfall ?? null;
-        const flow = v.flow ?? v.discharge ?? null;
-        setSensorInputs(level, rain, flow);
-      });
-      document.getElementById('status').innerHTML = `${sourceName} latest values loaded.`;
-      manualPredict();
+        if (!snapshot.exists()) {
+            document.getElementById('status').innerHTML = `${sourceName} has no latest value yet.`;
+            return;
+        }
+        snapshot.forEach(child => {
+            const v = child.val();
+            const level = v.level ?? v.water ?? v.water_level ?? null;
+            const rain = v.rain ?? v.rainfall ?? null;
+            const flow = v.flow ?? v.discharge ?? null;
+            setSensorInputs(level, rain, flow);
+        });
+        document.getElementById('status').innerHTML = `${sourceName} latest values loaded.`;
+        manualPredict();
     }
-
+    
     function subscribeToMunicipalityData(municipality) {
-      if (!municipality) return;
-      if (currentMunicipality === municipality) return;
-      detachCurrentDataListener();
-      currentMunicipality = municipality;
-
-      if (municipality === 'Laoag') {
-        const ref = data2Ref.orderByKey().limitToLast(1);
-        currentDataListener = ref;
-        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
-        document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data updates.';
-      } else if (municipality === 'Pasuquin') {
-        const ref = dataRef.orderByKey().limitToLast(1);
-        currentDataListener = ref;
-        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
-        document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin data updates.';
-      }
+        if (!municipality) return;
+        if (currentMunicipality === municipality) return;
+        detachCurrentDataListener();
+        currentMunicipality = municipality;
+        
+        if (municipality === 'Laoag') {
+            const ref = data2Ref.orderByKey().limitToLast(1);
+            currentDataListener = ref;
+            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
+            document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data updates.';
+        } else if (municipality === 'Pasuquin') {
+            const ref = dataRef.orderByKey().limitToLast(1);
+            currentDataListener = ref;
+            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
+            document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin data updates.';
+        }
     }
-
+    
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
     const initialCenter = [120.5927871, 18.1959782];
     const map = new mapboxgl.Map({
@@ -412,7 +412,7 @@
             });
         } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
         map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-
+        
         const geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
@@ -422,7 +422,7 @@
             types: 'country,region,place,locality,neighborhood,address'
         });
         map.addControl(geocoder, 'top-left');
-
+        
         geocoder.on('result', async (event) => {
             const [lng, lat] = event.result.center;
             const point = { lng, lat };
@@ -467,7 +467,7 @@
         // Execute the fully synchronized analytical workflow
         await triggerAnalysis(e.lngLat);
     }); 
-
+    
     /**
     * Dynamic Interpretation Engine
     */
@@ -505,11 +505,11 @@
         } else {
             interpretText = `Low Risk Scenario (${finalRisk}%)`;
         }
-
+        
         // --- Contextual Evaluation for Water Level Indicators ---
         let waterInterpretText = "Normal";
         let waterInterpretColor = "#198754"; 
-
+        
         if (currentWater > 5.0) { 
             waterInterpretText = "Critical";
             waterInterpretColor = "#dc3545"; 
@@ -540,7 +540,7 @@
         } catch (err) { 
             console.error("Geocode error lookup details:", err); 
         }
-
+        
         if (municipality === 'Laoag') {
             statusMessage = 'Address detected in Laoag — using local Laoag reference.';
             subscribeToMunicipalityData('Laoag');
@@ -581,13 +581,13 @@
                 </div>
             </div>
         `;
-
+        
         // 1. Render Mapbox Popup
         new mapboxgl.Popup({ maxWidth: '300px' })
         .setLngLat(lngLat)
         .setHTML(generateHtmlContent())
         .addTo(map);
-
+        
         // 2. Inject identical structure into sidebar details window
         const infoPanel = document.getElementById('details'); 
         if (infoPanel) {
@@ -823,10 +823,10 @@
     async function manualPredict(){
         if(!model) return;
         const input = [
-            parseFloat(document.getElementById('waterLevel').value), 
-            parseFloat(document.getElementById('rainfall').value), 
-            parseFloat(document.getElementById('discharge').value), 
-            parseFloat(document.getElementById('elevation').value)
+        parseFloat(document.getElementById('waterLevel').value), 
+        parseFloat(document.getElementById('rainfall').value), 
+        parseFloat(document.getElementById('discharge').value), 
+        parseFloat(document.getElementById('elevation').value)
         ];
         updateKPIs();
         return await generateForecastChart(input);
@@ -865,7 +865,7 @@
                 });
             }, 300);
         };
-
+        
         return v; // Return calculated percentage into triggerAnalysis workflow
     }
     

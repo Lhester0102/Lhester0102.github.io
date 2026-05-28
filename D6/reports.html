@@ -127,8 +127,9 @@
                             </ul>
                         </div>
                     </li>
-                    <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-                    <li class="mb-1"><a class="nav-link text-white active" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+                    <li class="mb-1"><a class="nav-link text-white active" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
+                    
                 </ul>
                 
                 <div class="mt-4 pt-3 border-top border-secondary">
@@ -152,93 +153,93 @@
                     
                     <div class="dropdown">
                         <button
-                            class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
-                            type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i>
-                            <span id="emails">User Loading...</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
-                            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
-                        </ul>
-                    </div>
+                        class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
+                        type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="emails">User Loading...</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
+                        <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                    </ul>
                 </div>
+            </div>
             
-                <div class="card shadow-sm mb-2" id="filterCard">
-                    <div class="card-body">
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted mb-1">Time Period</label>
-                                <select id="filterPeriodType" class="form-select form-select-sm">
-                                    <option value="all">All</option>
-                                    <option value="annually">Annually</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="custom">From-To Date</option>
-                                </select>
-                            </div>
-                            
-                            <div class="col-md-4" id="dynamicInputContainer"></div>
-                            
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted mb-1">Station</label>
-                                <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Station name...">
-                            </div>
-                            
-                            <div class="col-md-2">
-                                <label class="form-label small text-muted mb-1">Rows</label>
-                                <select id="filterRowLimit" class="form-select form-select-sm">
-                                    <option value="5" selected>5</option>
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="all">All</option>
-                                </select>
-                            </div>
+            <div class="card shadow-sm mb-2" id="filterCard">
+                <div class="card-body">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Time Period</label>
+                            <select id="filterPeriodType" class="form-select form-select-sm">
+                                <option value="all">All</option>
+                                <option value="annually">Annually</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="custom">From-To Date</option>
+                            </select>
                         </div>
-                        <div class="row mt-2">
-                            <div class="col-md-2 d-flex gap-1">
-                                <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
-                                <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
-                            </div>
-                            <div class="col-md-2 d-flex gap-1">
-                                <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
-                                <button class="btn btn-sm btn-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
-                            </div>
+                        
+                        <div class="col-md-4" id="dynamicInputContainer"></div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Station</label>
+                            <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Station name...">
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted mb-1">Rows</label>
+                            <select id="filterRowLimit" class="form-select form-select-sm">
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-2 d-flex gap-1">
+                            <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
+                            <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
+                        </div>
+                        <div class="col-md-2 d-flex gap-1">
+                            <button id="btnExportCSV" class="btn btn-sm btn-success w-100"><i class="bi bi-filetype-csv me-1"></i>CSV</button>
+                            <button class="btn btn-sm btn-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
                         </div>
                     </div>
                 </div>
+            </div>
             
-                <div class="card shadow-sm table-card">
-                    <div class="card-body p-0">
-                        <div class="table-responsive" style="max-height: 490px;">
-                            <table class="table table-hover mb-0 align-middle">
-                               <thead class="sticky-top bg-white" style="z-index: 1;">
-                                    <tr>
-                                        <th class="ps-4">Date</th>
-                                        <th>Time</th>
-                                        <th>Station</th>
-                                        <th>Water Level</th>
-                                        <th>Rainfall</th>
-                                        <th>Flow/Discharge</th>
-                                        <th>Flood Depth</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="flood-data-table">
-                                    <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">Connecting to Firebase...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+            <div class="card shadow-sm table-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 490px;">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="sticky-top bg-white" style="z-index: 1;">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Time</th>
+                                    <th>Station</th>
+                                    <th>Water Level</th>
+                                    <th>Rainfall</th>
+                                    <th>Flow/Discharge</th>
+                                    <th>Flood Depth</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flood-data-table">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">Connecting to Firebase...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -268,7 +269,7 @@
     const db = getDatabase(app);
     const dataRef = ref(db, 'data');
     const data2Ref = ref(db, 'data2');
-
+    
     let dataReports = [];
     let data2Reports = [];
     let allReports = []; 
@@ -320,7 +321,7 @@
         if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
         return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
     }
-
+    
     function formatField(f) {
         return (f === undefined || f === null || f === 'N/A') ? '' : f;
     }
@@ -370,7 +371,7 @@
             
             return match;
         });
-
+        
         // Require Date, Station, and Water Level — drop rows missing any
         currentFilteredData = currentFilteredData.filter(item => {
             const dateStr = formatField(item.date);
@@ -402,7 +403,7 @@
             const flowStr = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : `${item.flow} m³/s`;
             const depthCalcStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.depthCalc;
             const statusStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.label;
-
+            
             const rowHTML = `
                     <tr>
                         <td class="ps-4"><div class="fw-bold text-dark">${dateStr}</div></td>
@@ -431,14 +432,14 @@
         if (item.timestamp) return Number(item.timestamp) || Date.now();
         return Date.now();
     }
-
+    
     function mergeAndRender() {
         // combine arrays and sort by derived timestamp (newest first)
         allReports = [...dataReports, ...data2Reports];
         allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
         renderTable();
     }
-
+    
     onValue(dataRef, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
@@ -450,7 +451,7 @@
         }
         mergeAndRender();
     });
-
+    
     onValue(data2Ref, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
@@ -471,12 +472,12 @@
             const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
             return (dateStr !== '' && stationStr !== '' && levelVal !== '');
         });
-
+        
         if (exportData.length === 0) {
             alert("No data to export.");
             return;
         }
-
+        
         let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
         exportData.forEach(item => {
             const depthMeta = getDepthInfo(item.level);

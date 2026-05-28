@@ -102,8 +102,8 @@
               </ul>
             </div>
           </li>
-          <li class="mb-1"><a class="nav-link text-white " href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-          <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
         </ul>
         
         <div class="mt-4 pt-3 border-top border-secondary">
@@ -141,179 +141,179 @@
           </ul>
         </div>
       </div>
+      
+      <div class="row g-1 content-row">
         
-        <div class="row g-1 content-row">
-          
-          <div class="col-lg-4" style="height: 98%">
-            <div class="card shadow-sm" style="height: 98%">
-              <div class="card-header bg-white border-bottom py-2">
-                <h6 class="fw-bold text-maroon" style="color: #1c96c5;">
-                  <i class="bi bi-file-earmark-arrow-up me-2"></i>GeoJSON Details
-                </h6>
+        <div class="col-lg-4" style="height: 98%">
+          <div class="card shadow-sm" style="height: 98%">
+            <div class="card-header bg-white border-bottom py-2">
+              <h6 class="fw-bold text-maroon" style="color: #1c96c5;">
+                <i class="bi bi-file-earmark-arrow-up me-2"></i>GeoJSON Details
+              </h6>
+            </div>
+            <div class="card-body d-flex flex-column p-4">
+              
+              <div class="mb-1">
+                <label class="form-label">Boundary Name</label>
+                <input id="name" class="form-control" placeholder="e.g. Laoag City Area">
               </div>
-              <div class="card-body d-flex flex-column p-4">
-                
-                <div class="mb-1">
-                  <label class="form-label">Boundary Name</label>
-                  <input id="name" class="form-control" placeholder="e.g. Laoag City Area">
-                </div>
-                
-                <div class="mb-1">
-                  <label class="form-label">Classification</label>
-                  <input id="type" class="form-control" value="Municipality">
-                </div>
-                
-                <div class="mb-1">
-                  <label class="form-label">Vulnerability Index (0-100)</label>
-                  <input id="vulnerability" type="number" class="form-control" placeholder="Risk percentage">
-                </div>
-                
-                <div class="mb-1">
-                  <label class="form-label">Internal Notes</label>
-                  <textarea id="note" class="form-control" rows="2" placeholder="Optional details..."></textarea>
-                </div>
-                
-                <div class="mb-1">
-                  <label class="form-label">Select File</label>
-                  <input id="file" type="file" class="form-control shadow-sm">
-                </div>
-                
-                <div id="status" class="alert alert-light border small text-muted mb-1 py-2 text-center">
-                  <i class="bi bi-info-circle me-1"></i> No upload detected
-                </div>
-                
-                <button id="uploadBtn" class="btn btn-danger w-100 mt-auto py-2 shadow-sm">
-                  <i class="bi bi-cloud-upload me-2"></i>Upload to Database
-                </button>
-                
+              
+              <div class="mb-1">
+                <label class="form-label">Classification</label>
+                <input id="type" class="form-control" value="Municipality">
               </div>
+              
+              <div class="mb-1">
+                <label class="form-label">Vulnerability Index (0-100)</label>
+                <input id="vulnerability" type="number" class="form-control" placeholder="Risk percentage">
+              </div>
+              
+              <div class="mb-1">
+                <label class="form-label">Internal Notes</label>
+                <textarea id="note" class="form-control" rows="2" placeholder="Optional details..."></textarea>
+              </div>
+              
+              <div class="mb-1">
+                <label class="form-label">Select File</label>
+                <input id="file" type="file" class="form-control shadow-sm">
+              </div>
+              
+              <div id="status" class="alert alert-light border small text-muted mb-1 py-2 text-center">
+                <i class="bi bi-info-circle me-1"></i> No upload detected
+              </div>
+              
+              <button id="uploadBtn" class="btn btn-danger w-100 mt-auto py-2 shadow-sm">
+                <i class="bi bi-cloud-upload me-2"></i>Upload to Database
+              </button>
+              
             </div>
           </div>
-          
-          <div class="col-lg-8" style="height: 98%">
-            <div class="card shadow-sm  p-1" style="height: 98%">
-              <div id="map"></div>
-            </div>
+        </div>
+        
+        <div class="col-lg-8" style="height: 98%">
+          <div class="card shadow-sm  p-1" style="height: 98%">
+            <div id="map"></div>
           </div>
-          
-        </div> </main>
-      </div>
+        </div>
+        
+      </div> </main>
     </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    window.onload = function() {
+      // Check if the user is logged in
+      if (sessionStorage.getItem('loggedIn') !== 'true') {
+        // Redirect to login page if session is not set
+        window.location.href = 'log.html';
+      }
+      document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+    };
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    // Mapbox Init
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+      center: [120.716062, 18.106858],
+      zoom: 9.5,
+      pitch: 55
+    });
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
-    <script>
-      window.onload = function() {
-        // Check if the user is logged in
-        if (sessionStorage.getItem('loggedIn') !== 'true') {
-          // Redirect to login page if session is not set
-          window.location.href = 'log.html';
-        }
-        document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
-      };
-      const firebaseConfig = {
-        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-        authDomain: "flooded-95eeb.firebaseapp.com",
-        projectId: "flooded-95eeb",
-        storageBucket: "flooded-95eeb.firebasestorage.app",
-        messagingSenderId: "142547476223",
-        appId: "1:142547476223:web:70de7014c664e26d0636ca"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
+    let previewLayerId = null;
+    
+    // PREVIEW GEOJSON
+    document.getElementById('file').addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
       
-      // Mapbox Init
-      mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-      const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-        center: [120.716062, 18.106858],
-        zoom: 9.5,
-        pitch: 55
-      });
-      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      let previewLayerId = null;
-      
-      // PREVIEW GEOJSON
-      document.getElementById('file').addEventListener('change', async (e)=>{
-        const file = e.target.files[0];
-        if(!file) return;
+      try {
+        const geo = JSON.parse(await file.text());
         
-        try {
-          const geo = JSON.parse(await file.text());
-          
-          if(previewLayerId){
-            if(map.getLayer(previewLayerId)) map.removeLayer(previewLayerId);
-            if(map.getSource(previewLayerId)) map.removeSource(previewLayerId);
+        if(previewLayerId){
+          if(map.getLayer(previewLayerId)) map.removeLayer(previewLayerId);
+          if(map.getSource(previewLayerId)) map.removeSource(previewLayerId);
+        }
+        
+        previewLayerId = 'preview';
+        
+        map.addSource(previewLayerId, { type: 'geojson', data: geo });
+        map.addLayer({
+          id: previewLayerId,
+          type: 'fill',
+          source: previewLayerId,
+          paint: {
+            'fill-color': '#0d6efd',
+            'fill-opacity': 0.5,
+            'fill-outline-color': '#fff'
           }
-          
-          previewLayerId = 'preview';
-          
-          map.addSource(previewLayerId, { type: 'geojson', data: geo });
-          map.addLayer({
-            id: previewLayerId,
-            type: 'fill',
-            source: previewLayerId,
-            paint: {
-              'fill-color': '#0d6efd',
-              'fill-opacity': 0.5,
-              'fill-outline-color': '#fff'
-            }
-          });
-          
-          // Fit map to the uploaded data
-          const coordinates = geo.features ? geo.features[0].geometry.coordinates : geo.geometry.coordinates;
-          const bounds = new mapboxgl.LngLatBounds();
-          
-          // Simple bounds logic
-          const processCoords = (c) => {
-            if (Array.isArray(c[0])) c.forEach(processCoords);
-            else bounds.extend(c);
-          };
-          processCoords(coordinates);
-          map.fitBounds(bounds, { padding: 50 });
-          
-          document.getElementById('status').className = "alert alert-primary border small py-2 text-center";
-          document.getElementById('status').innerHTML = "<i class='bi bi-check-circle-fill me-1'></i> Preview Loaded Successfully";
-        } catch (err) {
-          alert("Error parsing GeoJSON file.");
-        }
-      });
-      
-      // UPLOAD
-      document.getElementById('uploadBtn').onclick = async ()=>{
-        const file = document.getElementById('file').files[0];
-        const name = document.getElementById('name').value;
+        });
         
-        if(!file || !name) return alert("Please provide a name and select a file.");
+        // Fit map to the uploaded data
+        const coordinates = geo.features ? geo.features[0].geometry.coordinates : geo.geometry.coordinates;
+        const bounds = new mapboxgl.LngLatBounds();
         
-        try {
-          const geojson = JSON.parse(await file.text());
-          
-          await db.ref('Flooded_Areas').push({
-            name: name,
-            type: document.getElementById('type').value,
-            vulnerability: Number(document.getElementById('vulnerability').value) || 0,
-            note: document.getElementById('note').value,
-            geojson: geojson
-          });
-          
-          document.getElementById('status').className = "alert alert-success border small py-2 text-center";
-          document.getElementById('status').innerHTML = "<i class='bi bi-cloud-check-fill me-1'></i> Database Updated!";
-          
-          // Reset form except for naming logic
-          document.getElementById('file').value = "";
-        } catch (err) {
-          alert("Upload failed. Check file format.");
-        }
-      };
-      document.getElementById('logoutLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        sessionStorage.clear(); // Clear all session storage
-        window.location.href = 'log.html'; // Redirect to login page
-      });
-    </script>
+        // Simple bounds logic
+        const processCoords = (c) => {
+          if (Array.isArray(c[0])) c.forEach(processCoords);
+          else bounds.extend(c);
+        };
+        processCoords(coordinates);
+        map.fitBounds(bounds, { padding: 50 });
+        
+        document.getElementById('status').className = "alert alert-primary border small py-2 text-center";
+        document.getElementById('status').innerHTML = "<i class='bi bi-check-circle-fill me-1'></i> Preview Loaded Successfully";
+      } catch (err) {
+        alert("Error parsing GeoJSON file.");
+      }
+    });
     
-  </body>
-  </html>
+    // UPLOAD
+    document.getElementById('uploadBtn').onclick = async ()=>{
+      const file = document.getElementById('file').files[0];
+      const name = document.getElementById('name').value;
+      
+      if(!file || !name) return alert("Please provide a name and select a file.");
+      
+      try {
+        const geojson = JSON.parse(await file.text());
+        
+        await db.ref('Flooded_Areas').push({
+          name: name,
+          type: document.getElementById('type').value,
+          vulnerability: Number(document.getElementById('vulnerability').value) || 0,
+          note: document.getElementById('note').value,
+          geojson: geojson
+        });
+        
+        document.getElementById('status').className = "alert alert-success border small py-2 text-center";
+        document.getElementById('status').innerHTML = "<i class='bi bi-cloud-check-fill me-1'></i> Database Updated!";
+        
+        // Reset form except for naming logic
+        document.getElementById('file').value = "";
+      } catch (err) {
+        alert("Upload failed. Check file format.");
+      }
+    };
+    document.getElementById('logoutLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      sessionStorage.clear(); // Clear all session storage
+      window.location.href = 'log.html'; // Redirect to login page
+    });
+  </script>
+  
+</body>
+</html>
