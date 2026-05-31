@@ -303,53 +303,6 @@ var waterlevel = null;
 var rlevel = null; 
 var dlevel = null; 
 
-/**
- * Automatically fetches the newest dynamic ID under 'data' 
- * and extracts its 'level' value into 'waterlevel'.
- */
-function trackLatestUnknownIdLevel() {
-  // 1. Point to the parent 'data' folder
-  // 2. Sort entries by chronological key order and limit to the 1 newest entry
-  const latestDataQuery = db.ref('data').orderByKey().limitToLast(1);
-
-  latestDataQuery.on('value', (snapshot) => {
-    if (snapshot.exists()) {
-      snapshot.forEach((childSnapshot) => {
-        const unknownId = childSnapshot.key; // This is your dynamic ID string
-        const idData = childSnapshot.val();  // This holds the inner contents
-        
-        // Check if 'level' exists inside this dynamic ID object
-        if (idData && idData.level !== undefined) {
-          waterlevel = idData.level;
-          rlevel = idData.rain;
-          dlevel = idData.flow;
-          document.getElementById("waterLevel").value=waterlevel;
-          document.getElementById("kpiWater").innerHTML=waterlevel;
-
-
-           document.getElementById("rainfall").value=rlevel;
-          document.getElementById("kpiRain").innerHTML=rlevel;
-
-           document.getElementById("discharge").value=dlevel;
-          document.getElementById("kpiDischarge").innerHTML=dlevel;
-            console.log(`Found newest ID: "${unknownId}". Variable 'waterlevel' updated to:`, waterlevel);
-             console.log(`Variable rainfall updated to:`, rlevel);
-              console.log(`Variable stream flow updated to:`, dlevel);
-          
-          // Trigger your UI updates or game functions here
-          // handleWaterLevelUpdate(waterlevel);
-        } else {
-          console.log(`Newest ID "${unknownId}" found, but it has no 'level' property.`);
-        }
-      });
-    } else {
-      console.log("No data paths exist under 'data/' yet.");
-    }
-  }, (error) => {
-    console.error("The dynamic read failed: ", error.code);
-  });
-}
-
 // No static DB listener here; use municipality-specific live subscriptions based on map click/search.
 // trackLatestUnknownIdLevel();
 
@@ -420,6 +373,11 @@ function subscribeToMunicipalityData(municipality) {
     currentDataListener = ref;
     ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
     document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin data updates.';
+  } else if (municipality === 'Bacarra') {
+    const ref = db.ref('data3').orderByKey().limitToLast(1);
+    currentDataListener = ref;
+    ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
+    document.getElementById('status').innerHTML = 'Subscribed to latest Bacarra data updates.';
   }
 }
 
@@ -539,6 +497,8 @@ function setSensorInputs(level, rain, flow) {
   
   // Map Click Interaction Layer
   map.on('click', async (e) => {
+    // Close all existing popups before showing another one
+    document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
     // Move or create the marker on click
     if (activeMarker) {
       activeMarker.setLngLat(e.lngLat);
@@ -608,10 +568,12 @@ async function triggerAnalysis(lngLat) {
         locName = f.place_name.split(',')[0];
         if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
         if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
+        if (/bacarra/i.test(f.place_name)) municipality = 'Bacarra';
         if (!municipality && f.context) {
           f.context.forEach(ctx => {
             if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
             if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+            if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
           });
         }
       }
@@ -625,6 +587,8 @@ async function triggerAnalysis(lngLat) {
         subscribeToMunicipalityData('Laoag');
       } else if (municipality === 'Pasuquin') {
         subscribeToMunicipalityData('Pasuquin');
+      } else if (municipality === 'Bacarra') {
+        subscribeToMunicipalityData('Bacarra');
       } else {
         detachCurrentDataListener();
         document.getElementById('status').innerHTML = 'Area outside Laoag/Pasuquin — select targeted area or search.';
@@ -672,6 +636,127 @@ async function triggerAnalysis(lngLat) {
         console.error("Element with the specified ID was not found in the DOM.");
     }
 }
+
+  async function getForecast(currentInput) {
+    const horizons = [1, 3, 12, 24];
+    let last = [...currentInput];
+    const predictions = [];
+    if (!model) return [0, 0, 0, 0];
+    for (const h of horizons) {
+      const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
+      predictions.push(pred[0] * 100);
+      last[0] += 0.05; 
+    }
+    return predictions;
+  }
+
+  // Store live data history and current values from Firebase
+  const liveDataStore = {
+    data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
+    data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
+    data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
+  };
+
+  ['data', 'data2', 'data3'].forEach(nodeKey => {
+    db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
+      if (!snapshot.exists()) return;
+      const entries = [];
+      snapshot.forEach(child => entries.push(child.val()));
+      liveDataStore[nodeKey].history = entries.map(e => e.level ?? e.water ?? 0);
+      const latest = entries[entries.length - 1];
+      liveDataStore[nodeKey].current = {
+        level: latest.level ?? latest.water ?? 0,
+        flow: latest.flow ?? latest.discharge ?? 0,
+        rain: latest.rain ?? latest.rainfall ?? 0
+      };
+    });
+  });
+
+  const rivers = [
+    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
+    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
+    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
+  ];
+
+  const riverMenu = document.getElementById('riverDropdownMenu');
+
+  rivers.forEach((river, idx) => {
+    const probChartId = `riverProb-${idx}`;
+    const popup = new mapboxgl.Popup({ offset: 25 });
+
+    const marker = new mapboxgl.Marker({ color: '#1c96c5' })
+    .setLngLat([river.lng, river.lat])
+    .setPopup(popup)
+    .addTo(map);
+    
+    if (riverMenu) {
+      const li = document.createElement('li');
+      li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt text-danger"></i> ${river.name}</a>`;
+      li.onclick = () => {
+        map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+        if (!marker.getPopup().isOpen()) marker.togglePopup();
+      };
+      riverMenu.appendChild(li);
+    }
+    
+    popup.on('open', async () => {
+      const currentPopupEl = popup.getElement();
+      document.querySelectorAll('.mapboxgl-popup').forEach(p => {
+        if (p !== currentPopupEl) p.remove();
+      });
+
+      const data = liveDataStore[river.node];
+      const cur = data.current;
+      const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
+
+      const forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
+      const prob = Math.round(forecastData[0]);
+
+      popup.setHTML(`
+        <div class="popup-chart-container">
+            <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
+            <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
+                <div><small class="text-muted d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
+                <div><small class="text-muted d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
+                <div><small class="text-muted d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
+                <div><small class="text-muted d-block" style="font-size: 0.55rem;">PROB</small><strong class="text-danger" style="font-size: 0.75rem;">${prob}%</strong></div>
+            </div>
+            <div class="mt-2 border-top pt-2">
+                <span class="chart-label">Hourly Forecast Probability</span>
+                <canvas id="${probChartId}" class="popup-chart"></canvas>
+            </div>
+        </div>
+      `);
+
+      setTimeout(() => {
+        const pCtx = document.getElementById(probChartId);
+        new Chart(pCtx, {
+          type: 'line',
+          data: {
+            labels: ["Now", "+3h", "+12h", "+24h"],
+            datasets: [{
+                label: 'Prob %',
+                data: forecastData,
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false }, ticks: { font: { size: 8 } } },
+              y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } }
+            }
+          }
+        });
+      }, 200); 
+    });
+  });
+
   function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
   // Local Browser-side HTML5 CSV Parsing Logic
   document.getElementById('csvFileInput').addEventListener('change', function(e) {
@@ -908,7 +993,7 @@ async function triggerAnalysis(lngLat) {
   }
   
   async function generateForecastChart(current){
-    const horizons = [3,6,12,24,48];
+    const horizons = [1, 3, 12, 24];
     let last = [...current];
     const predictions = [];
     for(const h of horizons){

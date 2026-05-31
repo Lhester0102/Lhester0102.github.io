@@ -442,7 +442,7 @@
     onValue(dataRef, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            dataReports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data' }));
+            dataReports = Object.keys(data).map(key => ({ station: 'Pasuquin', ...data[key], __key: key, __source: 'data' }));
             dataReports = dataReports.reverse();
         } else {
             dataReports = [];
@@ -453,7 +453,7 @@
     onValue(data2Ref, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            data2Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data2' }));
+            data2Reports = Object.keys(data).map(key => ({ station: 'Laoag', ...data[key], __key: key, __source: 'data2' }));
             data2Reports = data2Reports.reverse();
         } else {
             data2Reports = [];
@@ -465,7 +465,7 @@
     onValue(data3Ref, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            data3Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data3' }));
+            data3Reports = Object.keys(data).map(key => ({ station: 'Bacarra', ...data[key], __key: key, __source: 'data3' }));
             data3Reports = data3Reports.reverse();
         } else {
             data3Reports = [];

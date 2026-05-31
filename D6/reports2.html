@@ -480,17 +480,17 @@
             const latestPoint = points[points.length - 1];
 
             if (model && latestPoint && latestPoint.level !== null) {
+                const horizons = [1, 3, 12, 24];
                 let futureInput = [latestPoint.level, latestPoint.rain || 0, latestPoint.flow || 0, 0];
-                for (let day = 1; day <= 3; day += 1) {
-                    const nextDateKey = addDaysToDateKey(latestPoint.dateKey, day);
+                for (const h of horizons) {
                     const forecastProb = await predictFloodProbability(futureInput);
                     if (forecastProb === null) break;
-                    forecastLabels.push(formatMonthDay(nextDateKey));
+                    forecastLabels.push(`+${h}h`);
                     forecastData.push(parseFloat(forecastProb.toFixed(1)));
                     futureInput = [
-                        futureInput[0] + 0.05,
-                        futureInput[1] + 3,
-                        futureInput[2] + 8,
+                        futureInput[0] + 0.02, 
+                        futureInput[1] + 1,
+                        futureInput[2] + 3,
                         futureInput[3]
                     ];
                 }
@@ -520,7 +520,7 @@
                         <div class="col-12 col-lg-6">
                             <div class="p-2 border rounded bg-light-subtle">
                                 <div class="mb-2 px-1">
-                                    <strong class="small text-uppercase text-secondary">Observed vs 3-Day Forecast Probability</strong>
+                                    <strong class="small text-uppercase text-secondary">Observed vs Hourly Forecast Probability</strong>
                                 </div>
                                 <canvas id="station-probability-chart-${index}" class="station-chart"></canvas>
                             </div>
@@ -707,7 +707,7 @@
     onValue(dataRef, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            dataReports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data' })).reverse();
+            dataReports = Object.keys(data).map(key => ({ station: 'Pasuquin', ...data[key], __key: key, __source: 'data' })).reverse();
         } else { dataReports = []; }
         mergeAndRender();
     });
@@ -715,7 +715,7 @@
     onValue(data2Ref, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            data2Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data2' })).reverse();
+            data2Reports = Object.keys(data).map(key => ({ station: 'Laoag', ...data[key], __key: key, __source: 'data2' })).reverse();
         } else { data2Reports = []; }
         mergeAndRender();
     });
@@ -723,7 +723,7 @@
     onValue(data3Ref, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
-            data3Reports = Object.keys(data).map(key => ({ ...data[key], __key: key, __source: 'data3' })).reverse();
+            data3Reports = Object.keys(data).map(key => ({ station: 'Bacarra', ...data[key], __key: key, __source: 'data3' })).reverse();
         } else { data3Reports = []; }
         mergeAndRender();
     });

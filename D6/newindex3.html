@@ -323,6 +323,7 @@
     const storageRef = firebase.storage().ref();
     const dataRef = db.ref('data');
     const data2Ref = db.ref('data2');
+    const data3Ref = db.ref('data3');
     
     let currentMunicipality = null;
     let currentDataListener = null;
@@ -377,6 +378,11 @@
             currentDataListener = ref;
             ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
             document.getElementById('status').innerHTML = 'Subscribed to latest Laoag data updates.';
+        } else if (municipality === 'Bacarra') {
+            const ref = data3Ref.orderByKey().limitToLast(1);
+            currentDataListener = ref;
+            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
+            document.getElementById('status').innerHTML = 'Subscribed to latest Bacarra data updates.';
         } else if (municipality === 'Pasuquin') {
             const ref = dataRef.orderByKey().limitToLast(1);
             currentDataListener = ref;
@@ -530,10 +536,12 @@
                 locName = f.place_name.split(',')[0];
                 if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
                 if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
+                if (/Bacarra/i.test(f.place_name)) municipality = 'Bacarra';
                 if (!municipality && f.context) {
                     f.context.forEach(ctx => {
                         if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
                         if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+                        if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
                     });
                 }
             }
@@ -544,11 +552,14 @@
         if (municipality === 'Laoag') {
             statusMessage = 'Address detected in Laoag — using local Laoag reference.';
             subscribeToMunicipalityData('Laoag');
+        } else if (municipality === 'Bacarra') {
+            statusMessage = 'Address detected in Bacarra — using local Bacarra reference.';
+            subscribeToMunicipalityData('Bacarra');
         } else if (municipality === 'Pasuquin') {
             statusMessage = 'Address detected in Pasuquin — using local Pasuquin reference.';
             subscribeToMunicipalityData('Pasuquin');
         } else {
-            statusMessage = 'Location outside Laoag/Pasuquin. Search or click within those areas for local reference.';
+            statusMessage = 'Location outside Laoag/Pasuquin/Bacarra. Search or click within those areas for local reference.';
             detachCurrentDataListener();
         }
         document.getElementById('status').innerHTML = statusMessage;
@@ -833,7 +844,7 @@
     }
     
     async function generateForecastChart(current){
-        const horizons = [3,6,12,24,48];
+        const horizons = [1, 3, 12, 24];
         let last = [...current];
         const predictions = [];
         for(const h of horizons){
