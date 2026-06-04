@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Flooded Area</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        #message {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>Delete Flooded Area</h3>
+    <input type="text" id="areaIdInput" placeholder="Enter ID to delete">
+    <button onclick="deleteData()">Delete Area</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    // 1. Initialize Firebase using your exact configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+
+    // 2. Deletion Logic
+    function deleteData() {
+        const idToDelete = document.getElementById('areaIdInput').value.trim();
+        const messageBox = document.getElementById('message');
+
+        // Validate input
+        if (!idToDelete) {
+            messageBox.style.color = "red";
+            messageBox.textContent = "Please enter an ID.";
+            return;
+        }
+
+        // Confirm with user
+        if (!confirm(`Are you sure you want to delete the flooded area with ID: ${idToDelete}?`)) {
+            return;
+        }
+
+        messageBox.style.color = "black";
+        messageBox.textContent = "Deleting...";
+
+        // 3. Remove from Firebase Realtime Database
+        db.ref('Flooded_areas/' + idToDelete).remove()
+            .then(() => {
+                messageBox.style.color = "green";
+                messageBox.textContent = "Successfully deleted area ID: " + idToDelete;
+                document.getElementById('areaIdInput').value = ''; // Clear the input box
+            })
+            .catch((error) => {
+                console.error("Error deleting document: ", error);
+                messageBox.style.color = "red";
+                messageBox.textContent = "Failed to delete: " + error.message;
+            });
+    }
+</script>
+
+</body>
+</html>
