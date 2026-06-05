@@ -358,7 +358,7 @@
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
       center: initialCenter,
       zoom: 11,
-      pitch: 55
+      pitch: 60
     });
     
     function getFloodMarkerColor(probabilityValue) {
@@ -407,7 +407,7 @@
         } else {
           activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
         }
-        map.flyTo({ center: point, zoom: 14 });
+        map.flyTo({ center: point, zoom: 17, pitch:45});
         await triggerAnalysis(point);
       });
         
@@ -516,7 +516,8 @@
       });
     }
 
-    async function updateStationPinsIndividually() {
+async function updateStationPinsIndividually() {
+      // Clear existing markers from the map canvas
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
 
@@ -528,7 +529,7 @@
         const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 25.0;
         
         let riskScore = 0;
-        let dynamicPinColor = '#198754'; 
+        let dynamicPinColor = '#198754'; // Default green configuration
 
         if (model && minVals.length > 0 && maxVals.length > 0) {
           try {
@@ -543,6 +544,11 @@
           }
         }
 
+        // REQUIREMENT 1: If the evaluated pin color is green (#198754), bypass rendering it entirely
+        if (dynamicPinColor === '#198754') {
+          continue; 
+        }
+
         const probChartId = `riverProb-${rivers.indexOf(river)}`;
         const popup = new mapboxgl.Popup({ offset: 25 });
 
@@ -551,13 +557,23 @@
           .setPopup(popup)
           .addTo(map);
 
+        // REQUIREMENT 2: Listen for marker click interactions to trigger deep zoom alignment animations
+        markerInstance.getElement().addEventListener('click', () => {
+          map.flyTo({
+            center: [river.lng, river.lat],
+            zoom: 17, // High zoom depth target
+            essential: true,
+            pitch:45// Slight visual pitch angle adjustments for terrain viewing depth
+          });
+        });
+
         stationMarkersArray.push(markerInstance);
 
         if (riverMenu) {
           const li = document.createElement('li');
           li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${dynamicPinColor}"></i> ${river.name}</a>`;
           li.onclick = () => {
-            map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+            map.flyTo({ center: [river.lng, river.lat], zoom: 17,pitch:45});
             if (!markerInstance.getPopup().isOpen()) markerInstance.togglePopup();
           };
           riverMenu.appendChild(li);
@@ -618,7 +634,6 @@
         });
       }
     }
-    
     async function triggerAnalysis(lngLat) {
       const elevation = map.queryTerrainElevation(lngLat) || 25;
       const elevInput = document.getElementById('elevation');
