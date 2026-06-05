@@ -130,6 +130,8 @@
                     <li class="mb-1"><a class="nav-link text-white active" href="stations.html"><i class="bi bi-gpu-card me-2"></i>Stations</a></li>
                     <li class="mb-1"><a class="nav-link text-white " href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
+                    <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li>
+                    <li class="mb-1"><a class="nav-link text-white " href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>
                 </ul>
                 
                 <div class="mt-4 pt-3 border-top border-secondary">
@@ -164,7 +166,7 @@
                         </ul>
                     </div>
                 </div>
-            
+                
                 <div class="card shadow-sm mb-2" id="filterCard">
                     <div class="card-body">
                         <div class="row g-3 align-items-end">
@@ -195,7 +197,7 @@
                         </div>
                     </div>
                 </div>
-            
+                
                 <div class="card shadow-sm table-card">
                     <div class="card-body p-0">
                         <div class="table-responsive" style="max-height: 490px;">
@@ -220,104 +222,104 @@
             </main>
         </div>
     </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     
-    // Session Guard
-    window.onload = function() {
-        if (sessionStorage.getItem('loggedIn') !== 'true') {
-            window.location.href = 'log.html';
-        }
-        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
-        document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
-    };
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    const firebaseConfig = {
-        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-        authDomain: "flooded-95eeb.firebaseapp.com",
-        projectId: "flooded-95eeb",
-        storageBucket: "flooded-95eeb.firebasestorage.app",
-        messagingSenderId: "142547476223",
-        appId: "1:142547476223:web:70de7014c664e26d0636ca"
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    
-    // Reference to the main consolidated stations database node
-    const stationsRef = ref(db, 'stations');
-
-    let allReports = []; 
-    let currentFilteredData = [];
-    
-    const rowLimitSelect = document.getElementById('filterRowLimit');
-    
-    function getDepthInfo(level) {
-        const l = parseFloat(level);
-        if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
-        if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
-        return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
-    }
-    
-    function formatField(f) {
-        return (f === undefined || f === null || f === 'N/A') ? '' : f;
-    }
-    
-    // Dynamic Filter Population
-    function updateStationFilter() {
-        const stationSelect = document.getElementById('filterStation');
-        const currentValue = stationSelect.value;
-        const uniqueStations = [...new Set(allReports.map(item => item.station || item.city || 'Unknown'))].filter(s => s !== '');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
-        stationSelect.innerHTML = '<option value="">All Stations</option>';
-        uniqueStations.sort().forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.textContent = s;
-            if (s === currentValue) opt.selected = true;
-            stationSelect.appendChild(opt);
-        });
-    }
-
-    // Main Render Function
-    function renderTable() {
-        const tableBody = document.getElementById('flood-data-table');
-        tableBody.innerHTML = '';
+        // Session Guard
+        window.onload = function() {
+            if (sessionStorage.getItem('loggedIn') !== 'true') {
+                window.location.href = 'log.html';
+            }
+            document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
+            document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
+        };
         
-        const stationFilter = document.getElementById('filterStation').value.toLowerCase();
-        const rowLimit = rowLimitSelect.value;
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+            authDomain: "flooded-95eeb.firebaseapp.com",
+            projectId: "flooded-95eeb",
+            storageBucket: "flooded-95eeb.firebasestorage.app",
+            messagingSenderId: "142547476223",
+            appId: "1:142547476223:web:70de7014c664e26d0636ca"
+        };
         
-        // Step 1: Filter Data
-        currentFilteredData = allReports.filter(item => {
-            // Checks either item.station or matches existing item.city fallback structure
-            const stationValue = item.station || item.city || '';
-            return !stationFilter || stationValue.toLowerCase().includes(stationFilter);
-        });
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
         
-        // Step 2: Truncate by Row Limit
-        let displayData = [...currentFilteredData];
-        if (rowLimit !== 'all') {
-            displayData = displayData.slice(0, parseInt(rowLimit));
+        // Reference to the main consolidated stations database node
+        const stationsRef = ref(db, 'stations');
+        
+        let allReports = []; 
+        let currentFilteredData = [];
+        
+        const rowLimitSelect = document.getElementById('filterRowLimit');
+        
+        function getDepthInfo(level) {
+            const l = parseFloat(level);
+            if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
+            if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
+            return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
         }
         
-        // Step 3: Handle Empty State
-        if (displayData.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
-            return;
+        function formatField(f) {
+            return (f === undefined || f === null || f === 'N/A') ? '' : f;
         }
         
-        // Step 4: Render Rows
-        displayData.forEach(item => {
-            const stationStr = formatField(item.station || item.city);
-            const intervalVal = item.interval || '15';
-            const statusText = item.status == 1 ? 'ON' : 'OFF';
-            const statusClass = item.status == 1 ? 'bg-success' : 'bg-secondary';
+        // Dynamic Filter Population
+        function updateStationFilter() {
+            const stationSelect = document.getElementById('filterStation');
+            const currentValue = stationSelect.value;
+            const uniqueStations = [...new Set(allReports.map(item => item.station || item.city || 'Unknown'))].filter(s => s !== '');
             
-            const rowHTML = `
+            stationSelect.innerHTML = '<option value="">All Stations</option>';
+            uniqueStations.sort().forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                if (s === currentValue) opt.selected = true;
+                stationSelect.appendChild(opt);
+            });
+        }
+        
+        // Main Render Function
+        function renderTable() {
+            const tableBody = document.getElementById('flood-data-table');
+            tableBody.innerHTML = '';
+            
+            const stationFilter = document.getElementById('filterStation').value.toLowerCase();
+            const rowLimit = rowLimitSelect.value;
+            
+            // Step 1: Filter Data
+            currentFilteredData = allReports.filter(item => {
+                // Checks either item.station or matches existing item.city fallback structure
+                const stationValue = item.station || item.city || '';
+                return !stationFilter || stationValue.toLowerCase().includes(stationFilter);
+            });
+            
+            // Step 2: Truncate by Row Limit
+            let displayData = [...currentFilteredData];
+            if (rowLimit !== 'all') {
+                displayData = displayData.slice(0, parseInt(rowLimit));
+            }
+            
+            // Step 3: Handle Empty State
+            if (displayData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No records match your filters.</td></tr>';
+                return;
+            }
+            
+            // Step 4: Render Rows
+            displayData.forEach(item => {
+                const stationStr = formatField(item.station || item.city);
+                const intervalVal = item.interval || '15';
+                const statusText = item.status == 1 ? 'ON' : 'OFF';
+                const statusClass = item.status == 1 ? 'bg-success' : 'bg-secondary';
+                
+                const rowHTML = `
                     <tr>
                         <td class="ps-4"><div class="text-muted small">${item.__key}</div></td>
                         <td><div class="fw-bold text-dark">${stationStr}</div></td>
@@ -328,68 +330,68 @@
                         </td>
                         <td><span class="badge rounded-pill ${statusClass}">${statusText}</span></td>
                     </tr>`;
-            tableBody.innerHTML += rowHTML;
-        });
-    }
-
-    // Save Edit to Firebase
-    window.saveInterval = (source, key, value) => {
-        const itemRef = ref(db, `${source}/${key}`);
-        update(itemRef, { interval: value })
+                tableBody.innerHTML += rowHTML;
+            });
+        }
+        
+        // Save Edit to Firebase
+        window.saveInterval = (source, key, value) => {
+            const itemRef = ref(db, `${source}/${key}`);
+            update(itemRef, { interval: value })
             .then(() => console.log(`Updated ${key} interval to ${value}`))
             .catch(err => alert("Sync Error: " + err.message));
-    };
-    
-    // Firebase Listeners for `data`, `data2`, and `data3`
-    function getItemTimestamp(item) {
-        if (!item) return Date.now();
-        if (item.date) {
-            try {
-                const timePart = item.time ? (' ' + item.time) : '';
-                const dt = new Date(item.date + timePart);
-                if (!isNaN(dt)) return dt.getTime();
-            } catch (e) {}
+        };
+        
+        // Firebase Listeners for `data`, `data2`, and `data3`
+        function getItemTimestamp(item) {
+            if (!item) return Date.now();
+            if (item.date) {
+                try {
+                    const timePart = item.time ? (' ' + item.time) : '';
+                    const dt = new Date(item.date + timePart);
+                    if (!isNaN(dt)) return dt.getTime();
+                } catch (e) {}
+            }
+            if (item.timestamp) return Number(item.timestamp) || Date.now();
+            return Date.now();
         }
-        if (item.timestamp) return Number(item.timestamp) || Date.now();
-        return Date.now();
-    }
-    
-    // Single Realtime Listener for the 'stations' node
-    onValue(stationsRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            // Map all records and include keys for synchronization and source identification
-            allReports = Object.keys(data).map(key => ({
-                ...data[key],
-                __key: key,
-                __source: 'stations'
-            }));
-            // Sort by derived timestamp in descending order (latest first)
-            allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
-        } else {
-            allReports = [];
-        }
-        updateStationFilter();
-        renderTable();
-    });
-    
-    // Controls
-    document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
-    document.getElementById('btnResetFilters').addEventListener('click', () => {
-        const stationSelect = document.getElementById('filterStation');
-        if(stationSelect) stationSelect.selectedIndex = 0;
-        rowLimitSelect.value = '5'; 
-        renderTable();
-    });
-    document.getElementById('signOutBtn')?.addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = 'log.html';
-    });
-    document.getElementById('logoutLink').addEventListener('click', (e) => {
-        e.preventDefault();
-        sessionStorage.clear();
-        window.location.href = 'log.html';
-    });
-</script>
+        
+        // Single Realtime Listener for the 'stations' node
+        onValue(stationsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                // Map all records and include keys for synchronization and source identification
+                allReports = Object.keys(data).map(key => ({
+                    ...data[key],
+                    __key: key,
+                    __source: 'stations'
+                }));
+                // Sort by derived timestamp in descending order (latest first)
+                allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+            } else {
+                allReports = [];
+            }
+            updateStationFilter();
+            renderTable();
+        });
+        
+        // Controls
+        document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+        document.getElementById('btnResetFilters').addEventListener('click', () => {
+            const stationSelect = document.getElementById('filterStation');
+            if(stationSelect) stationSelect.selectedIndex = 0;
+            rowLimitSelect.value = '5'; 
+            renderTable();
+        });
+        document.getElementById('signOutBtn')?.addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'log.html';
+        });
+        document.getElementById('logoutLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            sessionStorage.clear();
+            window.location.href = 'log.html';
+        });
+    </script>
 </body>
 </html>

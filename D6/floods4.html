@@ -100,10 +100,25 @@
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
         </div>
         <ul class="nav flex-column">
-           <!-- <li class="mb-1"><a class="nav-link text-white" href="floods.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li> -->
+          <li class="mb-1"><a class="nav-link text-white" href="newindex3.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="index.html"><i class="bi bi-map me-2"></i>Map Overlay</a></li>
+          <li class="nav-item">
+            <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
+              <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
+            </a>
+            <div class="collapse" id="manageMenu">
+              <ul class="list-unstyled ps-3 small">
+                <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
+                <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="mb-1"><a class="nav-link text-white" href="stations.html"><i class="bi bi-gpu-card me-2"></i>Stations</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
+          <li class="mb-1"><a class="nav-link text-white " href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li>
-          <li class="mb-1"><a class="nav-link text-white " href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>   </ul>
+          <li class="mb-1"><a class="nav-link text-white active" href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>
+        </ul>
       </nav>
       
       <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
@@ -308,7 +323,7 @@
       const level = v.level ?? v.water ?? v.water_level ?? null;
       const rain = v.rain ?? v.rainfall ?? null;
       const flow = v.flow ?? v.discharge ?? null;
-     // setSensorInputs(level, rain, flow);
+      // setSensorInputs(level, rain, flow);
     });
     document.getElementById('status').innerHTML = `${sourceName} matrix updates synced successfully.`;
     manualPredict();
@@ -493,13 +508,13 @@
         
         // if (kpiRisk) {
         //   kpiRisk.innerHTML = `${riskScore.toFixed(2)}%`;
-          
+        
         //   kpiRisk.classList.remove(
         //   'text-success',
         //   'text-warning',
         //   'text-danger'
         //   );
-          
+        
         //   if (riskScore >= 70) {
         //     kpiRisk.classList.add('text-danger');
         //   } else if (riskScore >= 30) {
@@ -691,7 +706,7 @@
   
   function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
   
-
+  
   async function autoTrain(){
     if(parsedCsvFeatures.length === 0) return;
     document.getElementById("status").innerHTML="Slicing feature vectors...";
