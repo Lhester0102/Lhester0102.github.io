@@ -265,6 +265,8 @@
 
 <script>
   let model, minVals = [], maxVals = [];
+  let stationMarkersArray = []; // Track active markers to allow dynamic clearing/re-coloring
+  let isMapFullyLoaded = false; // Prevents race conditions during initial load
 
   window.onload = function() {
     loadModel();
@@ -302,6 +304,7 @@
         weightData: weights
       }));
       console.log("Model loaded for map overlays.");
+      if (isMapFullyLoaded) updateMarkers();
     } catch (err) {
       console.error("Model load error:", err);
     }
@@ -328,12 +331,11 @@
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-    center: [120.716062, 18.106858],
-    zoom: 9.5,
+    center: [120.587385, 18.187710],
+    zoom: 11,
     pitch: 55
   });
   
-  // Risk categorization logic
   const getRiskCategory = (v) => {
     if(v >= 90) return 'severe';
     if(v >= 50) return 'high';
@@ -341,6 +343,13 @@
     return 'low';
   };
   
+  const getMarkerColorByProb = (v) => {
+    if(v >= 90) return '#dc3545'; // Red
+    if(v >= 50) return '#fd7e14'; // Orange
+    if(v >= 20) return '#ffc107'; // Yellow
+    return '#198754';             // Green
+  };
+
   const getFloodColor = (v) => {
     if(v >= 90) return 'rgba(255,0,0,0.6)';
     if(v >= 50) return 'rgba(255, 140, 0, 0.6)';
@@ -351,7 +360,6 @@
   const floodLayers = [];
   
   map.on('load', () => {
-    // Add Terrain
     if (!map.getSource('mapbox-dem')) {
       map.addSource('mapbox-dem', {
         'type': 'raster-dem',
@@ -360,11 +368,9 @@
         'maxzoom': 14
       });
     }
-    // Moves the zoom and compass controls to the bottom-right corner
     map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
     
-    // Load Firebase Flooded Areas
     db.ref('Flooded_Areas').once('value').then(snapshot => {
       const data = snapshot.val();
       if (!data) return;
@@ -394,17 +400,19 @@
               'fill-opacity': 0.5 
             }
           });
-          // Store layer ID and vulnerability for filtering later
           floodLayers.push({ layerId, props: f });
         }
       });
     });
   });
+
+  map.on('style.load', () => {
+    isMapFullyLoaded = true;
+    updateMarkers(); 
+  });
   
-  // Checkbox Toggle Logic
   document.querySelectorAll('.risk-filter').forEach(checkbox => {
     checkbox.addEventListener('change', () => {
-      // Get all currently checked categories
       const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
       
       floodLayers.forEach(item => {
@@ -420,9 +428,7 @@
     });
   });
   
-  // Interaction Logic: Risk based on Elevation
   map.on('click', async (e) => {
-    // Close all existing popups before showing another one
     document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
     const { lng, lat } = e.lngLat;
     const elevation = map.queryTerrainElevation(e.lngLat) || 0;
@@ -510,162 +516,192 @@
     .addTo(map);
   });
   
-  // Store live data history and current values from Firebase
   const liveDataStore = {
     data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
     data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
     data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
   };
   
-  // Setup listeners for live Firebase nodes (Pasuquin, Laoag, Bacarra)
+  // Real-time synchronization mapping absolute chronological keys to avoid indexing offsets
   ['data', 'data2', 'data3'].forEach(nodeKey => {
     db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
       if (!snapshot.exists()) return;
+      
       const entries = [];
-      snapshot.forEach(child => entries.push(child.val()));
-      liveDataStore[nodeKey].history = entries.map(e => e.level ?? e.water ?? 0);
-      const latest = entries[entries.length - 1];
+      let latestKey = "";
+      let latestRecord = null;
+
+      snapshot.forEach(child => {
+        const val = child.val();
+        const key = child.key;
+        entries.push(val);
+        
+        // Isolate true newest chronologically sequential entry via alphanumeric comparison
+        if (key > latestKey) {
+          latestKey = key;
+          latestRecord = val;
+        }
+      });
+      
+      // Map out history sequence safely handling disparate field key paradigms
+      liveDataStore[nodeKey].history = entries.map(e => {
+        if (nodeKey === 'data2') return e.water ?? e.level ?? 0;
+        return e.level ?? e.water ?? 0;
+      });
+      
+      // Bind exact values for downstream rendering, calculations, and active popups
       liveDataStore[nodeKey].current = {
-        level: latest.level ?? latest.water ?? 0,
-        flow: latest.flow ?? latest.discharge ?? 0,
-        rain: latest.rain ?? latest.rainfall ?? 0
+        level: nodeKey === 'data2' ? (latestRecord.water ?? latestRecord.level ?? 0) : (latestRecord.level ?? latestRecord.water ?? 0),
+        flow: latestRecord.flow ?? latestRecord.discharge ?? 0,
+        rain: latestRecord.rain ?? latestRecord.rainfall ?? 0
       };
+      
+      console.log(`Verified Sync [${nodeKey}] Latest Key ID: ${latestKey} Mapped Current Level: ${liveDataStore[nodeKey].current.level}`);
+      
+      if (isMapFullyLoaded) {
+        updateMarkers();
+      }
     });
   });
   
-  // River configuration mapping to Firebase data nodes
   const rivers = [
-  { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-  { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-  { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
+    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
+    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
+    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
   ];
   
   const riverMenu = document.getElementById('riverDropdownMenu');
   
-  const levelToProb = (lvl) => {
-    const low = 2.5, high = 5.0;
-    const normalized = (lvl - low) / (high - low);
-    return Math.max(0, Math.min(1, normalized)) * 100;
-  };
-  
-  rivers.forEach((river, idx) => {
-    const histChartId = `riverHist-${idx}`;
-    const probChartId = `riverProb-${idx}`;
-    const popup = new mapboxgl.Popup({ offset: 25 });
+  async function updateMarkers() {
+    stationMarkersArray.forEach(m => m.remove());
+    stationMarkersArray = [];
     
-    const marker = new mapboxgl.Marker({ color: '#1c96c5' })
-    .setLngLat([river.lng, river.lat])
-    .setPopup(popup)
-    .addTo(map);
+    if (riverMenu) riverMenu.innerHTML = '';
     
-    const li = document.createElement('li');
-    li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt text-danger"></i> ${river.name}</a>`;
-    li.onclick = () => {
-      map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
-      if (!marker.getPopup().isOpen()) marker.togglePopup();
-    };
-    riverMenu.appendChild(li);
-    
-    popup.on('open', async () => {
-      // Close all existing popups before showing another one
-      const currentPopupEl = popup.getElement();
-      document.querySelectorAll('.mapboxgl-popup').forEach(p => {
-        if (p !== currentPopupEl) p.remove();
-      });
+    for (let idx = 0; idx < rivers.length; idx++) {
+      const river = rivers[idx];
+      const histChartId = `riverHist-${idx}`;
+      const probChartId = `riverProb-${idx}`;
       
       const data = liveDataStore[river.node];
       const cur = data.current;
       const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
       
-      const forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
-      const prob = Math.round(forecastData[0]);
-      const history = data.history;
+      let prob = 0;
+      let forecastData = [0, 0, 0, 0];
+      if (model && minVals.length > 0) {
+        forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
+        prob = Math.round(forecastData[0]);
+      }
       
-      popup.setHTML(`
-        <div class="popup-chart-container">
-            <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
-            <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">PROB</small><strong class="text-danger" style="font-size: 0.75rem;">${prob}%</strong></div>
-            </div>
-            <span hidden class="chart-label">Daily Historical Metrics</span>
-            <canvas hidden id="${histChartId}" class="popup-chart"></canvas>
-            <div class="mt-2 border-top pt-2">
-                <span class="chart-label">Hourly Forecast Probability</span>
-                <canvas id="${probChartId}" class="popup-chart"></canvas>
-            </div>
-        </div>
-      `);
+      const calculatedPinColor = getMarkerColorByProb(prob);
+      const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
       
-      setTimeout(() => {
-        // 1. Initialize Historical Chart
-        const hCtx = document.getElementById(histChartId);
-        new Chart(hCtx, {
-          type: 'line',
-          data: {
-            labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
-            datasets: [
-            { 
-              label: 'Level', data: history, borderColor: '#1f77b4', 
-              backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 
-            },
-            { 
-              label: 'Rain', data: history.map(v => v * 15), borderColor: '#2ca02c', 
-              borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 
-            }
-            ]
-          },
-          options: {
-            plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 9 } } } },
-            maintainAspectRatio: false,
-            scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 8 } } },
-              y: { ticks: { font: { size: 8 } } }
-            }
-          }
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        anchor: sideAnchor 
+      });
+      
+      const marker = new mapboxgl.Marker({ color: calculatedPinColor })
+      .setLngLat([river.lng, river.lat])
+      .setPopup(popup)
+      .addTo(map);
+      
+      marker.getElement().addEventListener('click', (e) => {
+        e.stopPropagation();
+        map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+        marker.togglePopup();
+      });
+      
+      stationMarkersArray.push(marker);
+      
+      if (riverMenu) {
+        const li = document.createElement('li');
+        li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${calculatedPinColor}"></i> ${river.name}</a>`;
+        li.onclick = () => {
+          map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+          if (!marker.getPopup().isOpen()) marker.togglePopup();
+        };
+        riverMenu.appendChild(li);
+      }
+      
+      popup.on('open', async () => {
+        const currentPopupEl = popup.getElement();
+        document.querySelectorAll('.mapboxgl-popup').forEach(p => {
+          if (p !== currentPopupEl) p.remove();
         });
         
-        // 2. Initialize Probability Forecast Chart
-        const pCtx = document.getElementById(probChartId);
+        popup.setHTML(`
+          <div class="popup-chart-container" style="padding: 5px; min-width: 240px; max-width: 280px;">
+              <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
+              <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
+                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
+                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
+                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
+                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">PROB</small><strong style="color: ${calculatedPinColor}; font-size: 0.75rem;">${prob}%</strong></div>
+              </div>
+              <span hidden style="font-size: 0.65rem; font-weight: bold; color: #6c757d; display: block; margin-bottom: 2px; text-transform: uppercase;">Daily Historical Metrics</span>
+              <canvas hidden id="${histChartId}" style="max-height: 110px; width: 100%; margin-top: 5px;"></canvas>
+              <div class="mt-2 border-top pt-2">
+                  <span style="font-size: 0.65rem; font-weight: bold; color: #6c757d; display: block; margin-bottom: 2px; text-transform: uppercase;">Hourly Forecast Probability</span>
+                  <canvas id="${probChartId}" style="max-height: 110px; width: 100%; margin-top: 5px;"></canvas>
+              </div>
+          </div>
+        `);
         
-        new Chart(pCtx, {
-          type: 'line',
-          data: {
-            labels: ["Now", "+3h", "+12h", "+24h"],
-            datasets: [{
-              label: 'Prob %',
-              data: forecastData,
-              borderColor: '#dc3545',
-              backgroundColor: 'rgba(220, 53, 69, 0.1)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 3
-            }]
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            maintainAspectRatio: false,
-            scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 8 } } },
-              y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } }
-            }
+        setTimeout(() => {
+          const hCtx = document.getElementById(histChartId);
+          if (hCtx) {
+            new Chart(hCtx, {
+              type: 'line',
+              data: {
+                labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
+                datasets: [
+                  { label: 'Level', data: data.history, borderColor: '#1f77b4', backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 },
+                  { label: 'Rain', data: data.history.map(v => v * 15), borderColor: '#2ca02c', borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 }
+                ]
+              },
+              options: {
+                plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 9 } } } },
+                maintainAspectRatio: false,
+                scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 } } } }
+              }
+            });
           }
-        });
-      }, 200); 
-    });
-  });
+          
+          const pCtx = document.getElementById(probChartId);
+          if (pCtx) {
+            new Chart(pCtx, {
+              type: 'line',
+              data: {
+                labels: ["Now", "+3h", "+12h", "+24h"],
+                datasets: [{
+                  label: 'Prob %',
+                  data: forecastData,
+                  borderColor: calculatedPinColor,
+                  backgroundColor: 'rgba(0,0,0,0.03)',
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 3
+                }]
+              },
+              options: {
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false,
+                scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } } }
+              }
+            });
+          }
+        }, 200); 
+      });
+    }
+  }
   
   document.getElementById('logoutLink').addEventListener('click', function(e) {
     e.preventDefault();
     sessionStorage.clear(); 
     window.location.href = 'log.html'; 
   });
-  function logoutUser(){
-    sessionStorage.clear(); 
-    window.location.href = 'log.html'; 
-  }
 </script>
 
 </body>
