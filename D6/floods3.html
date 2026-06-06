@@ -1071,7 +1071,11 @@
     document.getElementById('saveBtn').onclick = saveModel;
     document.getElementById('loadBtn').onclick = loadModel;
     document.getElementById('predictBtn').onclick = manualPredict;
-    document.getElementById('dropdownLogout').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
+    document.getElementById('logoutLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    sessionStorage.clear(); // Clear all session storage
+    window.location.href = 'log.html'; // Redirect to login page
+  });
   </script>
 </body>
 </html>
