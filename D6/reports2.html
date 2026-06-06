@@ -130,11 +130,10 @@
                             </ul>
                         </div>
                     </li>
-                    <!-- <li class="mb-1"><a class="nav-link text-white" href="stations.html"><i class="bi bi-gpu-card me-2"></i>Stations</a></li> -->
                     <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
                     <li class="mb-1"><a class="nav-link text-white active" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
-                    <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li>
-                    <li class="mb-1"><a class="nav-link text-white " href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
+                    <!-- <li class="mb-1"><a class="nav-link text-white" href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li> -->
                 </ul>
                 
                 <div class="mt-4 pt-3 border-top border-secondary">
@@ -153,7 +152,7 @@
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h5 class="mb-0 fw-bold text-dark">Daily Historical and Flood Probability Forecast</h5>
+                        <h5 class="mb-0 fw-bold text-dark">Beta Daily Historical and Flood Probability Forecast</h5>
                     </div>
                     
                     <div class="dropdown">
@@ -174,39 +173,34 @@
             
             <div class="card shadow-sm mb-2" id="filterCard">
                 <div class="card-body">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label small text-muted mb-1">Time Period</label>
-                            <select id="filterPeriodType" class="form-select form-select-sm">
-                                <option value="all">All</option>
-                                <option value="annually">Annually</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="custom">From-To Date</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-2" id="dynamicInputContainer"></div>
-                        
-                        <div class="col-md-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
                             <label class="form-label small text-muted mb-1">Station</label>
-                            <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Station name...">
+                            <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Search station name...">
                         </div>
                         
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted mb-1">Rows</label>
-                            <select id="filterRowLimit" class="form-select form-select-sm">
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="all" selected>All</option>
-                            </select>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted mb-1 d-block">Historical Window</label>
+                            <div class="btn-group w-100" role="group" aria-label="Historical Range Selection">
+                                <input type="radio" class="btn-check" name="historicalDays" id="days5" value="5" checked autocomplete="off">
+                                <label class="btn btn-outline-primary btn-sm" for="days5">5 Days</label>
+                                
+                                <input type="radio" class="btn-check" name="historicalDays" id="days10" value="10" autocomplete="off">
+                                <label class="btn btn-outline-primary btn-sm" for="days10">10 Days</label>
+                                
+                                <input type="radio" class="btn-check" name="historicalDays" id="days15" value="15" autocomplete="off">
+                                <label class="btn btn-outline-primary btn-sm" for="days15">15 Days</label>
+                                
+                                <input type="radio" class="btn-check" name="historicalDays" id="days30" value="30" autocomplete="off">
+                                <label class="btn btn-outline-primary btn-sm" for="days30">30 Days</label>
+                            </div>
                         </div>
                         
-                        <div class="col-md-2">
-                            <button id="btnApplyFilters" class="btn btn-sm btn-primary w-100">Apply</button>
-                            <button id="btnResetFilters" class="btn btn-sm btn-light w-100 border">Reset</button>
+                        <div class="col-md-3">
+                            <div class="d-flex gap-2">
+                                <button id="btnApplyFilters" class="btn btn-sm btn-primary w-50">Apply</button>
+                                <button id="btnResetFilters" class="btn btn-sm btn-light w-50 border">Reset</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -267,56 +261,8 @@
     let allReports = []; 
     let currentFilteredData = [];
     let stationCharts = [];
-    let forecastChart = null;
     let isRendering = false;
-    let isBuildingForecastChart = false;
-    
-    const periodTypeSelect = document.getElementById('filterPeriodType');
-    const dynamicContainer = document.getElementById('dynamicInputContainer');
-    const rowLimitSelect = document.getElementById('filterRowLimit');
-    
-    // Dynamic Filter UI Logic
-    periodTypeSelect.addEventListener('change', function() {
-        const val = this.value;
-        dynamicContainer.innerHTML = '';
-        
-        if (val === 'annually') {
-            dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Year</label>
-                    <input type="number" id="inputAnnual" class="form-control form-control-sm" placeholder="YYYY" value="${new Date().getFullYear()}">`;
-        } else if (val === 'monthly') {
-            dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Month</label>
-                    <input type="month" id="inputMonthly" class="form-control form-control-sm">`;
-        } else if (val === 'weekly') {
-            dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Week</label>
-                    <input type="week" id="inputWeekly" class="form-control form-control-sm">`;
-        } else if (val === 'custom') {
-            dynamicContainer.innerHTML = `
-                    <label class="form-label small text-muted mb-1">Date Range</label>
-                    <div class="d-flex gap-1">
-                        <input type="date" id="inputDateFrom" class="form-control form-control-sm">
-                        <input type="date" id="inputDateTo" class="form-control form-control-sm">
-                    </div>`;
-        }
-    });
-    
-    function getISOWeekString(dateObj) {
-        const date = new Date(dateObj.getTime());
-        date.setHours(0, 0, 0, 0);
-        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-        const week1 = new Date(date.getFullYear(), 0, 4);
-        const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-        return `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
-    }
-    
-    function getDepthInfo(level) {
-        const l = parseFloat(level);
-        if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
-        if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
-        return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
-    }
+    let modelLoaded = false;
     
     function normalizeInput(values) {
         if (!minVals.length || !maxVals.length) return values;
@@ -331,19 +277,13 @@
         try {
             console.log('Starting to load forecast model from Firebase storage...');
             const jsonUrl = await getDownloadURL(storageRef(storage, 'models/flood_model.json'));
-            console.log('Model JSON URL:', jsonUrl.substring(0, 50) + '...');
             const weightsUrl = await getDownloadURL(storageRef(storage, 'models/flood_weights.bin'));
-            console.log('Weights URL:', weightsUrl.substring(0, 50) + '...');
             
             const config = await (await fetch(jsonUrl)).json();
-            console.log('Model config loaded. Topology:', config.modelTopology?.class || 'unknown');
-            
             const weights = await (await fetch(weightsUrl)).arrayBuffer();
-            console.log('Weights loaded. Size:', weights.byteLength, 'bytes');
             
             minVals = config.metadata?.minVals || [];
             maxVals = config.metadata?.maxVals || [];
-            console.log('Normalization params - min:', minVals, 'max:', maxVals);
             
             model = await tf.loadLayersModel(tf.io.fromMemory({
                 modelTopology: config.modelTopology,
@@ -351,6 +291,11 @@
                 weightData: weights
             }));
             console.log('✓ Forecast model loaded successfully.');
+            modelLoaded = true;
+            // Force dynamic forecast calculations if data arrived before model finished loading
+            if (allReports.length > 0) {
+                renderTable();
+            }
         } catch (err) {
             console.error('Failed to load forecast model from storage:', err.message || err);
             model = null;
@@ -358,10 +303,7 @@
     }
     
     async function predictFloodProbability(features) {
-        if (!model) {
-            console.warn('predictFloodProbability: model is not loaded');
-            return null;
-        }
+        if (!model) return null;
         try {
             const normalized = normalizeInput(features);
             const input = tf.tensor2d([normalized]);
@@ -391,12 +333,7 @@
         stationCharts = [];
     }
     
-    function addDaysToDateKey(dateKey, offset) {
-        const dt = new Date(dateKey);
-        dt.setDate(dt.getDate() + offset);
-        return dt.toISOString().slice(0, 10);
-    }
-    
+    // Normalization transformation for fallback visualization metric maps
     function levelToProbability(level) {
         const low = 2.5;
         const high = 5.0;
@@ -405,9 +342,7 @@
     }
     
     function getItemDateKey(item) {
-        if (item?.date) {
-            return item.date.slice(0, 10);
-        }
+        if (item?.date) return item.date.slice(0, 10);
         if (item?.timestamp) {
             const tsDate = new Date(item.timestamp);
             if (!isNaN(tsDate)) return tsDate.toISOString().slice(0, 10);
@@ -453,15 +388,12 @@
         stationNames.forEach(station => {
             stationDailyPoints[station] = Object.keys(stationGroups[station]).sort().map(dateKey => {
                 const bucket = stationGroups[station][dateKey];
-                const avgLevel = bucket.count ? bucket.levelSum / bucket.count : null;
-                const avgRain = bucket.count ? bucket.rainSum / bucket.count : null;
-                const avgFlow = bucket.count ? bucket.flowSum / bucket.count : null;
                 return {
                     dateKey,
                     label: formatMonthDay(dateKey),
-                    level: avgLevel,
-                    rain: avgRain,
-                    flow: avgFlow
+                    level: bucket.count ? bucket.levelSum / bucket.count : null,
+                    rain: bucket.count ? bucket.rainSum / bucket.count : null,
+                    flow: bucket.count ? bucket.flowSum / bucket.count : null
                 };
             });
         });
@@ -484,12 +416,7 @@
                     if (forecastProb === null) break;
                     forecastLabels.push(`+${h}h`);
                     forecastData.push(parseFloat(forecastProb.toFixed(1)));
-                    futureInput = [
-                    futureInput[0] + 0.02, 
-                    futureInput[1] + 1,
-                    futureInput[2] + 3,
-                    futureInput[3]
-                    ];
+                    futureInput = [futureInput[0] + 0.02, futureInput[1] + 1, futureInput[2] + 3, futureInput[3]];
                 }
             }
             
@@ -628,38 +555,14 @@
         isRendering = true;
         
         try {
-            const periodType = periodTypeSelect.value;
-            const stationFilter = document.getElementById('filterStation').value.toLowerCase();
-            const rowLimit = rowLimitSelect.value;
+            const stationFieldElement = document.getElementById('filterStation');
+            const stationFilter = stationFieldElement ? stationFieldElement.value.toLowerCase() : '';
+            
+            const selectedDaysOpt = document.querySelector('input[name="historicalDays"]:checked');
+            const targetDaysLimit = selectedDaysOpt ? parseInt(selectedDaysOpt.value) : 5;
             
             currentFilteredData = allReports.filter(item => {
                 let match = true;
-                if (periodType !== 'all') {
-                    if (!item.date) {
-                        match = false;
-                    } else {
-                        const itemDate = new Date(item.date);
-                        if (periodType === 'annually') {
-                            const y = document.getElementById('inputAnnual')?.value;
-                            if (y && itemDate.getFullYear().toString() !== y) match = false;
-                        } else if (periodType === 'monthly') {
-                            const m = document.getElementById('inputMonthly')?.value;
-                            if (m) {
-                                const itemMonthStr = `${itemDate.getFullYear()}-${(itemDate.getMonth()+1).toString().padStart(2, '0')}`;
-                                if (itemMonthStr !== m) match = false;
-                            }
-                        } else if (periodType === 'weekly') {
-                            const w = document.getElementById('inputWeekly')?.value;
-                            if (w && getISOWeekString(itemDate) !== w) match = false;
-                        } else if (periodType === 'custom') {
-                            const from = document.getElementById('inputDateFrom')?.value;
-                            const to = document.getElementById('inputDateTo')?.value;
-                            if (from && itemDate < new Date(from)) match = false;
-                            if (to && itemDate > new Date(to)) match = false;
-                        }
-                    }
-                }
-                
                 const stationValue = item.station || item.city || '';
                 if (stationFilter && !stationValue.toLowerCase().includes(stationFilter)) match = false;
                 return match;
@@ -672,9 +575,12 @@
                 return (dateStr !== '' && stationStr !== '' && levelVal !== '');
             });
             
-            if (rowLimit !== 'all') {
-                currentFilteredData = currentFilteredData.slice(0, parseInt(rowLimit));
-            }
+            const globalUniqueDates = [...new Set(currentFilteredData.map(item => getItemDateKey(item)))].sort().reverse();
+            const allowedDatesWindow = globalUniqueDates.slice(0, targetDaysLimit);
+            
+            currentFilteredData = currentFilteredData.filter(item => {
+                return allowedDatesWindow.includes(getItemDateKey(item));
+            });
             
             await buildStationCharts();
         } finally {
@@ -698,6 +604,7 @@
     function mergeAndRender() {
         allReports = [...dataReports, ...data2Reports, ...data3Reports];
         allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+        // Automatically calculate predictions and load charts instantly on data ingestion
         renderTable();
     }
     
@@ -725,15 +632,18 @@
         mergeAndRender();
     });
     
-    
     document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+    
+    document.querySelectorAll('input[name="historicalDays"]').forEach(radio => {
+        radio.addEventListener('change', renderTable);
+    });
+    
     document.getElementById('btnResetFilters').addEventListener('click', () => {
-        periodTypeSelect.value = 'all';
-        dynamicContainer.innerHTML = '';
         document.getElementById('filterStation').value = '';
-        rowLimitSelect.value = 'all';
+        document.getElementById('days5').checked = true;
         renderTable();
     });
+    
     document.getElementById('logoutLink').addEventListener('click', (e) => {
         e.preventDefault();
         sessionStorage.clear();
