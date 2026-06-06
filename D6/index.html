@@ -161,13 +161,11 @@
           <!-- <li class="mb-1"><a class="nav-link text-white" href="stations.html"><i class="bi bi-gpu-card me-2"></i>Stations</a></li> -->
           <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
-           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
-           <!-- <li class="mb-1"><a class="nav-link text-white " href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li> -->
+          <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
+          <!-- <li class="mb-1"><a class="nav-link text-white " href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li> -->
+          <hr>
+          <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
         </ul>
-        
-        <div class="mt-4 pt-3 border-top border-secondary">
-          <a id ="logoutLink" href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
-        </div>
       </nav>
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
@@ -267,7 +265,7 @@
   let model, minVals = [], maxVals = [];
   let stationMarkersArray = []; // Track active markers to allow dynamic clearing/re-coloring
   let isMapFullyLoaded = false; // Prevents race conditions during initial load
-
+  
   window.onload = function() {
     loadModel();
     // if (sessionStorage.getItem('loggedIn') !== 'true') {
@@ -287,7 +285,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const storageRef = firebase.storage().ref();
-
+  
   async function loadModel() {
     try {
       const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
@@ -309,11 +307,11 @@
       console.error("Model load error:", err);
     }
   }
-
+  
   function normalize(row) {
     return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
   }
-
+  
   async function getForecast(currentInput) {
     const horizons = [1, 3, 12, 24];
     let last = [...currentInput];
@@ -349,7 +347,7 @@
     if(v >= 20) return '#ffc107'; // Yellow
     return '#198754';             // Green
   };
-
+  
   const getFloodColor = (v) => {
     if(v >= 90) return 'rgba(255,0,0,0.6)';
     if(v >= 50) return 'rgba(255, 140, 0, 0.6)';
@@ -405,7 +403,7 @@
       });
     });
   });
-
+  
   map.on('style.load', () => {
     isMapFullyLoaded = true;
     updateMarkers(); 
@@ -530,7 +528,7 @@
       const entries = [];
       let latestKey = "";
       let latestRecord = null;
-
+      
       snapshot.forEach(child => {
         const val = child.val();
         const key = child.key;
@@ -565,9 +563,9 @@
   });
   
   const rivers = [
-    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
+  { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
+  { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
+  { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
   ];
   
   const riverMenu = document.getElementById('riverDropdownMenu');
@@ -657,8 +655,8 @@
               data: {
                 labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
                 datasets: [
-                  { label: 'Level', data: data.history, borderColor: '#1f77b4', backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 },
-                  { label: 'Rain', data: data.history.map(v => v * 15), borderColor: '#2ca02c', borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 }
+                { label: 'Level', data: data.history, borderColor: '#1f77b4', backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 },
+                { label: 'Rain', data: data.history.map(v => v * 15), borderColor: '#2ca02c', borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 }
                 ]
               },
               options: {
