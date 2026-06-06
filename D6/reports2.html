@@ -78,7 +78,7 @@
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         
         #station-charts { max-height: calc(100vh - 320px); overflow-y: auto; }
-        .station-chart { width: 100% !important; height: 280px !important; }
+        .station-chart { width: 100% !important; height: 200px !important; }
         
         /* Print Specific Styles */
         .print-header { display: none; }
@@ -147,7 +147,7 @@
                     <small id="printTimestamp"></small>
                 </div>
                 
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 p-2 bg-white rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow-sm">
                     <div class="d-flex align-items-center gap-3">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
@@ -171,7 +171,7 @@
                 </div>
             </div>
             
-            <div class="card shadow-sm mb-2" id="filterCard">
+            <div class="card shadow-sm mb-1" id="filterCard">
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-5">
@@ -206,13 +206,18 @@
                 </div>
             </div>
             
-            <div class="card shadow-sm chart-card">
-                <div class="card-body">
-                    <div id="station-charts" class="row g-3 py-2">
-                        <div class="col-12 text-center text-muted py-5" id="chart-placeholder">Connecting to Firebase...</div>
-                    </div>
-                </div>
-            </div>
+<!-- Added mt-0, pt-0, and forced zero margins/padding on the main card container -->
+<div class="card shadow-sm chart-card mt-0 pt-0" style="margin-top: 0px !important; padding-top: 0px !important;">
+    <!-- Explicitly set padding-top to 0px -->
+    <div class="card-body" style="padding-top: 0px !important;">
+        <!-- Changed layout to eliminate top gutters and force zero-offset row margin -->
+        <div id="station-charts" class="row gx-3 gy-0 pb-2 align-items-start" style="min-height: 550px; margin-top: 0px !important; padding-top: 0px !important;">
+            <!-- Stripped mt-0 from the ID string, forced the placeholder text to line up at the absolute top -->
+            <div class="col-12 text-center text-muted pt-2 pb-5" id="chart-placeholder">Connecting to Firebase...</div>
+        </div>
+    </div>
+</div>
+
         </main>
     </div>
 </div>
@@ -425,13 +430,14 @@
             const forecastSeries = [...labels.map(() => null), ...forecastData];
             
             const col = document.createElement('div');
-            col.className = 'col-12 mb-4';
+            col.className = 'col-12 mb-1';
             col.innerHTML = `
                 <div class="card p-2 shadow-sm">
-                    <div class="mb-2">
-                        <h5 class="fw-bold text-dark mb-1">${station}</h5>
-                        <p class="text-muted small mb-0">Observed parameters compared directly with machine learning flood probability insights</p>
+                    <div class="mb-1">
+                        <h5 class="fw-bold text-dark d-inline me-2">${station}</h5>
+                        <p class="text-muted small d-inline mb-0">Observed parameters compared directly with machine learning flood probability insights</p>
                     </div>
+
                     <div class="row g-4">
                         <div class="col-12 col-lg-6">
                             <div class="p-2 border rounded bg-light-subtle">
