@@ -87,8 +87,8 @@
     @media (min-width: 768px) {
       .sidebar { min-height: 100vh; height: 100vh; }
       .main-content { height: 100vh; overflow-y: auto; }
-      .col-map-split { width: 50%; flex: 0 0 auto; }
-      .col-table-split { width: 50%; flex: 0 0 auto; }
+      .col-map-split { width: 60%; flex: 0 0 auto; }
+      .col-table-split { width: 40%; flex: 0 0 auto; }
     }
     
     .mobile-brand {
@@ -234,8 +234,12 @@
           
           <div class="col-12 col-table-split">
             
-            <div class="card shadow-sm mb-2">
-              <div class="card-body p-2">
+            <div class="card shadow-sm table-card" style="height: 520px;">
+                
+              <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center">
+                <span style="font-size:0.8rem;"><i class="bi bi-cpu me-2"></i>Stations Lists and interval Settings</span>
+              </div>
+                            <div class="card-body p-2">
                 <div class="row g-2">
                   <div class="col-6">
                     <select id="filterStation" class="form-select form-select-sm" style="font-size: 0.75rem;">
@@ -251,16 +255,10 @@
                     </select>
                   </div>
                   <div class="col-12 d-flex gap-1">
-                    <button id="btnApplyFilters" class="btn btn-xs btn-dark py-1 flex-fill fw-bold" style="font-size:0.7rem;">Apply Filters</button>
+                    <button id="btnApplyFilters" class="btn btn-xs btn-primary py-1 flex-fill fw-bold" style="font-size:0.7rem;">Apply Filters</button>
                     <button id="btnResetFilters" class="btn btn-xs btn-light border py-1 flex-fill" style="font-size:0.7rem;">Clear</button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="card shadow-sm table-card" style="height: 520px;">
-              <div class="card-header bg-dark text-white py-2 px-3 d-flex align-items-center">
-                <span style="font-size:0.8rem;"><i class="bi bi-cpu me-2"></i>Stations Lists and interval Settings</span>
               </div>
               <div class="card-body p-0 table-container">
                 <table class="table table-hover mb-0 align-middle">
