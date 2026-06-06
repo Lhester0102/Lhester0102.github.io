@@ -100,141 +100,146 @@
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
         </div>
         <ul class="nav flex-column">
-           <!-- <li class="mb-1"><a class="nav-link text-white" href="floods.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li> -->
-          <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li>
-          <li class="mb-1"><a class="nav-link text-white " href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>   </ul>
-      </nav>
-      
-      <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
-        <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
-          <div class="d-flex align-items-center gap-3">
-            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-              <i class="bi bi-list"></i>
-            </button>
-            <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark">Flood Watch Lists</h5>
+          <!-- <li class="mb-1"><a class="nav-link text-white" href="floods.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li> -->
+          <li class="mb-1"><a class="nav-link text-white" href="index2.html"> <i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
+          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"> <i class="bi bi-map me-2"></i> Flood Watch</a></li>
+        </nav>
+        
+        <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
+          <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+            <div class="d-flex align-items-center gap-3">
+              <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                <i class="bi bi-list"></i>
+              </button>
+              <div class="d-flex align-items-baseline gap-2">
+                <h5 class="mb-0 fw-bold text-dark">Flood Watch Lists</h5>
+              </div>
+              
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+              <!-- Active Page -->
+              <a href="floods3.html"class="btn btn-outline-primary"><i class="bi bi-eye me-1"></i> Flood Map</a>
+              <a href="floods4.html"class="btn btn-primary"> <i class="bi bi-water me-1"></i>Flood Lists</a>
             </div>
           </div>
-        </div>
-        
-        <!-- <div class="row g-3 mb-1">
-          <div class="col-md-3"><div class="card p-3"><h6>Water Level (m)</h6><h4 id="kpiWater">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Rainfall (mm)</h6><h4 id="kpiRain">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Discharge (L/s)</h6><h4 id="kpiDischarge">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Flood Risk Summary</h6><h4 id="kpiRisk">--</h4></div></div>
-        </div> -->
-        <div class="container-fluid">
-          <div class="row g-3">
-            
-            <!-- LEFT PANEL -->
-            <div class="col-12 col-lg-9 d-flex flex-column">
+          
+          <!-- <div class="row g-3 mb-1">
+            <div class="col-md-3"><div class="card p-3"><h6>Water Level (m)</h6><h4 id="kpiWater">0.0</h4></div></div>
+            <div class="col-md-3"><div class="card p-3"><h6>Rainfall (mm)</h6><h4 id="kpiRain">0.0</h4></div></div>
+            <div class="col-md-3"><div class="card p-3"><h6>Discharge (L/s)</h6><h4 id="kpiDischarge">0.0</h4></div></div>
+            <div class="col-md-3"><div class="card p-3"><h6>Flood Risk Summary</h6><h4 id="kpiRisk">--</h4></div></div>
+          </div> -->
+          <div class="container-fluid">
+            <div class="row g-3">
               
-              <div class="card mb-2" style="min-height: 500px; min-width: 0;">
+              <!-- LEFT PANEL -->
+              <div class="col-12 col-lg-9 d-flex flex-column">
                 
-                <!-- HEADER -->
-                <div class="card-header bg-dark text-white py-2">
-                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    
-                    <div class="d-flex flex-wrap align-items-center gap-3 w-100 w-lg-auto">
+                <div class="card mb-2" style="min-height: 500px; min-width: 0;">
+                  
+                  <!-- HEADER -->
+                  <div class="card-header bg-dark text-white py-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                       
-                      <select id="municipalityFilter"
+                      <div class="d-flex flex-wrap align-items-center gap-3 w-100 w-lg-auto">
+                        
+                        <select id="municipalityFilter"
+                        class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
+                        style="max-width: 230px;">
+                        <option value="All">All Municipalities</option>
+                      </select>
+                      
+                      <div style="max-width: 320px;" class="flex-grow-1">
+                        <div class="input-group input-group-sm">
+                          <span class="input-group-text bg-white border-white text-dark">
+                            <i class="bi bi-search"></i>
+                          </span>
+                          <input type="text" id="barangaySearchInput"
+                          class="form-control"
+                          placeholder="Search barangay...">
+                        </div>
+                      </div>
+                      
+                      <select id="rowLimitSelect"
                       class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                      style="max-width: 230px;">
-                      <option value="All">All Municipalities</option>
+                      style="max-width: 110px;">
+                      <option value="5">5 Rows</option>
+                      <option value="10" selected>10 Rows</option>
+                      <option value="25">25 Rows</option>
+                      <option value="All">All Rows</option>
                     </select>
                     
-                    <div style="max-width: 320px;" class="flex-grow-1">
-                      <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-white text-dark">
-                          <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" id="barangaySearchInput"
-                        class="form-control"
-                        placeholder="Search barangay...">
-                      </div>
-                    </div>
-                    
-                    <select id="rowLimitSelect"
-                    class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                    style="max-width: 110px;">
-                    <option value="5">5 Rows</option>
-                    <option value="10" selected>10 Rows</option>
-                    <option value="25">25 Rows</option>
-                    <option value="All">All Rows</option>
-                  </select>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- TABLE -->
+              <div class="card-body p-0 ms-0 table-responsive" style="max-height: 570px;">
+                <table class="table mt-1 table-hover align-middle mb-0 w-100" style="table-layout: fixed;">
                   
+                  <thead class="table-primary text-white sticky-top">
+                    <tr>
+                      <th class="ps-3" style="width: 22%;">Barangay</th>
+                      <th style="width: 12%;">Water Level</th>
+                      <th style="width: 12%;">Rainfall</th>
+                      <th style="width: 12%;">Discharge</th>
+                      <th style="width: 20%;">Calculated Elevation</th>
+                      <th style="width: 22%;">Risk Classification</th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody id="riverTableBody">
+                    <tr>
+                      <td colspan="6" class="text-center text-muted py-5">
+                        <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                        Synchronizing tracking telemetry registries...
+                      </td>
+                    </tr>
+                  </tbody>
+                  
+                </table>
+              </div>
+              
+            </div>
+            
+            <div class="card mb-1 mt-1 p-2">
+              <p id="status" class="small text-muted mb-0">
+                Initializing system modules...
+              </p>
+            </div>
+            
+          </div>
+          
+          <!-- RIGHT PANEL -->
+          <div class="col-12 col-lg-3">
+            
+            <div class="card p-3" id="detailsContainer">
+              <div id="details">
+                <div class="text-center text-muted py-4 small">
+                  <i class="bi bi-info-circle d-block mb-2 fs-4 text-secondary"></i>
+                  Select a river station to view analytics.
                 </div>
               </div>
             </div>
             
-            <!-- TABLE -->
-            <div class="card-body p-0 ms-0 table-responsive" style="max-height: 570px;">
-              <table class="table mt-1 table-hover align-middle mb-0 w-100" style="table-layout: fixed;">
-                
-                <thead class="table-primary text-white sticky-top">
-                  <tr>
-                    <th class="ps-3" style="width: 22%;">Barangay</th>
-                    <th style="width: 12%;">Water Level</th>
-                    <th style="width: 12%;">Rainfall</th>
-                    <th style="width: 12%;">Discharge</th>
-                    <th style="width: 20%;">Calculated Elevation</th>
-                    <th style="width: 22%;">Risk Classification</th>
-                  </tr>
-                </thead>
-                
-                <tbody id="riverTableBody">
-                  <tr>
-                    <td colspan="6" class="text-center text-muted py-5">
-                      <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-                      Synchronizing tracking telemetry registries...
-                    </td>
-                  </tr>
-                </tbody>
-                
-              </table>
+            <div class="card p-3 mt-3" hidden>
+              
+              <input id="waterLevel" class="form-control mb-1" value="1.1">
+              <input id="rainfall" class="form-control mb-1" value="0.1">
+              <input id="discharge" class="form-control mb-1" value="12">
+              <input id="elevation" class="form-control mb-2" value="25">
+              
+              <button hidden id="predictBtn" class="btn btn-danger w-100">
+                Predict
+              </button>
             </div>
             
           </div>
           
-          <div class="card mb-1 mt-1 p-2">
-            <p id="status" class="small text-muted mb-0">
-              Initializing system modules...
-            </p>
-          </div>
-          
         </div>
-        
-        <!-- RIGHT PANEL -->
-        <div class="col-12 col-lg-3">
-          
-          <div class="card p-3" id="detailsContainer">
-            <div id="details">
-              <div class="text-center text-muted py-4 small">
-                <i class="bi bi-info-circle d-block mb-2 fs-4 text-secondary"></i>
-                Select a river station to view analytics.
-              </div>
-            </div>
-          </div>
-          
-          <div class="card p-3 mt-3" hidden>
-            
-            <input id="waterLevel" class="form-control mb-1" value="1.1">
-            <input id="rainfall" class="form-control mb-1" value="0.1">
-            <input id="discharge" class="form-control mb-1" value="12">
-            <input id="elevation" class="form-control mb-2" value="25">
-            
-            <button hidden id="predictBtn" class="btn btn-danger w-100">
-              Predict
-            </button>
-          </div>
-          
-        </div>
-        
-      </div>
-    </div>    </div>
-  </main>
-</div>
+      </div>    </div>
+    </main>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -257,10 +262,7 @@
   };
   
   window.onload = async function() {
-    // document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
-    // updateKPIs();
-    
-    // STRICT STEP CONFIGURATION: Load Model -> Load Pins -> Acquire Live Data & Calculate Elevation -> Predict/Populate
+    // STRICT STEP CONFIGURATION: Load Model -> Load Pins & Fetch Elevation -> Acquire Live Data -> Predict/Populate
     await loadModel(); 
     await populateRiverData();
     setupRiverStations();
@@ -275,12 +277,6 @@
     const rowLimitSelect = document.getElementById('rowLimitSelect');
     if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
   }
-  
-  // function updateKPIs() {
-  //   document.getElementById("kpiWater").innerHTML = document.getElementById("waterLevel").value;
-  //   document.getElementById("kpiRain").innerHTML = document.getElementById("rainfall").value;
-  //   document.getElementById("kpiDischarge").innerHTML = document.getElementById("discharge").value;
-  // }
   
   const firebaseConfig = {
     apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
@@ -308,7 +304,6 @@
       const level = v.level ?? v.water ?? v.water_level ?? null;
       const rain = v.rain ?? v.rainfall ?? null;
       const flow = v.flow ?? v.discharge ?? null;
-     // setSensorInputs(level, rain, flow);
     });
     document.getElementById('status').innerHTML = `${sourceName} matrix updates synced successfully.`;
     manualPredict();
@@ -328,24 +323,11 @@
     ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, refPath));
   }
   
-  // function setSensorInputs(level, rain, flow) {
-  //   if (level !== null) { document.getElementById('waterLevel').value = level; document.getElementById('kpiWater').innerHTML = level; }
-  //   if (rain !== null) { document.getElementById('rainfall').value = rain; document.getElementById('kpiRain').innerHTML = rain; }
-  //   if (flow !== null) { document.getElementById('discharge').value = flow; document.getElementById('kpiDischarge').innerHTML = flow; }
-  // }
-  
-  // ACCEPTS COORDINATES AND INTERPOLATES A PRECISE FIXED ELEVATION BASE DETERMINISTICALLY
-  function getElevationFromLatLng(lat, lng) {
-    // Stable topographical calculation mimicking geographical slopes using geographic inputs
-    return Math.abs(Math.sin(lat) * Math.cos(lng) * 45) + 12.5;
-  }
-  
   // DYNAMICALLY GENERATES UNIQUE MUNICIPALITY SELECTOR DROPDOWN VALUES
   function populateMunicipalityDropdown() {
     const select = document.getElementById('municipalityFilter');
     if (!select) return;
     
-    // Extract clean distinct sorted array values
     const uniqueMunicipalities = [...new Set(rivers.map(r => r.municipality))].sort();
     
     select.innerHTML = '<option value="All">All Municipalities</option>';
@@ -357,13 +339,13 @@
     });
   }
   
-  // LOAD PINS & DE-DUPLICATE TRACKING TARGETS
+  // LOAD PINS & BATCH FETCH ACCURATE ELEVATIONS FROM GLOBAL TOPOGRAPHY APIs
   async function populateRiverData() {
     try {
       const snapshot = await db.ref('pins').once('value');
       if (snapshot.exists()) {
         const loadedRivers = [];
-        const seenBarangays = new Set(); // Dedup key lookup map
+        const seenBarangays = new Set();
         
         snapshot.forEach(childSnapshot => {
           const pinConfig = childSnapshot.val();
@@ -371,7 +353,6 @@
             const nameKey = (pinConfig.name || "Unknown River Station").trim();
             const lowerKey = nameKey.toLowerCase();
             
-            // CRITICAL: Prevent duplicate barangay items from compiling into the view registry
             if (!seenBarangays.has(lowerKey)) {
               seenBarangays.add(lowerKey);
               
@@ -381,15 +362,39 @@
               loadedRivers.push({
                 brgyId: childSnapshot.key, 
                 name: nameKey,
-                municipality: pinConfig.municipality || "Other Areas", // LOAD MUNICIPALITY DIRECTLY FROM DATABASE PROPERTIES
+                municipality: pinConfig.municipality || "Other Areas",
                 lat: latVal,
                 lng: lngVal,
-                elevation: getElevationFromLatLng(latVal, lngVal), // Calculate elevation from coordinates
+                elevation: 12.5, // Resilient placeholder value
                 node: pinConfig.node 
               });
             }
           }
         });
+
+        // Batch processing geospatial coordinates to retrieve actual elevation heights
+        if (loadedRivers.length > 0) {
+          try {
+            const lats = loadedRivers.map(r => r.lat).join(',');
+            const lngs = loadedRivers.map(r => r.lng).join(',');
+            const apiUrl = `https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`;
+            
+            const response = await fetch(apiUrl);
+            const resData = await response.json();
+            
+            if (resData && resData.elevation) {
+              loadedRivers.forEach((river, index) => {
+                if (resData.elevation[index] !== null) {
+                  river.elevation = resData.elevation[index];
+                }
+              });
+              console.log("Successfully loaded true physical elevation matrices.");
+            }
+          } catch (apiErr) {
+            console.error("Topographic API connection issue; running standard fallbacks:", apiErr);
+          }
+        }
+
         rivers = loadedRivers;
         populateMunicipalityDropdown();
         updateRiverTable();
@@ -417,31 +422,61 @@
     });
   }
   
-  // RUNS MULTI-FILTER CRITERIA, PREDICTIONS AND RENDERS RESULTS DIRECTLY INSIDE MONITORING REGISTRY TABLE
+  // FILTER, PRE-COMPUTE MLP RISK, MULTI-LAYER SORT, AND RENDER REGISTRY ROWS
   function updateRiverTable() {
     const tableBody = document.getElementById('riverTableBody');
     if (!tableBody || rivers.length === 0) return;
     
     tableBody.innerHTML = '';
     
-    // FETCH CURRENT INPUT & SELECT VALUES FOR FILTER INDICES
     const barangayInput = document.getElementById('barangaySearchInput');
     const filterQuery = barangayInput ? barangayInput.value.toLowerCase().trim() : '';
     
     const selectedMuni = document.getElementById('municipalityFilter').value;
     const selectedLimit = document.getElementById('rowLimitSelect').value;
     
-    // 1. FILTER ARRAYS AGAINST BARANGAY NAME SPECIFICALLY
+    // 1. FILTER ARRAYS AGAINST BARANGAY NAME
     let processedList = rivers.filter(river => 
-    river.name.toLowerCase().includes(filterQuery)
+      river.name.toLowerCase().includes(filterQuery)
     );
     
     // 2. FILTER ARRAYS BY SELECTED MUNICIPALITY
     if (selectedMuni !== 'All') {
       processedList = processedList.filter(river => river.municipality === selectedMuni);
     }
+
+    // 3. MAP MATRIX AND PRE-CALCULATE PREDICTION PROBABILITIES FOR UNBIASED SORTING
+    processedList = processedList.map(river => {
+      let riskScore = 0;
+      const telemetry = liveDataStore[river.node];
+      
+      if (telemetry && model && minVals.length > 0 && maxVals.length > 0) {
+        try {
+          const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, river.elevation];
+          const normFeatures = normalize(rawFeatures);
+          
+          riskScore = tf.tidy(() => {
+            const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+            return predictionTensor.dataSync()[0] * 100;
+          });
+        } catch (err) {
+          console.error("Tensor matrix calculations error during sort map:", err);
+        }
+      }
+      return { ...river, computedRisk: riskScore };
+    });
+
+    // 4. COMPLEX SORT STACK: Descending Probability -> Ascending Municipality -> Ascending Barangay Name
+    processedList.sort((a, b) => {
+      if (b.computedRisk !== a.computedRisk) {
+        return b.computedRisk - a.computedRisk;
+      }
+      const muniCompare = a.municipality.localeCompare(b.municipality);
+      if (muniCompare !== 0) return muniCompare;
+      return a.name.localeCompare(b.name);
+    });
     
-    // 3. APPLY MAX ROW LIMIT SLICE
+    // 5. APPLY MAX ROW LIMIT SLICE
     if (selectedLimit !== 'All') {
       const limitCount = parseInt(selectedLimit, 10);
       processedList = processedList.slice(0, limitCount);
@@ -452,72 +487,27 @@
       if (!telemetry) continue;
       
       const elevation = river.elevation;
-      let riskScore = 0;
+      const riskScore = river.computedRisk;
       let badgeStyle = 'bg-success';
       
-      // Flood Risk Prediction
-      if (model && minVals.length > 0 && maxVals.length > 0) {
-        try {
-          const rawFeatures = [
-          telemetry.level,
-          telemetry.rain,
-          telemetry.flow,
-          elevation
-          ];
-          
-          const normFeatures = normalize(rawFeatures);
-          
-          riskScore = tf.tidy(() => {
-            const predictionTensor = model.predict(
-            tf.tensor2d([normFeatures])
-            );
-            return predictionTensor.dataSync()[0] * 100;
-          });
-          
-          if (riskScore >= 70) {
-            badgeStyle = 'bg-danger';
-          } else if (riskScore >= 30) {
-            badgeStyle = 'bg-warning text-dark';
-          }
-        } catch (err) {
-          console.error("Tensor matrix calculations error:", err);
-        }
+      if (riskScore >= 70) {
+        badgeStyle = 'bg-danger';
+      } else if (riskScore >= 40) { // Using standard customized model thresholds
+        badgeStyle = 'bg-warning text-dark';
       }
       
       const tr = document.createElement('tr');
       tr.style.cursor = 'pointer';
       
-      // Update KPI when row is clicked
       tr.onclick = () => {
-        // const kpiRisk = document.getElementById('kpiRisk');
-        
-        // if (kpiRisk) {
-        //   kpiRisk.innerHTML = `${riskScore.toFixed(2)}%`;
-          
-        //   kpiRisk.classList.remove(
-        //   'text-success',
-        //   'text-warning',
-        //   'text-danger'
-        //   );
-          
-        //   if (riskScore >= 70) {
-        //     kpiRisk.classList.add('text-danger');
-        //   } else if (riskScore >= 30) {
-        //     kpiRisk.classList.add('text-warning');
-        //   } else {
-        //     kpiRisk.classList.add('text-success');
-        //   }
-        // }
-        
         triggerStationAnalysis(river, riskScore);
       };
       
-      // RENDERS EXACTLY 6 COLUMNS MATCHING HEAD STRUCTURAL DYNAMIC LAYER
       tr.innerHTML = `
           <td class="ps-3">
             <div class="fw-bold text-dark">${river.name}</div>
             <small class="text-muted" style="font-size:0.68rem;">
-            <span class="fw-semibold text-primary">${river.municipality}</span>}
+              <span class="fw-semibold text-primary">${river.municipality}</span>
             </small>
           </td>
           <td>
@@ -550,7 +540,6 @@
       tableBody.appendChild(tr);
     }
     
-    // SHOW DISMISSAL MESSAGE WRAPPER IF FILTER OUTCOMES DO NOT RESOLVE DATA TARGETS (Corrected to colspan 6)
     if (processedList.length === 0) {
       tableBody.innerHTML = `
           <tr>
@@ -575,17 +564,16 @@
     document.getElementById('rainfall').value = currentRain;
     document.getElementById('discharge').value = currentDischarge;
     document.getElementById('elevation').value = elevation;
-    // updateKPIs();
     
     let interpretText = "Low Risk Scenario";
     let interpretColor = "#198754"; 
     let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
     
-    if (riskScore > 70) {
+    if (riskScore >= 70) {
       interpretText = "Severe Flood Risk";
       interpretColor = "#dc3545"; 
       recommendation = `CRITICAL: High threat detected! Current factors indicator localized warnings concern. Prepare immediate high-ground evacuation protocols.`;
-    } else if (riskScore > 30) {
+    } else if (riskScore >= 40) {
       interpretText = "Moderate Flood Risk";
       interpretColor = "#fd7e14"; 
       recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed. Secure low-lying equipment and proactive sandbag lines.`;
@@ -664,7 +652,6 @@
       }, 80);
     }
     
-    // STREAMLINED MUNICIPALITY ROUTING USING FIRESTORE PROPERTY FALLING BACK SAFELY ON STRUCTURAL EVALUATION
     let municipality = river.municipality;
     if (!municipality || municipality === "Other Areas") {
       if (/laoag/i.test(river.name)) municipality = 'Laoag';
@@ -691,7 +678,6 @@
   
   function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
   
-
   async function autoTrain(){
     if(parsedCsvFeatures.length === 0) return;
     document.getElementById("status").innerHTML="Slicing feature vectors...";
@@ -727,12 +713,11 @@
   function manualPredict(){
     if(!model) return;
     const input = [
-    parseFloat(document.getElementById('waterLevel').value), 
-    parseFloat(document.getElementById('rainfall').value), 
-    parseFloat(document.getElementById('discharge').value), 
-    parseFloat(document.getElementById('elevation').value)
+      parseFloat(document.getElementById('waterLevel').value), 
+      parseFloat(document.getElementById('rainfall').value), 
+      parseFloat(document.getElementById('discharge').value), 
+      parseFloat(document.getElementById('elevation').value)
     ];
-    // updateKPIs();
     const horizons = [1, 3, 12, 24];
     let last = [...input];
     const predictions = [];
@@ -743,9 +728,6 @@
       predictions.push(pred * 100);
       last[0] += 0.05; 
     }
-    const v = predictions[0];
-    const r = v < 30 ? ["Low","green"] : v < 70 ? ["Moderate","orange"] : ["Severe","red"];
-    //document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v.toFixed(2)}% - ${r[0]}</b>`;
   }
   
   async function saveModel() {
@@ -780,8 +762,6 @@
       console.error(err);
     }
   }
-  
-  document.getElementById('dropdownLogout').onclick = () => { sessionStorage.clear(); window.location.href = 'log.html'; };
 </script>
 </body>
 </html>
