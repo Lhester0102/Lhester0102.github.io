@@ -268,10 +268,13 @@
   
   window.onload = function() {
     loadModel();
-    // if (sessionStorage.getItem('loggedIn') !== 'true') {
-    //   window.location.href = 'log.html';
-    // }
-    // document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = 'log.html';
+    }
+    else{
+       window.location.href = 'newindex3.html';
+    }
+    document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
   };
   
   const firebaseConfig = {
