@@ -82,6 +82,13 @@
     
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.02); }
+    #map-legend {
+      position: absolute; top: 80px; left: 15px;
+      background: rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 10px; font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 180px;
+    }
+    .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
+    .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
   </style>
 </head>
 
@@ -183,6 +190,13 @@
         <div class="card mb-1" style="height:500px;">
           <div class="card-body p-1">
             <div id="map" style="height:500px;"></div>
+          </div>
+          <div id="map-legend">
+            <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
+            <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-79)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
           </div>
         </div>
         
