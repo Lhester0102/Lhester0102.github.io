@@ -194,9 +194,9 @@
           <div id="map-legend">
             <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
             <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-79)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 30)</span></div>
           </div>
         </div>
         
@@ -336,7 +336,7 @@
     const waterInput = document.getElementById("waterLevel");
     const rainInput = document.getElementById("rainfall");
     const dischargeInput = document.getElementById("discharge");
-
+    
     if (waterInput) document.getElementById("kpiWater").innerHTML = waterInput.value;
     if (rainInput) document.getElementById("kpiRain").innerHTML = rainInput.value;
     if (dischargeInput) document.getElementById("kpiDischarge").innerHTML = dischargeInput.value;
@@ -477,10 +477,10 @@
   let activeMarker = null;
   
   // HIGH-PRECISION API ELEVATION ENGINE: Decodes exact global elevation independent of screen state
-async function getElevationFromCoords(lng, lat) {
-  const elevation = map.queryTerrainElevation([lng, lat]);
-  return elevation !== null && elevation !== undefined ? elevation : 25.0;
-}
+  async function getElevationFromCoords(lng, lat) {
+    const elevation = map.queryTerrainElevation([lng, lat]);
+    return elevation !== null && elevation !== undefined ? elevation : 25.0;
+  }
   map.on('load', async () => {
     if (!map.getSource('mapbox-dem')) {
       map.addSource('mapbox-dem', {
@@ -612,76 +612,81 @@ async function getElevationFromCoords(lng, lat) {
     });
   }
   
-async function updateStationPinsIndividually() {
-  stationMarkersArray.forEach(m => m.remove());
-  stationMarkersArray = [];
-  
-  const riverMenu = document.getElementById('riverDropdownMenu');
-  if (riverMenu) riverMenu.innerHTML = '';
-  
-  for (const river of rivers) {
-    // 1. Get exact metrics and coordinates directly from the database registry
-    const telemetry = liveDataStore[river.node];
-    const elevation = await getElevationFromCoords(river.lng, river.lat);
+  async function updateStationPinsIndividually() {
+    stationMarkersArray.forEach(m => m.remove());
+    stationMarkersArray = [];
     
-    let riskScore = 0;
-    let dynamicPinColor = '#198754'; // Default Low Risk Green
+    const riverMenu = document.getElementById('riverDropdownMenu');
+    if (riverMenu) riverMenu.innerHTML = '';
     
-    // 2. Generate ONE single truth prediction score for this station node
-    if (model && minVals.length > 0 && maxVals.length > 0) {
-      try {
-        const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, elevation];
-        const normFeatures = normalize(rawFeatures);
-        const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-        const predictionResult = await predictionTensor.data();
-        riskScore = Math.round(predictionResult[0] * 100);
-        dynamicPinColor = getFloodMarkerColor(riskScore);
-      } catch (err) {
-        console.error("TensorFlow processing pipeline error:", err);
+    for (const river of rivers) {
+      // 1. Get exact metrics and coordinates directly from the database registry
+      const telemetry = liveDataStore[river.node];
+      const elevation = await getElevationFromCoords(river.lng, river.lat);
+      
+      let riskScore = 0;
+      let dynamicPinColor = '#198754'; // Default Low Risk Green
+      
+      // 2. Generate ONE single truth prediction score for this station node
+      if (model && minVals.length > 0 && maxVals.length > 0) {
+        try {
+          const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, elevation];
+          const normFeatures = normalize(rawFeatures);
+          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+          const predictionResult = await predictionTensor.data();
+          riskScore = Math.round(predictionResult[0] * 100);
+          dynamicPinColor = getFloodMarkerColor(riskScore);
+        } catch (err) {
+          console.error("TensorFlow processing pipeline error:", err);
+        }
       }
-    }
-    
-    // Skip rendering if it remains standard low risk
-    if (dynamicPinColor === '#198754') {
-      continue; 
-    }
-    
-    const indexPosition = rivers.indexOf(river);
-    const probChartId = `riverProb-${indexPosition}`;
-    const popup = new mapboxgl.Popup({ offset: 25 });
-    
-    const markerInstance = new mapboxgl.Marker({ color: dynamicPinColor })
-    .setLngLat([river.lng, river.lat])
-    .setPopup(popup)
-    .addTo(map);
-    
-    // 3. Exact Database Pin Click Interaction
-// Pin Click Event Handler: Blocks map layers and forces exact synchronized metrics
-markerInstance.getElement().addEventListener('click', async (e) => {
-  e.stopPropagation(); // Stops map layer click from hijacking focus
-  
-  map.flyTo({
-    center: [river.lng, river.lat],
-    zoom: 17,
-    essential: true,
-    pitch: 45
-  });
-  
-  document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-  
-  const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
-  await triggerAnalysis(mapboxCoords, telemetry);
-  
-  // FORCE KPI SUMMARY REFRESH TO MATCH PIN SCORE PERFECTLY
-  const kpiRiskEl = document.getElementById("kpiRisk");
-  const topRiskText = riskScore < 30 ? ["Low", "green"] : riskScore < 70 ? ["Moderate", "orange"] : ["Severe", "red"];
-  if (kpiRiskEl) {
-    kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${riskScore}% - ${topRiskText[0]}</b>`;
-  }
-  
-  const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
-  
-  popup.setHTML(`
+      
+      // Skip rendering if it remains standard low risk
+      if (dynamicPinColor === '#198754') {
+        continue; 
+      }
+      
+      const indexPosition = rivers.indexOf(river);
+      const probChartId = `riverProb-${indexPosition}`;
+      const popup = new mapboxgl.Popup({ offset: 25 });
+      
+      const markerInstance = new mapboxgl.Marker({ color: dynamicPinColor })
+      .setLngLat([river.lng, river.lat])
+      .setPopup(popup)
+      .addTo(map);
+      
+      // 3. Exact Database Pin Click Interaction
+      // Pin Click Event Handler: Blocks map layers and forces exact synchronized metrics
+      markerInstance.getElement().addEventListener('click', async (e) => {
+        e.stopPropagation(); // Stops map layer click from hijacking focus
+        
+        map.flyTo({
+          center: [river.lng, river.lat],
+          zoom: 17,
+          essential: true,
+          pitch: 45
+        });
+        
+        document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+        
+        const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
+        await triggerAnalysis(mapboxCoords, telemetry);
+        
+        // FORCE KPI SUMMARY REFRESH TO MATCH PIN SCORE PERFECTLY
+        const kpiRiskEl = document.getElementById("kpiRisk");
+        const topRiskText = riskScore < 30 ? ["Low", "green"] : riskScore < 70 ? ["Moderate", "orange"] : ["Severe", "red"];
+        if (kpiRiskEl) {
+          if (riskScore<=30){
+            kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${topRiskText[0]}</b>`;
+          }
+          else{
+            kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${riskScore}% - ${topRiskText[0]}</b>`;
+          }
+        }
+        
+        const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
+        
+        popup.setHTML(`
       <div class="popup-chart-container" style="min-width: 180px; font-family: system-ui, sans-serif;">
           <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
           <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2" style="font-size: 0.75rem;">
@@ -696,73 +701,78 @@ markerInstance.getElement().addEventListener('click', async (e) => {
           </div>
       </div>
   `);
-  
-  markerInstance.togglePopup();
-});
-    stationMarkersArray.push(markerInstance);
-    
-    // Handle Sidebar Dropdown Selections matching the exact profile logic above
-    if (riverMenu) {
-      const li = document.createElement('li');
-      li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${dynamicPinColor}"></i> ${river.name}</a>`;
-      li.onclick = async () => {
-        map.flyTo({ center: [river.lng, river.lat], zoom: 17, pitch: 45});
         
-        const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
-        await triggerAnalysis(mapboxCoords, telemetry);
-        
-        // Push same truth value to global top KPI item
-        const kpiRiskEl = document.getElementById("kpiRisk");
-        const topRiskText = riskScore < 30 ? ["Low", "green"] : riskScore < 70 ? ["Moderate", "orange"] : ["Severe", "red"];
-        if (kpiRiskEl) {
-          kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${riskScore}% - ${topRiskText[0]}</b>`;
-        }
-
-        if (!markerInstance.getPopup().isOpen()) {
-            markerInstance.togglePopup();
-        }
-      };
-      riverMenu.appendChild(li);
-    }
-    
-    // Canvas animation hook mapping directly onto newly created popup elements
-    popup.on('open', async () => {
-      const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
+        markerInstance.togglePopup();
+      });
+      stationMarkersArray.push(markerInstance);
       
-      setTimeout(() => {
-        const pCtx = document.getElementById(probChartId);
-        if (!pCtx) return;
-        
-        let existingChart = Chart.getChart(pCtx);
-        if (existingChart) existingChart.destroy();
-
-        new Chart(pCtx, {
-          type: 'line',
-          data: {
-            labels: ["Now", "+3h", "+12h", "+24h"],
-            datasets: [{
-              label: 'Prob %',
-              data: forecastData,
-              borderColor: dynamicPinColor,
-              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 2
-            }]
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            maintainAspectRatio: false,
-            scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 7 } } },
-              y: { beginAtZero: true, max: 100, ticks: { font: { size: 7 } } }
+      // Handle Sidebar Dropdown Selections matching the exact profile logic above
+      if (riverMenu) {
+        const li = document.createElement('li');
+        li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${dynamicPinColor}"></i> ${river.name}</a>`;
+        li.onclick = async () => {
+          map.flyTo({ center: [river.lng, river.lat], zoom: 17, pitch: 45});
+          
+          const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
+          await triggerAnalysis(mapboxCoords, telemetry);
+          
+          // Push same truth value to global top KPI item
+          const kpiRiskEl = document.getElementById("kpiRisk");
+          const topRiskText = riskScore < 30 ? ["Low", "green"] : riskScore < 70 ? ["Moderate", "orange"] : ["Severe", "red"];
+          if (kpiRiskEl) {
+            if (riskScore<=30){
+              kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${topRiskText[0]}</b>`;
+            }
+            else{
+              kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${riskScore}% - ${topRiskText[0]}</b>`;
             }
           }
-        });
-      }, 50); 
-    });
+          
+          if (!markerInstance.getPopup().isOpen()) {
+            markerInstance.togglePopup();
+          }
+        };
+        riverMenu.appendChild(li);
+      }
+      
+      // Canvas animation hook mapping directly onto newly created popup elements
+      popup.on('open', async () => {
+        const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
+        
+        setTimeout(() => {
+          const pCtx = document.getElementById(probChartId);
+          if (!pCtx) return;
+          
+          let existingChart = Chart.getChart(pCtx);
+          if (existingChart) existingChart.destroy();
+          
+          new Chart(pCtx, {
+            type: 'line',
+            data: {
+              labels: ["Now", "+3h", "+12h", "+24h"],
+              datasets: [{
+                label: 'Prob %',
+                data: forecastData,
+                borderColor: dynamicPinColor,
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2
+              }]
+            },
+            options: {
+              plugins: { legend: { display: false } },
+              maintainAspectRatio: false,
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 7 } } },
+                y: { beginAtZero: true, max: 100, ticks: { font: { size: 7 } } }
+              }
+            }
+          });
+        }, 50); 
+      });
+    }
   }
-}
   async function triggerAnalysis(lngLat, forcedTelemetry = null) {
     const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
     const elevInput = document.getElementById('elevation');
@@ -773,7 +783,7 @@ markerInstance.getElement().addEventListener('click', async (e) => {
     let currentWater = 0;
     let currentRain = 0;
     let currentDischarge = 0;
-
+    
     if (forcedTelemetry) {
       currentWater = parseFloat(forcedTelemetry.level) || 0;
       currentRain = parseFloat(forcedTelemetry.rain) || 0;
@@ -799,11 +809,16 @@ markerInstance.getElement().addEventListener('click', async (e) => {
         console.error("TensorFlow runtime processing error:", err);
       }
     }
-
+    
     const kpiRiskEl = document.getElementById("kpiRisk");
     const topRiskText = finalRisk < 30 ? ["Low", "green"] : finalRisk < 70 ? ["Moderate", "orange"] : ["Severe", "red"];
     if (kpiRiskEl) {
-      kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
+      if (finalRisk<=30){
+        kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${topRiskText[0]}</b>`;
+      }
+      else{
+        kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
+      }
     }
     
     let interpretText = "Low Risk Scenario";
@@ -883,7 +898,7 @@ markerInstance.getElement().addEventListener('click', async (e) => {
               <div class="d-flex justify-content-between mt-1">
                   <span class="text-muted">Current Water Level:</span>
                   <span class="fw-semibold">${currentWater.toFixed(2)}m 
-                      <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 4px;">(${waterInterpretText})</small>
+                  
                   </span>
               </div>
               
@@ -1062,7 +1077,14 @@ markerInstance.getElement().addEventListener('click', async (e) => {
     }
     const v = Math.round(predictions[0]);
     const r = v < 30 ? ["Low","green"] : v < 70 ? ["Moderate","orange"] : ["Severe","red"];
-    document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
+    if(v<=30){
+      
+      document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${r[0]}</b>`;
+    }
+    else{
+      
+      document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
+    }
   }
   
   async function saveModel() {

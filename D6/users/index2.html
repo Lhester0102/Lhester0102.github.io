@@ -227,9 +227,9 @@
         <div id="map-legend">
           <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
           <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-79)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
+          <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 30)</span></div>
           <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
         </div>
       </div>
@@ -320,22 +320,22 @@
   
   const getRiskCategory = (v) => {
     if(v >= 80) return 'severe';
-    if(v >= 50) return 'high';
-    if(v >= 20) return 'moderate';
+    if(v >= 60) return 'high';
+    if(v >= 30) return 'moderate';
     return 'low';
   };
   
   const getMarkerColorByProb = (v) => {
     if(v >= 80) return '#dc3545'; // Red
-    if(v >= 50) return '#fd7e14'; // Orange
-    if(v >= 20) return '#ffc107'; // Yellow
+    if(v >= 60) return '#fd7e14'; // Orange
+    if(v >= 30) return '#ffc107'; // Yellow
     return '#198754';             // Green
   };
 
   const getFloodColor = (v) => {
     if(v >= 80) return 'rgba(255,0,0,0.6)';
-    if(v >= 50) return 'rgba(255, 140, 0, 0.6)';
-    if(v >= 20) return 'rgba(255,255,0,0.6)';
+    if(v >= 60) return 'rgba(255, 140, 0, 0.6)';
+    if(v >= 30) return 'rgba(255,255,0,0.6)';
     return 'rgba(2, 251, 2, 0.6)';
   };
   
@@ -431,9 +431,9 @@
     let riskColor, riskLabel, badgeClass;
     if (finalRisk >= 80) { 
       riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
-    } else if (finalRisk >= 50) { 
+    } else if (finalRisk >= 60) { 
       riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
-    } else if (finalRisk >= 20) { 
+    } else if (finalRisk >= 30) { 
       riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
     } else { 
       riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
