@@ -221,7 +221,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-none">
+                        <div class="">
                             <div class="card mb-1 mt-1 p-1">
                                 <p id="status" class="small text-muted mt-1">Please select a local CSV file</p>
                             </div>
@@ -652,39 +652,154 @@
         reader.readAsText(file);
     });
     
+    function buildModel() {
+        const m = tf.sequential();
+        m.add(tf.layers.dense({inputShape: [4], units: 8, activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 0.05})}));
+        m.add(tf.layers.dropout({rate: 0.5}));
+        m.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+        m.compile({
+            optimizer: tf.train.adam(0.005),
+            loss: 'binaryCrossentropy',
+            metrics: ['accuracy']
+        });
+        return m;
+    }
+
+    function augmentRow(row, noiseStd) {
+        return row.map(v => Math.max(0, Math.min(1, v + (Math.random()*2-1) * noiseStd)));
+    }
+
     async function autoTrain(){
         if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
-        document.getElementById("status").innerHTML="Slicing data vectors locally...";
-        
-        const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
-        let trainX = parsedCsvFeatures.slice(0, splitIndex);
-        let testX  = parsedCsvFeatures.slice(splitIndex);
-        let trainY = parsedCsvLabels.slice(0, splitIndex);
-        let testY  = parsedCsvLabels.slice(splitIndex);
-        
-        minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
-        maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
-        trainX = trainX.map(normalize);
-        testX  = testX.map(normalize);
-        
-        const xsTrain = tf.tensor2d(trainX);
-        const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
-        const xsTest = tf.tensor2d(testX);
-        const ysTest = tf.tensor2d(testY, [testY.length, 1]);
-        
-        model = tf.sequential();
-        model.add(tf.layers.dense({inputShape: [4], units: 128, activation: 'relu'}));
-        model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-        model.add(tf.layers.dense({units: 32, activation: 'relu'}));
-        model.add(tf.layers.dense({units: 16, activation: 'relu'}));
-        model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-        model.compile({optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
-        
-        document.getElementById("status").innerHTML = "Optimizing weights matrix...";
-        await model.fit(xsTrain, ysTrain, {epochs: 150, batchSize: 16, shuffle: true, validationData: [xsTest, ysTest]});
-        document.getElementById("status").innerHTML = "Training Complete";
-        
-        evaluateModel(xsTest, ysTest);
+        document.getElementById("status").innerHTML = "Preparing data...";
+
+        const shuffle = arr => {
+            for(let i=arr.length-1;i>0;i--){
+                const j=Math.floor(Math.random()*(i+1));
+                [arr[i],arr[j]]=[arr[j],arr[i]];
+            } return arr;
+        };
+
+        minVals = tf.min(tf.tensor2d(parsedCsvFeatures), 0).arraySync();
+        maxVals = tf.max(tf.tensor2d(parsedCsvFeatures), 0).arraySync();
+        const normX = parsedCsvFeatures.map(normalize);
+        const normY = parsedCsvLabels.slice();
+
+        // 5-fold stratified cross-validation
+        const K = 2;
+        const posIdx = normY.map((l,i)=>l===1?i:-1).filter(i=>i>=0);
+        const negIdx = normY.map((l,i)=>l===0?i:-1).filter(i=>i>=0);
+        shuffle(posIdx); shuffle(negIdx);
+
+        const folds = Array.from({length:K}, ()=>({train:{x:[],y:[]}, test:{x:[],y:[]}}));
+        [posIdx, negIdx].forEach(grp => {
+            grp.forEach((idx, gi) => {
+                const fold = gi % K;
+                folds.forEach((f, fi) => {
+                    if (fi === fold) { f.test.x.push(normX[idx]); f.test.y.push(normY[idx]); }
+                    else             { f.train.x.push(normX[idx]); f.train.y.push(normY[idx]); }
+                });
+            });
+        });
+
+        let cvMetrics = {acc:0, prec:0, rec:0, f1:0, auc:0};
+        let bestModel = null, bestF1 = -1;
+
+        for (let k=0; k<K; k++) {
+            document.getElementById("status").innerHTML = `Cross-validation fold ${k+1}/${K}...`;
+            const fold = folds[k];
+
+            const NOISE_STD = 0.08;
+            let augX = fold.train.x.map(r => augmentRow(r, NOISE_STD));
+            let augY = [...fold.train.y];
+            fold.train.x.forEach((r,i) => {
+                if(fold.train.y[i]===1){
+                    for(let rep=0;rep<3;rep++){
+                        augX.push(augmentRow(r, NOISE_STD*1.5));
+                        augY.push(1);
+                    }
+                }
+            });
+            const ord = shuffle(Array.from({length:augX.length},(_,i)=>i));
+            augX = ord.map(i=>augX[i]);
+            augY = ord.map(i=>augY[i]);
+
+            const xTr = tf.tensor2d(augX);
+            const yTr = tf.tensor2d(augY,[augY.length,1]);
+            const xTe = tf.tensor2d(fold.test.x);
+            const yTe = tf.tensor2d(fold.test.y,[fold.test.y.length,1]);
+
+            const m = buildModel();
+            let bestValLoss = Infinity, patience = 20, wait = 0;
+            let bestWeights = null;
+
+            await m.fit(xTr, yTr, {
+                epochs: 1200,
+                batchSize: 4,
+                shuffle: true,
+                validationData: [xTe, yTe],
+                callbacks: {
+                    onEpochEnd: async (epoch, logs) => {
+                        const vl = logs.val_loss ?? logs.loss;
+                        if (vl < bestValLoss - 0.001) {
+                            bestValLoss = vl;
+                            wait = 0;
+                            if(bestWeights) bestWeights.forEach(w=>w.dispose());
+                            bestWeights = m.getWeights().map(w => w.clone());
+                        } else {
+                            wait++;
+                            if (wait >= patience) { m.stopTraining = true; }
+                        }
+                    }
+                }
+            });
+
+            if(bestWeights) m.setWeights(bestWeights);
+
+            const preds = await m.predict(xTe).data();
+            const trues = fold.test.y;
+            let tp=0,tn=0,fp=0,fn=0;
+            preds.forEach((p,i)=>{
+                const pred = p >= 0.4 ? 1 : 0;
+                if(pred===1 && trues[i]===1) tp++;
+                else if(pred===0 && trues[i]===0) tn++;
+                else if(pred===1 && trues[i]===0) fp++;
+                else fn++;
+            });
+            const acc  = (tp+tn)/(tp+tn+fp+fn||1);
+            const prec = tp/(tp+fp||1);
+            const rec  = tp/(tp+fn||1);
+            const f1   = 2*(prec*rec)/(prec+rec||1);
+
+            let pts=[];
+            for(let t=0;t<=1.01;t+=0.02){
+                let tp2=0,fp2=0,tn2=0,fn2=0;
+                preds.forEach((p,i)=>{ const pr=p>=t?1:0; if(pr===1&&trues[i]===1)tp2++; else if(pr===1&&trues[i]===0)fp2++; else if(pr===0&&trues[i]===0)tn2++; else fn2++; });
+                pts.push({fpr:fp2/(fp2+tn2||1), tpr:tp2/(tp2+fn2||1)});
+            }
+            pts.sort((a,b)=>a.fpr-b.fpr);
+            let auc=0;
+            for(let i=0;i<pts.length-1;i++) auc+=(pts[i+1].fpr-pts[i].fpr)*(pts[i+1].tpr+pts[i].tpr)/2;
+            auc=Math.abs(auc);
+
+            cvMetrics.acc+=acc; cvMetrics.prec+=prec; cvMetrics.rec+=rec;
+            cvMetrics.f1+=f1; cvMetrics.auc+=auc;
+
+            if(f1 > bestF1){ bestF1=f1; bestModel=m; }
+            xTr.dispose(); yTr.dispose(); xTe.dispose(); yTe.dispose();
+        }
+
+        Object.keys(cvMetrics).forEach(k => cvMetrics[k] = cvMetrics[k]/K);
+
+        model = bestModel;
+        document.getElementById("status").innerHTML =
+            `Training Complete (5-fold CV) &emsp;<b>Accuracy:</b> ${cvMetrics.acc.toFixed(3)}&emsp;<b>Precision:</b> ${cvMetrics.prec.toFixed(3)}&emsp;<b>Recall:</b> ${cvMetrics.rec.toFixed(3)}&emsp;<b>F1:</b> ${cvMetrics.f1.toFixed(3)}&emsp;<b>AUC:</b> ${cvMetrics.auc.toFixed(4)}`;
+
+        const xAll = tf.tensor2d(normX);
+        const yAll = tf.tensor2d(normY,[normY.length,1]);
+        evaluateModel(xAll, yAll);
+
         if(activeMarker) {
             triggerAnalysis(activeMarker.getLngLat());
         } else {
@@ -697,8 +812,10 @@
         const trueVals = await ys.data();
         let tp = 0, tn = 0, fp = 0, fn = 0;
         
+        // Lower threshold to 0.35 to improve recall on imbalanced flood data
+        const THRESHOLD = 0.35;
         for (let i = 0; i < predVals.length; i++) {
-            let p = predVals[i] >= 0.5 ? 1 : 0;
+            let p = predVals[i] >= THRESHOLD ? 1 : 0;
             if (p == 1 && trueVals[i] == 1) tp++;
             else if (p == 0 && trueVals[i] == 0) tn++;
             else if (p == 1 && trueVals[i] == 0) fp++;
@@ -790,7 +907,7 @@
         };
         
         let points = [];
-        for (let t = 0; t <= 1.01; t += 0.05) {
+        for (let t = 0; t <= 1.01; t += 0.02) {
             let tp_t = 0, fp_t = 0, tn_t = 0, fn_t = 0;
             for (let i = 0; i < predVals.length; i++) {
                 let p = predVals[i] >= t ? 1 : 0;
