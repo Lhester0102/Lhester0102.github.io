@@ -411,7 +411,7 @@
         if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     
         if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    
         if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     
-        return 'rgba(144, 238, 144, 0.3)';                           
+        return 'rgba(144, 238, 144, 0.3)';                                                   
     }
     
     map.on('load', () => {
@@ -466,7 +466,6 @@
         });
     });
     
-    // Map Click Interaction Layer
     map.on('click', async (e) => {
         if (activeMarker) {
             activeMarker.setLngLat(e.lngLat);
@@ -475,14 +474,9 @@
             .setLngLat(e.lngLat)
             .addTo(map);
         }
-        
-        // Execute the fully synchronized analytical workflow
         await triggerAnalysis(e.lngLat);
     }); 
     
-    /**
-    * Dynamic Interpretation Engine
-    */
     async function triggerAnalysis(lngLat) {
         const elevation = map.queryTerrainElevation(lngLat) || 0;
         const elevInput = document.getElementById('elevation');
@@ -494,7 +488,6 @@
         const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
         const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
         
-        // 1. EXECUTE NN PREDICTION FIRST: Intercept data matrix pipeline before template assignments
         let finalRisk = 0;
         if (model) {
             const input = [currentWater, currentRain, currentDischarge, elevation];
@@ -518,7 +511,6 @@
             interpretText = `Low Risk Scenario (${finalRisk}%)`;
         }
         
-        // --- Contextual Evaluation for Water Level Indicators ---
         let waterInterpretText = "Normal";
         let waterInterpretColor = "#198754"; 
         
@@ -570,7 +562,6 @@
         }
         document.getElementById('status').innerHTML = statusMessage;
         
-        // Unified UI Generator to prevent template duplication
         const generateHtmlContent = () => `
             <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
                 <small class="d-block mb-2 text-muted" style="font-size: 0.75rem; font-weight:500;">${locName}</small>
@@ -599,13 +590,11 @@
             </div>
         `;
         
-        // 1. Render Mapbox Popup
         new mapboxgl.Popup({ maxWidth: '300px' })
         .setLngLat(lngLat)
         .setHTML(generateHtmlContent())
         .addTo(map);
         
-        // 2. Inject identical structure into sidebar details window
         const infoPanel = document.getElementById('details'); 
         if (infoPanel) {
             infoPanel.innerHTML = generateHtmlContent();
@@ -651,28 +640,41 @@
         };
         reader.readAsText(file);
     });
-    
-    function buildModel() {
+
+    function buildModel(initialBias = null) {
         const m = tf.sequential();
-        m.add(tf.layers.dense({inputShape: [4], units: 8, activation: 'relu',
-            kernelRegularizer: tf.regularizers.l2({l2: 0.05})}));
-        m.add(tf.layers.dropout({rate: 0.5}));
-        m.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+        m.add(tf.layers.dense({
+            inputShape: [4], 
+            units: 16, 
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 0.001})
+        }));
+        m.add(tf.layers.dropout({rate: 0.2}));
+        m.add(tf.layers.dense({
+            units: 8, 
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 0.001})
+        }));
+        
+        const finalLayerConfig = { units: 1, activation: 'sigmoid' };
+        if (initialBias !== null) {
+            finalLayerConfig.biasInitializer = tf.initializers.constant({ value: initialBias });
+        }
+        m.add(tf.layers.dense(finalLayerConfig));
+        
+        // Increased learning rate to 0.01 to break out of all-zero bias stalls
         m.compile({
-            optimizer: tf.train.adam(0.005),
+            optimizer: tf.train.adam(0.01), 
             loss: 'binaryCrossentropy',
             metrics: ['accuracy']
         });
         return m;
     }
 
-    function augmentRow(row, noiseStd) {
-        return row.map(v => Math.max(0, Math.min(1, v + (Math.random()*2-1) * noiseStd)));
-    }
-
     async function autoTrain(){
         if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
-        document.getElementById("status").innerHTML = "Preparing data...";
+        const statusEl = document.getElementById("status");
+        statusEl.innerHTML = "Preparing data matrix streams...";
 
         const shuffle = arr => {
             for(let i=arr.length-1;i>0;i--){
@@ -681,124 +683,131 @@
             } return arr;
         };
 
-        minVals = tf.min(tf.tensor2d(parsedCsvFeatures), 0).arraySync();
-        maxVals = tf.max(tf.tensor2d(parsedCsvFeatures), 0).arraySync();
+        tf.tidy(() => {
+            const featTensor = tf.tensor2d(parsedCsvFeatures);
+            minVals = featTensor.min(0).arraySync();
+            maxVals = featTensor.max(0).arraySync();
+        });
+
         const normX = parsedCsvFeatures.map(normalize);
         const normY = parsedCsvLabels.slice();
 
-        // 5-fold stratified cross-validation
-        const K = 2;
+        const N = normY.length;
+        const posSamples = normY.filter(l => l === 1).length;
+        const negSamples = N - posSamples;
+
+        if (posSamples === 0) return alert("Error: Dataset contains no positive flood labels.");
+
+        // Official TensorFlow Imbalanced Data tutorial math implementations
+        const initialBias = Math.log(posSamples / negSamples);
+        const weightFor0 = (1 / negSamples) * (N / 2.0);
+        const weightFor1 = (1 / posSamples) * (N / 2.0);
+        const classWeight = { 0: weightFor0, 1: weightFor1 };
+
+        // Shifting to a tight mini-batch window forces positive samples to influence updates frequently
+        const batchSize = 16; 
+        const epochs = 500;   
+        const patience = 100;  
+
+        // Stratified Holdout Partitioning (80/20 train/test split)
         const posIdx = normY.map((l,i)=>l===1?i:-1).filter(i=>i>=0);
         const negIdx = normY.map((l,i)=>l===0?i:-1).filter(i=>i>=0);
         shuffle(posIdx); shuffle(negIdx);
 
-        const folds = Array.from({length:K}, ()=>({train:{x:[],y:[]}, test:{x:[],y:[]}}));
-        [posIdx, negIdx].forEach(grp => {
-            grp.forEach((idx, gi) => {
-                const fold = gi % K;
-                folds.forEach((f, fi) => {
-                    if (fi === fold) { f.test.x.push(normX[idx]); f.test.y.push(normY[idx]); }
-                    else             { f.train.x.push(normX[idx]); f.train.y.push(normY[idx]); }
-                });
-            });
+        const posCut = Math.round(posIdx.length * 0.8);
+        const negCut = Math.round(negIdx.length * 0.8);
+
+        const trainIdx = [...posIdx.slice(0, posCut), ...negIdx.slice(0, negCut)];
+        const testIdx = [...posIdx.slice(posCut), ...negIdx.slice(negCut)];
+        shuffle(trainIdx); shuffle(testIdx);
+
+        let trainX = trainIdx.map(i => normX[i]);
+        let trainY = trainIdx.map(i => normY[i]);
+        let testX = testIdx.map(i => normX[i]);
+        let testY = testIdx.map(i => normY[i]);
+
+        const xTr = tf.tensor2d(trainX);
+        const yTr = tf.tensor2d(trainY,[trainY.length,1]);
+        const xTe = tf.tensor2d(testX);
+        const yTe = tf.tensor2d(testY,[testY.length,1]);
+
+        const m = buildModel(initialBias);
+        let bestValLoss = Infinity;
+        let bestWeights = null;
+        let wait = 0;
+
+        await m.fit(xTr, yTr, {
+            epochs: epochs,
+            batchSize: batchSize,
+            shuffle: true,
+            validationData: [xTe, yTe],
+            classWeight: classWeight, 
+            callbacks: {
+                onEpochEnd: async (epoch, logs) => {
+                    const currentPct = Math.round(((epoch + 1) / epochs) * 100);
+                    const vl = logs.val_loss ?? logs.loss;
+                    
+                    statusEl.innerHTML = `Training Progress: <b>${currentPct}%</b> (Epoch ${epoch + 1}/${epochs}) &emsp; Loss: ${logs.loss.toFixed(4)} &emsp; Val Loss: ${vl.toFixed(4)}`;
+                    
+                    // Maintained a slight val loss delta check to handle high variance splits smoothly
+                    if (vl < bestValLoss - 0.001) {
+                        bestValLoss = vl;
+                        wait = 0;
+                        if(bestWeights) bestWeights.forEach(w=>w.dispose());
+                        bestWeights = m.getWeights().map(w => w.clone());
+                    } else {
+                        wait++;
+                        if (wait >= patience) { m.stopTraining = true; }
+                    }
+                }
+            }
         });
 
-        let cvMetrics = {acc:0, prec:0, rec:0, f1:0, auc:0};
-        let bestModel = null, bestF1 = -1;
-
-        for (let k=0; k<K; k++) {
-            document.getElementById("status").innerHTML = `Cross-validation fold ${k+1}/${K}...`;
-            const fold = folds[k];
-
-            const NOISE_STD = 0.08;
-            let augX = fold.train.x.map(r => augmentRow(r, NOISE_STD));
-            let augY = [...fold.train.y];
-            fold.train.x.forEach((r,i) => {
-                if(fold.train.y[i]===1){
-                    for(let rep=0;rep<3;rep++){
-                        augX.push(augmentRow(r, NOISE_STD*1.5));
-                        augY.push(1);
-                    }
-                }
-            });
-            const ord = shuffle(Array.from({length:augX.length},(_,i)=>i));
-            augX = ord.map(i=>augX[i]);
-            augY = ord.map(i=>augY[i]);
-
-            const xTr = tf.tensor2d(augX);
-            const yTr = tf.tensor2d(augY,[augY.length,1]);
-            const xTe = tf.tensor2d(fold.test.x);
-            const yTe = tf.tensor2d(fold.test.y,[fold.test.y.length,1]);
-
-            const m = buildModel();
-            let bestValLoss = Infinity, patience = 20, wait = 0;
-            let bestWeights = null;
-
-            await m.fit(xTr, yTr, {
-                epochs: 1200,
-                batchSize: 4,
-                shuffle: true,
-                validationData: [xTe, yTe],
-                callbacks: {
-                    onEpochEnd: async (epoch, logs) => {
-                        const vl = logs.val_loss ?? logs.loss;
-                        if (vl < bestValLoss - 0.001) {
-                            bestValLoss = vl;
-                            wait = 0;
-                            if(bestWeights) bestWeights.forEach(w=>w.dispose());
-                            bestWeights = m.getWeights().map(w => w.clone());
-                        } else {
-                            wait++;
-                            if (wait >= patience) { m.stopTraining = true; }
-                        }
-                    }
-                }
-            });
-
-            if(bestWeights) m.setWeights(bestWeights);
-
-            const preds = await m.predict(xTe).data();
-            const trues = fold.test.y;
-            let tp=0,tn=0,fp=0,fn=0;
-            preds.forEach((p,i)=>{
-                const pred = p >= 0.4 ? 1 : 0;
-                if(pred===1 && trues[i]===1) tp++;
-                else if(pred===0 && trues[i]===0) tn++;
-                else if(pred===1 && trues[i]===0) fp++;
-                else fn++;
-            });
-            const acc  = (tp+tn)/(tp+tn+fp+fn||1);
-            const prec = tp/(tp+fp||1);
-            const rec  = tp/(tp+fn||1);
-            const f1   = 2*(prec*rec)/(prec+rec||1);
-
-            let pts=[];
-            for(let t=0;t<=1.01;t+=0.02){
-                let tp2=0,fp2=0,tn2=0,fn2=0;
-                preds.forEach((p,i)=>{ const pr=p>=t?1:0; if(pr===1&&trues[i]===1)tp2++; else if(pr===1&&trues[i]===0)fp2++; else if(pr===0&&trues[i]===0)tn2++; else fn2++; });
-                pts.push({fpr:fp2/(fp2+tn2||1), tpr:tp2/(tp2+fn2||1)});
-            }
-            pts.sort((a,b)=>a.fpr-b.fpr);
-            let auc=0;
-            for(let i=0;i<pts.length-1;i++) auc+=(pts[i+1].fpr-pts[i].fpr)*(pts[i+1].tpr+pts[i].tpr)/2;
-            auc=Math.abs(auc);
-
-            cvMetrics.acc+=acc; cvMetrics.prec+=prec; cvMetrics.rec+=rec;
-            cvMetrics.f1+=f1; cvMetrics.auc+=auc;
-
-            if(f1 > bestF1){ bestF1=f1; bestModel=m; }
-            xTr.dispose(); yTr.dispose(); xTe.dispose(); yTe.dispose();
+        if(bestWeights) {
+            m.setWeights(bestWeights);
+            bestWeights.forEach(w=>w.dispose());
         }
 
-        Object.keys(cvMetrics).forEach(k => cvMetrics[k] = cvMetrics[k]/K);
+        const preds = await m.predict(xTe).data();
+        let tp=0, tn=0, fp=0, fn=0;
+        
+        const DECISION_THRESHOLD = 0.40; 
+        preds.forEach((p,i)=>{
+            const pred = p >= DECISION_THRESHOLD ? 1 : 0;
+            if(pred===1 && testY[i]===1) tp++;
+            else if(pred===0 && testY[i]===0) tn++;
+            else if(pred===1 && testY[i]===0) fp++;
+            else fn++;
+        });
+        
+        const acc  = (tp+tn)/(tp+tn+fp+fn||1);
+        const prec = tp/(tp+fp||1);
+        const rec  = tp/(tp+fn||1);
+        const f1   = 2*(prec*rec)/(prec+rec||1);
 
-        model = bestModel;
-        document.getElementById("status").innerHTML =
-            `Training Complete (5-fold CV) &emsp;<b>Accuracy:</b> ${cvMetrics.acc.toFixed(3)}&emsp;<b>Precision:</b> ${cvMetrics.prec.toFixed(3)}&emsp;<b>Recall:</b> ${cvMetrics.rec.toFixed(3)}&emsp;<b>F1:</b> ${cvMetrics.f1.toFixed(3)}&emsp;<b>AUC:</b> ${cvMetrics.auc.toFixed(4)}`;
+        let pts=[];
+        for(let t=0;t<=1.01;t+=0.02){
+            let tp2=0,fp2=0,tn2=0,fn2=0;
+            preds.forEach((p,i)=>{ const pr=p>=t?1:0; if(pr===1&&testY[i]===1)tp2++; else if(pr===1&&testY[i]===0)fp2++; else if(pr===0&&testY[i]===0)tn2++; else fn2++; });
+            pts.push({fpr:fp2/(fp2+tn2||1), tpr:tp2/(tp2+fn2||1)});
+        }
+        pts.sort((a,b)=>a.fpr-b.fpr);
+        let auc=0;
+        for(let i=0;i<pts.length-1;i++) auc+=(pts[i+1].fpr-pts[i].fpr)*(pts[i+1].tpr+pts[i].tpr)/2;
+        auc=Math.abs(auc);
+
+        if(model) model.dispose();
+        model = m;
+
+        statusEl.innerHTML =
+            `Training Complete (Holdout Split) &emsp;<b>Acc:</b> ${acc.toFixed(3)}&emsp;<b>Precision:</b> ${prec.toFixed(3)}&emsp;<b>Recall:</b> ${rec.toFixed(3)}&emsp;<b>F1-Score:</b> ${f1.toFixed(3)}&emsp;<b>AUC:</b> ${auc.toFixed(4)}`;
 
         const xAll = tf.tensor2d(normX);
         const yAll = tf.tensor2d(normY,[normY.length,1]);
-        evaluateModel(xAll, yAll);
+        await evaluateModel(xAll, yAll);
+        
+        xTr.dispose(); yTr.dispose(); xTe.dispose(); yTe.dispose();
+        xAll.dispose(); yAll.dispose();
 
         if(activeMarker) {
             triggerAnalysis(activeMarker.getLngLat());
@@ -812,8 +821,7 @@
         const trueVals = await ys.data();
         let tp = 0, tn = 0, fp = 0, fn = 0;
         
-        // Lower threshold to 0.35 to improve recall on imbalanced flood data
-        const THRESHOLD = 0.35;
+        const THRESHOLD = 0.50; 
         for (let i = 0; i < predVals.length; i++) {
             let p = predVals[i] >= THRESHOLD ? 1 : 0;
             if (p == 1 && trueVals[i] == 1) tp++;
@@ -957,10 +965,10 @@
     async function manualPredict(){
         if(!model) return;
         const input = [
-        parseFloat(document.getElementById('waterLevel').value), 
-        parseFloat(document.getElementById('rainfall').value), 
-        parseFloat(document.getElementById('discharge').value), 
-        parseFloat(document.getElementById('elevation').value)
+            parseFloat(document.getElementById('waterLevel').value), 
+            parseFloat(document.getElementById('rainfall').value), 
+            parseFloat(document.getElementById('discharge').value), 
+            parseFloat(document.getElementById('elevation').value)
         ];
         updateKPIs();
         return await generateForecastChart(input);
@@ -1000,7 +1008,7 @@
             }, 300);
         };
         
-        return v; // Return calculated percentage into triggerAnalysis workflow
+        return v; 
     }
     
     async function saveModel() {
@@ -1032,7 +1040,6 @@
             minVals = config.metadata.minVals;
             maxVals = config.metadata.maxVals;
             
-            // CRITICAL FIX: Wrap separate parameters into a proper ModelArtifacts configuration object
             model = await tf.loadLayersModel(tf.io.fromMemory({
                 modelTopology: config.modelTopology,
                 weightSpecs: config.weightSpecs,
