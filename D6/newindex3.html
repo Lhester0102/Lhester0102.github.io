@@ -163,46 +163,54 @@
                 <div class="row g-3">
                     <div class="col-lg-3">
                         <div class="card p-3 shadow-sm mb-3">
-                            <h6 class="mb-1">Model Control</h6>
-                            <div class="mb-2">
-                                <label class="form-label small text-muted mb-1">Upload Training CSV</label>
-                                <input type="file" id="csvFileInput" accept=".csv" class="form-control form-control-sm">
-                                <small class="text-muted d-block mt-1" style="font-size:0.65rem;">Expected: water_level, rainfall, discharge, elevation, flood_label</small>
-                            </div>
-                            <button id="trainBtn" class="btn btn-primary w-100 mb-1" disabled><i class="bi bi-cpu"></i> Train Model</button>
-                            <button id="saveBtn" class="btn btn-success w-100 mb-1"><i class="bi bi-save"></i> Save Model</button>
-                            <button id="loadBtn" class="btn btn-secondary w-100 mb-1"><i class="bi bi-folder"></i> Load Model</button>
                             <div class="d-none">
-                                <h6 class="mt-2">Manual Prediction</h6>
-                                <input value="" id="waterLevel" class="form-control mb-1" placeholder="Water Level">
-                                <input value="" id="rainfall" class="form-control mb-1" placeholder="Rainfall">
-                                <input value="" id="discharge" class="form-control mb-1" placeholder="Discharge">
-                                <input value="" id="elevation" class="form-control mb-1" placeholder="Elevation">
-                                <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
+                                <h6 class="mb-1">Model Control</h6>
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted mb-1">Upload Training CSV</label>
+                                    <input type="file" id="csvFileInput" accept=".csv" class="form-control form-control-sm">
+                                    <small class="text-muted d-block mt-1" style="font-size:0.65rem;">Expected: water_level, rainfall, discharge, elevation, flood_label</small>
+                                </div>
+                                <button id="trainBtn" class="btn btn-primary w-100 mb-1" disabled><i class="bi bi-cpu"></i> Train Model</button>
+                                <button id="saveBtn" class="btn btn-success w-100 mb-1"><i class="bi bi-save"></i> Save Model</button>
+                                <button id="loadBtn" class="btn btn-secondary w-100 mb-1"><i class="bi bi-folder"></i> Load Model</button>
+                                <div class="d-none">
+                                    <h6 class="mt-2">Manual Prediction</h6>
+                                    <input value="" id="waterLevel" class="form-control mb-1" placeholder="Water Level">
+                                    <input value="" id="rainfall" class="form-control mb-1" placeholder="Rainfall">
+                                    <input value="" id="discharge" class="form-control mb-1" placeholder="Discharge">
+                                    <input value="" id="elevation" class="form-control mb-1" placeholder="Elevation">
+                                    <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
+                                </div>
                             </div>
-                            
                             <div class="card p-3 shadow-sm" id="detailsCard">
                                 <h6 class="fw-bold border-bottom pb-1" style="color:#1c96c5;">System Field Analysis</h6>
                                 <div id="details"><span class="text-muted small">Click map or perform a search to visualize location analysis matrix.</span></div>
+                            </div>
+                            <div class="card p-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6>Flood Probability</h6>
+                                    <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
+                                </div>
+                                <canvas id="probChart"></canvas>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-lg-9 d-flex flex-column">
-                        <div class="card mb-1" style="height: 380px;">
-                            <div class="card-body p-1"><div style="height: 380px;" id="map"></div></div>
+                        <div class="card mb-1" style="height:480px;">
+                            <div class="card-body p-1"><div style="height: 480px;" id="map"></div></div>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <div class="card p-1">
+                                <!-- <div class="card p-1">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6>Flood Probability</h6>
                                         <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
                                     </div>
                                     <canvas id="probChart"></canvas>
-                                </div>
+                                </div> -->
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 d-none">
                                 <div class="card p-1">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6>Confusion Matrix</h6>
@@ -211,7 +219,7 @@
                                     <canvas id="confMatrix"></canvas>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 d-none">
                                 <div class="card p-1">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6>ROC Curve</h6>
@@ -640,7 +648,7 @@
         };
         reader.readAsText(file);
     });
-
+    
     function buildModel(initialBias = null) {
         const m = tf.sequential();
         m.add(tf.layers.dense({
@@ -670,72 +678,72 @@
         });
         return m;
     }
-
+    
     async function autoTrain(){
         if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
         const statusEl = document.getElementById("status");
         statusEl.innerHTML = "Preparing data matrix streams...";
-
+        
         const shuffle = arr => {
             for(let i=arr.length-1;i>0;i--){
                 const j=Math.floor(Math.random()*(i+1));
                 [arr[i],arr[j]]=[arr[j],arr[i]];
             } return arr;
         };
-
+        
         tf.tidy(() => {
             const featTensor = tf.tensor2d(parsedCsvFeatures);
             minVals = featTensor.min(0).arraySync();
             maxVals = featTensor.max(0).arraySync();
         });
-
+        
         const normX = parsedCsvFeatures.map(normalize);
         const normY = parsedCsvLabels.slice();
-
+        
         const N = normY.length;
         const posSamples = normY.filter(l => l === 1).length;
         const negSamples = N - posSamples;
-
+        
         if (posSamples === 0) return alert("Error: Dataset contains no positive flood labels.");
-
+        
         // Official TensorFlow Imbalanced Data tutorial math implementations
         const initialBias = Math.log(posSamples / negSamples);
         const weightFor0 = (1 / negSamples) * (N / 2.0);
         const weightFor1 = (1 / posSamples) * (N / 2.0);
         const classWeight = { 0: weightFor0, 1: weightFor1 };
-
+        
         // Shifting to a tight mini-batch window forces positive samples to influence updates frequently
         const batchSize = 16; 
         const epochs = 500;   
         const patience = 100;  
-
+        
         // Stratified Holdout Partitioning (80/20 train/test split)
         const posIdx = normY.map((l,i)=>l===1?i:-1).filter(i=>i>=0);
         const negIdx = normY.map((l,i)=>l===0?i:-1).filter(i=>i>=0);
         shuffle(posIdx); shuffle(negIdx);
-
+        
         const posCut = Math.round(posIdx.length * 0.8);
         const negCut = Math.round(negIdx.length * 0.8);
-
+        
         const trainIdx = [...posIdx.slice(0, posCut), ...negIdx.slice(0, negCut)];
         const testIdx = [...posIdx.slice(posCut), ...negIdx.slice(negCut)];
         shuffle(trainIdx); shuffle(testIdx);
-
+        
         let trainX = trainIdx.map(i => normX[i]);
         let trainY = trainIdx.map(i => normY[i]);
         let testX = testIdx.map(i => normX[i]);
         let testY = testIdx.map(i => normY[i]);
-
+        
         const xTr = tf.tensor2d(trainX);
         const yTr = tf.tensor2d(trainY,[trainY.length,1]);
         const xTe = tf.tensor2d(testX);
         const yTe = tf.tensor2d(testY,[testY.length,1]);
-
+        
         const m = buildModel(initialBias);
         let bestValLoss = Infinity;
         let bestWeights = null;
         let wait = 0;
-
+        
         await m.fit(xTr, yTr, {
             epochs: epochs,
             batchSize: batchSize,
@@ -762,12 +770,12 @@
                 }
             }
         });
-
+        
         if(bestWeights) {
             m.setWeights(bestWeights);
             bestWeights.forEach(w=>w.dispose());
         }
-
+        
         const preds = await m.predict(xTe).data();
         let tp=0, tn=0, fp=0, fn=0;
         
@@ -784,7 +792,7 @@
         const prec = tp/(tp+fp||1);
         const rec  = tp/(tp+fn||1);
         const f1   = 2*(prec*rec)/(prec+rec||1);
-
+        
         let pts=[];
         for(let t=0;t<=1.01;t+=0.02){
             let tp2=0,fp2=0,tn2=0,fn2=0;
@@ -795,20 +803,20 @@
         let auc=0;
         for(let i=0;i<pts.length-1;i++) auc+=(pts[i+1].fpr-pts[i].fpr)*(pts[i+1].tpr+pts[i].tpr)/2;
         auc=Math.abs(auc);
-
+        
         if(model) model.dispose();
         model = m;
-
+        
         statusEl.innerHTML =
-            `Training Complete (Holdout Split) &emsp;<b>Acc:</b> ${acc.toFixed(3)}&emsp;<b>Precision:</b> ${prec.toFixed(3)}&emsp;<b>Recall:</b> ${rec.toFixed(3)}&emsp;<b>F1-Score:</b> ${f1.toFixed(3)}&emsp;<b>AUC:</b> ${auc.toFixed(4)}`;
-
+        `Training Complete (Holdout Split) &emsp;<b>Acc:</b> ${acc.toFixed(3)}&emsp;<b>Precision:</b> ${prec.toFixed(3)}&emsp;<b>Recall:</b> ${rec.toFixed(3)}&emsp;<b>F1-Score:</b> ${f1.toFixed(3)}&emsp;<b>AUC:</b> ${auc.toFixed(4)}`;
+        
         const xAll = tf.tensor2d(normX);
         const yAll = tf.tensor2d(normY,[normY.length,1]);
         await evaluateModel(xAll, yAll);
         
         xTr.dispose(); yTr.dispose(); xTe.dispose(); yTe.dispose();
         xAll.dispose(); yAll.dispose();
-
+        
         if(activeMarker) {
             triggerAnalysis(activeMarker.getLngLat());
         } else {
@@ -965,10 +973,10 @@
     async function manualPredict(){
         if(!model) return;
         const input = [
-            parseFloat(document.getElementById('waterLevel').value), 
-            parseFloat(document.getElementById('rainfall').value), 
-            parseFloat(document.getElementById('discharge').value), 
-            parseFloat(document.getElementById('elevation').value)
+        parseFloat(document.getElementById('waterLevel').value), 
+        parseFloat(document.getElementById('rainfall').value), 
+        parseFloat(document.getElementById('discharge').value), 
+        parseFloat(document.getElementById('elevation').value)
         ];
         updateKPIs();
         return await generateForecastChart(input);
