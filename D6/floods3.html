@@ -253,7 +253,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   
-  <script>
+<script>
     let model, minVals=[], maxVals=[], confChart, rocChart;
     let geocoder;
     let lastConfData = [], lastRocPoints = [], lastAUC = 0;
@@ -262,6 +262,9 @@
     // Globally holds reference to our Mapbox station markers so we can rebuild or change colors dynamically
     let stationMarkersArray = [];
     let rivers = []; 
+    
+    // Global variable cache to store the latest Firebase-sourced timestamp values
+    let currentFirebaseTimestamp = "";
     
     window.onload = async function() {
       // document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
@@ -275,7 +278,16 @@
       const rainInput = document.getElementById("rainfall");
       const dischargeInput = document.getElementById("discharge");
       
-      if (waterInput) document.getElementById("kpiWater").innerHTML = waterInput.value;
+      if (waterInput) {
+        // Appends the raw Firebase timestamp directly below the water level metric
+        document.getElementById("kpiWater").innerHTML = `
+          ${waterInput.value} m
+          ${currentFirebaseTimestamp ? `
+          <div class="text-muted small" style="font-size: 0.75rem; font-weight: normal; margin-top: 4px;">
+            <i class="bi bi-clock"></i> ${currentFirebaseTimestamp}
+          </div>` : ''}
+        `;
+      }
       if (rainInput) document.getElementById("kpiRain").innerHTML = rainInput.value;
       if (dischargeInput) document.getElementById("kpiDischarge").innerHTML = dischargeInput.value;
     }
@@ -316,6 +328,12 @@
         const level = v.level ?? v.water ?? v.water_level ?? null;
         const rain = v.rain ?? v.rainfall ?? null;
         const flow = v.flow ?? v.discharge ?? null;
+        
+        // Dynamic fallback extraction for date and time fields inside Firebase payload
+        const dbDate = v.dt ?? v.date ?? "";
+        const dbTime = v.t ?? v.time ?? "";
+        currentFirebaseTimestamp = (dbDate && dbTime) ? `${dbDate} | ${dbTime}` : (dbDate || dbTime || "");
+        
         setSensorInputs(level, rain, flow);
       });
       document.getElementById('status').innerHTML = `${sourceName} updated — auto refreshed.`;
@@ -330,12 +348,20 @@
         let level = payload.level ?? payload.water ?? payload.water_level ?? null;
         let rain = payload.rain ?? payload.rainfall ?? null;
         let flow = payload.flow ?? payload.discharge ?? null;
+        
+        let dbDate = payload.dt ?? payload.date ?? "";
+        let dbTime = payload.t ?? payload.time ?? "";
+        
         if ((level === null && rain === null && flow === null) && payload.features && payload.features[0] && payload.features[0].properties) {
           const p = payload.features[0].properties;
           level = level ?? p.level ?? p.water ?? p.water_level ?? null;
           rain = rain ?? p.rain ?? p.rainfall ?? null;
           flow = flow ?? p.flow ?? p.discharge ?? null;
+          dbDate = dbDate ?? p.dt ?? p.date ?? "";
+          dbTime = dbTime ?? p.t ?? p.time ?? "";
         }
+        
+        currentFirebaseTimestamp = (dbDate && dbTime) ? `${dbDate} | ${dbTime}` : (dbDate || dbTime || "");
         setSensorInputs(level, rain, flow);
         document.getElementById('status').innerHTML = 'data2.json fallback loaded.';
         await manualPredict();
@@ -371,8 +397,8 @@
       if (typeof level !== 'undefined' && level !== null) {
         const input = document.getElementById('waterLevel');
         if (input) input.value = level;
-        const kpi = document.getElementById('kpiWater');
-        if (kpi) kpi.innerHTML = parseFloat(level).toFixed(2);
+        // Letting updateKPIs manage the combined values layout context safely
+        updateKPIs();
       }
       if (typeof rain !== 'undefined' && rain !== null) {
         const input = document.getElementById('rainfall');
@@ -399,6 +425,7 @@
       pitch: 60
     });
     
+    
     function getFloodMarkerColor(probabilityValue) {
       if (probabilityValue >= 70) return '#dc3545';     // Red (Severe Risk)
       if (probabilityValue >= 30) return '#fd7e14';     // Orange (Moderate Risk)
@@ -422,7 +449,8 @@
       const latRad = lat * Math.PI / 180;
       const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
       
-      const url = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${zoom}/${x}/${y}.pngraw?access_token=${token}`;
+   // Change your URL line to this:
+const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngraw?access_token=${token}`;
       
       try {
         const response = await fetch(url);
@@ -460,7 +488,8 @@
           'pitch': 60
         });
       } 
-      map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+      
+      // map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
       geocoder = new MapboxGeocoder({
@@ -510,10 +539,7 @@
       el.style.height = '50px';                   
       el.className = 'custom-marker';             
       
-      activeMarker = new mapboxgl.Marker({
-        element: el,
-        anchor: 'bottom' 
-      })
+      activeMarker = new mapboxgl.Marker()
       .setLngLat(startPoint)
       .addTo(map);
       
@@ -521,14 +547,21 @@
     });
     
     map.on('click', async (e) => {
+              if (activeMarker) {
+            activeMarker.setLngLat(e.lngLat);
+        } else {
+            activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
+            .setLngLat(e.lngLat)
+            .addTo(map);
+        }
       document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
       await triggerAnalysis(e.lngLat);
     }); 
     
     const liveDataStore = {
-      data: { level: 0, flow: 0, rain: 0 },
-      data2: { level: 0, flow: 0, rain: 0 },
-      data3: { level: 0, flow: 0, rain: 0 }
+      data: { level: 0, flow: 0, rain: 0, timeInfo: "" },
+      data2: { level: 0, flow: 0, rain: 0, timeInfo: "" },
+      data3: { level: 0, flow: 0, rain: 0, timeInfo: "" }
     };
     
     async function populateRiverData() {
@@ -570,10 +603,15 @@
           if (!snapshot.exists()) return;
           snapshot.forEach(child => {
             const latest = child.val();
+            
+            const itemDate = latest.dt ?? latest.date ?? "";
+            const itemTime = latest.t ?? latest.time ?? "";
+            
             liveDataStore[nodeKey] = {
               level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
               flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
-              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0),
+              timeInfo: (itemDate && itemTime) ? `${itemDate} | ${itemTime}` : (itemDate || itemTime || "")
             };
           });
           await updateStationPinsIndividually();
@@ -638,6 +676,9 @@
           // Clear out any stale popup boxes open on screen
           document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
           
+          // Force sync the layout timeline index cache context before launching trigger calculation updates
+          currentFirebaseTimestamp = telemetry.timeInfo;
+          
           // Update inputs and right-hand analysis panel using exact database telemetry
           const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
           await triggerAnalysis(mapboxCoords, telemetry);
@@ -681,6 +722,7 @@
           li.onclick = async () => {
             map.flyTo({ center: [river.lng, river.lat], zoom: 17, pitch: 45});
             
+            currentFirebaseTimestamp = telemetry.timeInfo;
             const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
             await triggerAnalysis(mapboxCoords, telemetry);
             
@@ -742,7 +784,7 @@
       if (elevInput) {
         elevInput.value = Math.round(elevation);
       }
-      
+  
       let currentWater = 0;
       let currentRain = 0;
       let currentDischarge = 0;
@@ -751,12 +793,13 @@
         currentWater = parseFloat(forcedTelemetry.level) || 0;
         currentRain = parseFloat(forcedTelemetry.rain) || 0;
         currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
-        
+
         setSensorInputs(currentWater, currentRain, currentDischarge);
       } else {
         currentWater = parseFloat(document.getElementById('waterLevel')?.value) || 0;
         currentRain = parseFloat(document.getElementById('rainfall')?.value) || 0;
         currentDischarge = parseFloat(document.getElementById('discharge')?.value) || 0;
+
         updateKPIs();
       }
       

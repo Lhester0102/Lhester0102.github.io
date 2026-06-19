@@ -541,10 +541,7 @@
     el.style.height = '50px';                   
     el.className = 'custom-marker';             
     
-    activeMarker = new mapboxgl.Marker({
-      element: el,
-      anchor: 'bottom' 
-    })
+    activeMarker = new mapboxgl.Marker()
     .setLngLat(startPoint)
     .addTo(map);
     
@@ -552,6 +549,13 @@
   });
   
   map.on('click', async (e) => {
+            if (activeMarker) {
+            activeMarker.setLngLat(e.lngLat);
+        } else {
+            activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
+            .setLngLat(e.lngLat)
+            .addTo(map);
+        }
     document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
     await triggerAnalysis(e.lngLat);
   }); 
