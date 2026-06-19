@@ -292,6 +292,9 @@
   const storageRef = firebase.storage().ref();
   
   window.onload = async function() {
+            if (sessionStorage.getItem('loggedIn') !== 'true') {
+            window.location.href = 'log.html';
+        }
     document.getElementById('status').innerHTML = '<span class="loading-spinner"></span> Initializing system modules - Loading registry lists...';
     
     await loadModel(); 
@@ -307,7 +310,7 @@
       municipalityFilter.addEventListener('change', async function() {
         const selected = this.value;
         if (selected === 'All') {
-          document.getElementById('status').innerHTML = `⚠️ Please select a specific municipality. Loading all at once is disabled to prevent API errors.`;
+          document.getElementById('status').innerHTML = `Please select a specific municipality. Loading all at once is disabled to prevent API errors.`;
           rivers = [];
           updateRiverTable();
           return;
@@ -785,10 +788,39 @@
       model = await tf.loadLayersModel(tf.io.fromMemory(config.modelTopology, config.weightSpecs, weights));
       status.innerHTML = "✓ Model loaded successfully.";
     } catch (err) {
-      status.innerHTML = "⚠️ Using default risk calculations. Model not available.";
+      status.innerHTML = "Using default risk calculations. Model not available.";
       console.error(err);
     }
   }
+document.getElementById('logoutLink').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sessionStorage.clear();
+
+            Swal.fire({
+                title: 'Logged Out',
+                text: 'You have been logged out successfully.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = 'log.html';
+            });
+        }
+    });
+});
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

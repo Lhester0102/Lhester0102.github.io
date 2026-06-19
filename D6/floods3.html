@@ -1129,11 +1129,35 @@ const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngr
     document.getElementById('saveBtn').onclick = saveModel;
     document.getElementById('loadBtn').onclick = loadModel;
     document.getElementById('predictBtn').onclick = manualPredict;
-    document.getElementById('logoutLink').addEventListener('click', function(e) {
+document.getElementById('logoutLink').addEventListener('click', function (e) {
     e.preventDefault();
-    sessionStorage.clear(); // Clear all session storage
-    window.location.href = 'log.html'; // Redirect to login page
-  });
-  </script>
+
+    Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sessionStorage.clear();
+
+            Swal.fire({
+                title: 'Logged Out',
+                text: 'You have been logged out successfully.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = 'log.html';
+            });
+        }
+    });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
