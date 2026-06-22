@@ -64,7 +64,7 @@
     
     .form-control:focus {
       border-color: var(--brand-maroon);
-      box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+      box-shadow: 0 0 0 3px rgba(28, 150, 197, 0.1);
     }
     
     .btn-login {
@@ -113,16 +113,16 @@
           
           <form id="loginForm">
             <div class="mb-3">
-              <label for="email" class="form-label small fw-semibold text-secondary">Email</label>
+              <label for="email" class="form-label small fw-semibold text-secondary">Username / Email</label>
               <div class="input-group">
                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
-                <input value="admin@gmail.com" type="email" id="email" class="form-control border-start-0" placeholder="name@agency.gov" required>
+                <input value="admin@gmail.com" type="text" id="email" class="form-control border-start-0" placeholder="Enter identity label" required>
               </div>
             </div>
             
             <div class="mb-4">
               <div class="d-flex justify-content-between">
-                <label for="password"  class="form-label small fw-semibold text-secondary">Password</label>
+                <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
                 <a href="#" class="small text-decoration-none" style="color: var(--brand-maroon)">Forgot?</a>
               </div>
               <div class="input-group">
@@ -131,7 +131,7 @@
               </div>
             </div>
             
-            <button type="submit" id="loginBtn" class="btn btn-danger btn-login w-100 mb-3">
+            <button type="submit" id="loginBtn" class="btn btn-danger btn-login w-100 mb-3 text-white">
               <span class="spinner-border spinner-border-sm d-none me-2" id="btnSpinner"></span>
               <span id="btnText">Sign In</span>
             </button>
@@ -139,7 +139,7 @@
           
           <div class="text-center">
             <span class="badge bg-light text-dark border py-2 px-3 fw-normal">
-              <i class="bi bi-info-circle me-1 text-maroon"></i> Secure Gov Access
+              <i class="bi bi-info-circle me-1" style="color: #1c96c5;"></i> Secure System Access
             </span>
           </div>
         </div>
@@ -150,6 +150,7 @@
   
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script>
     const firebaseConfig = {
@@ -162,33 +163,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    var id = "-Ot-72ZLoDJh23tBhB32";
-    
-    // window.onload = () => {
-    //   // Correctly calling the function when the window loads
-    //   deleteFloodedArea(id);
-    // };
-    
-    // function deleteFloodedArea(id) {
-    //   if (!id) {
-    //     alert("Please provide a valid ID.");
-    //     return;
-    //   }
-      
-    //   // References the path 'Flooded_Areas/ID' and removes it completely
-    //   database.ref('Flooded_Areas/' + id).remove()
-    //   .then(() => {
-    //     alert(`Successfully deleted record with ID: ${id} from Flooded_Areas.`);
-        
-    //     // Using optional chaining (?.) to prevent crashes if 'deleteIdInput' doesn't exist on this page
-    //     const inputEl = document.getElementById('deleteIdInput');
-    //     if (inputEl) inputEl.value = ''; 
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error deleting data: ", error);
-    //     alert("Failed to delete record: " + error.message);
-    //   });
-    // }
     
     document.addEventListener('DOMContentLoaded', function() {
       if(sessionStorage.getItem('loggedIn') == 'true') window.location.href = "newindex3.html";
@@ -201,7 +175,6 @@
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Show Loading
         btn.disabled = true;
         spinner.classList.remove('d-none');
         txt.innerText = "Verifying...";
@@ -211,27 +184,60 @@
         
         database.ref('users').once('value').then(snapshot => {
           const users = snapshot.val();
-          let auth = false;
+          let matchedUser = null;
           
           for(let key in users) {
             if(users[key].user == email && users[key].pass == pass) {
-              auth = true;
+              matchedUser = users[key];
               break;
             }
           }
           
-          if(auth) {
+          if(matchedUser) {
+            // Validate account status context flag
+            if(matchedUser.status != 1) {
+              Swal.fire({
+                title: 'Access Suspended',
+                text: 'Your account context is currently designated as Inactive. Please contact the administrator.',
+                icon: 'error',
+                confirmButtonColor: '#dc3545'
+              });
+              
+              btn.disabled = false;
+              spinner.classList.add('d-none');
+              txt.innerText = "Sign In";
+              return;
+            }
+
+            // Commit dynamic runtime session mappings
             sessionStorage.setItem('loggedIn', 'true');
             sessionStorage.setItem('userEmail', email);
-            window.location.href = "newindex3.html";
+            sessionStorage.setItem('userLgu', matchedUser.lgu || 'Unassigned');
+            sessionStorage.setItem('userNode', matchedUser.node || 'none');
+            
+            Swal.fire({
+              title: 'Access Authorized',
+              text: 'Redirecting to your geospatial dashboard context...',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = "newindex3.html";
+            });
+
           } else {
-            alert("Login failed. Please check your email and password.");
+            Swal.fire({
+              title: 'Login Failed',
+              text: 'Invalid username/email or access password configuration.',
+              icon: 'warning',
+              confirmButtonColor: '#1c96c5'
+            });
             btn.disabled = false;
             spinner.classList.add('d-none');
             txt.innerText = "Sign In";
           }
         }).catch(err => {
-          alert("Database connection error.");
+          Swal.fire('Database Error', 'Could not establish connection with remote data systems.', 'error');
           btn.disabled = false;
           spinner.classList.add('d-none');
           txt.innerText = "Sign In";
