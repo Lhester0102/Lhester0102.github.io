@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Delete Flooded Areas</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>Automated Clean up</h3>
+    <p>Click below to automatically find and delete all IDs where <code>name</code> is "Flooded Areas".</p>
+    
+    <button onclick="autoDeleteByCondition()">Scan & Delete All Matching Areas</button>
+    
+    <div id="message"></div>
+</div>
+
+<script>
+    // 1. Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+        authDomain: "flooded-95eeb.firebaseapp.com",
+        projectId: "flooded-95eeb",
+        storageBucket: "flooded-95eeb.firebasestorage.app",
+        messagingSenderId: "142547476223",
+        appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+
+    // 2. Automated Scanning and Deletion Logic
+    function autoDeleteByCondition() {
+        const messageBox = document.getElementById('message');
+
+        // Confirmation dialog
+        if (!confirm("Are you sure you want to scan and delete all records named 'Flooded Areas'?")) {
+            return;
+        }
+
+        messageBox.style.color = "black";
+        messageBox.textContent = "Scanning database structure...";
+
+        // Reference to the main parent folder
+        const rootRef = db.ref('Flooded_Areas');
+
+        // Query: Look under every ID child for a child named 'name' that equals 'Flooded Areas'
+        rootRef.orderByChild('name').equalTo('Flooded Areas').once('value')
+            .then((snapshot) => {
+                if (!snapshot.exists()) {
+                    messageBox.style.color = "orange";
+                    messageBox.textContent = "No matching records found.";
+                    return;
+                }
+
+                let deletePromises = [];
+                let count = 0;
+
+                // Loop through all the matching ID nodes found
+                snapshot.forEach((childSnapshot) => {
+                    // childSnapshot.ref points to: Flooded_Areas > [The matching ID]
+                    deletePromises.push(childSnapshot.ref.remove());
+                    count++;
+                });
+
+                messageBox.textContent = `Found ${count} matching records. Deleting them now...`;
+
+                // Execute all deletions asynchronously
+                return Promise.all(deletePromises);
+            })
+            .then((result) => {
+                // If result is undefined because we exited early on "No matching records found"
+                if (messageBox.textContent !== "No matching records found.") {
+                    messageBox.style.color = "green";
+                    messageBox.textContent = "Success! All matching IDs have been completely deleted.";
+                }
+            })
+            .catch((error) => {
+                console.error("Error during auto-delete operation:", error);
+                messageBox.style.color = "red";
+                messageBox.textContent = "Error: " + error.message;
+            });
+    }
+</script>
+
+</body>
+</html>
