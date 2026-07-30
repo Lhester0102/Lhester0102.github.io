@@ -200,7 +200,40 @@
                     </div>
                     
                     <div class="col-lg-9 d-flex flex-column">
-                        <div class="card mb-1" style="height:480px;">
+                        <div class="card mb-1" style="height:480px; position: relative;">
+                            <!-- DISPLAY RISKS Individual Control Overlay -->
+                            <div id="riskControlBox" class="p-2 rounded shadow-sm border" style="position: absolute; top: 10px; right: 10px; z-index: 10; font-size: 0.8rem; width: 175px; background-color: rgba(255, 255, 255, 0.6);">
+                                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                    DISPLAY RISKS
+                                </div>
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="form-check m-0 d-flex align-items-center gap-1">
+                                        <input class="form-check-input risk-toggle" type="checkbox" id="toggleSevere" value="severe" style="cursor: pointer;">
+                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size:0.75rem;">
+                                            <span style="display:inline-block; width:10px; height:10px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
+                                        </label>
+                                    </div>
+                                    <div class="form-check m-0 d-flex align-items-center gap-1">
+                                        <input class="form-check-input risk-toggle" type="checkbox" id="toggleHigh" value="high" style="cursor: pointer;">
+                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size:0.75rem;">
+                                            <span style="display:inline-block; width:10px; height:10px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
+                                        </label>
+                                    </div>
+                                    <div class="form-check m-0 d-flex align-items-center gap-1">
+                                        <input class="form-check-input risk-toggle" type="checkbox" id="toggleModerate" value="moderate" style="cursor: pointer;">
+                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size:0.75rem;">
+                                            <span style="display:inline-block; width:10px; height:10px; background:rgba(255,193,7,1); border-radius:2px;"></span> Moderate
+                                        </label>
+                                    </div>
+                                    <div class="form-check m-0 d-flex align-items-center gap-1">
+                                        <input class="form-check-input risk-toggle" type="checkbox" id="toggleLow" value="low" style="cursor: pointer;">
+                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size:0.75rem;">
+                                            <span style="display:inline-block; width:10px; height:10px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="card-body p-1"><div style="height: 480px;" id="map"></div></div>
                         </div>
                         <div class="row g-3">
@@ -303,7 +336,15 @@
     let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
     let parsedCsvFeatures = [], parsedCsvLabels = [];
     let activeMarker = null;
-    let activePopup = null; // Reference tracker to enforce 1 popup constraint
+    let activePopup = null;
+    
+    // Structure to group map layers by risk category
+    let riskLayers = {
+        severe: [],
+        high: [],
+        moderate: [],
+        low: []
+    };
     
     const initialCenter = [120.5927871, 18.1959782];
     
@@ -421,7 +462,20 @@
         }
     }
     
+    // Disable Mapbox telemetry to fix ERR_BLOCKED_BY_CLIENT console warning
+    // Intercept telemetry calls to keep dev console clean
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        if (typeof args[0] === 'string' && args[0].includes('events.mapbox.com')) {
+            return Promise.resolve(new Response(null, { status: 200 }));
+        }
+        return originalFetch.apply(this, args);
+    };
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    if ('telemetry' in mapboxgl) {
+        mapboxgl.telemetry = false;
+    }
+    
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
@@ -431,13 +485,30 @@
     });
     
     function getFloodColor(vulnerability) {
-        if (vulnerability > 80) return 'rgba(220, 53, 69, 1)';     
-        if (vulnerability > 50) return 'rgba(253, 126, 20, 1)';    
-        if (vulnerability > 20) return 'rgba(255, 193, 7, 1)';     
+        const val = parseFloat(vulnerability) || 0;
+        if (val >= 80 || vulnerability === 'severe') return 'rgba(220, 53, 69, 1)';     
+        if (val >= 50 || vulnerability === 'high') return 'rgba(253, 126, 20, 1)';    
+        if (val >= 20 || vulnerability === 'moderate') return 'rgba(255, 193, 7, 1)';     
         return 'rgba(144, 238, 144, 0.3)';                                                   
     }
     
-    map.on('load', async () => {
+    // Parses string/number vulnerability into exact risk buckets
+    function getRiskCategory(val) {
+        if (typeof val === 'string') {
+            const strVal = val.toLowerCase().trim();
+            if (strVal === 'severe' || strVal === 'high' || strVal === 'moderate' || strVal === 'low') {
+                return strVal;
+            }
+        }
+        const num = parseFloat(val) || 0;
+        if (num >= 80) return 'severe';
+        if (num >= 50) return 'high';
+        if (num >= 20) return 'moderate';
+        return 'low';
+    }
+    
+    // Safely add 3D terrain inside style.load to prevent "Couldn't find terrain source" warning
+    map.on('style.load', () => {
         if (!map.getSource('mapbox-dem')) {
             map.addSource('mapbox-dem', {
                 'type': 'raster-dem',
@@ -445,7 +516,11 @@
                 'tileSize': 512,
                 'maxzoom': 14
             });
-        } map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+        }
+    });
+    
+    map.on('load', async () => {
         map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
         
         const geocoder = new MapboxGeocoder({
@@ -474,22 +549,53 @@
         activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(centerLngLat).addTo(map);
         await triggerAnalysis(centerLngLat);
         
+        // Fetch and load Flooded Areas from Firebase
         db.ref('Flooded_Areas').once('value').then(snapshot => {
             const data = snapshot.val();
             if (!data) return;
+            
+            // Reset risk layer arrays
+            riskLayers = { severe: [], high: [], moderate: [], low: [] };
+            
             Object.entries(data).forEach(([id, f], i) => {
                 if (!f.geojson) return;
                 const sourceId = `flood-src-${i}`;
+                const layerId = `flood-layer-${i}`;
+                
+                // Inspect vulnerability from f.vulnerability or f.risk_level/f.risk
+                const vulnValue = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
+                const riskCat = getRiskCategory(vulnValue);
+                
+                riskLayers[riskCat].push(layerId);
+                
                 map.addSource(sourceId, { type: 'geojson', data: f.geojson });
                 map.addLayer({
-                    id: `flood-layer-${i}`,
+                    id: layerId,
                     type: f.type === 'municipality' ? 'line' : 'fill',
                     source: sourceId,
+                    layout: {
+                        'visibility': 'none' // Hidden by default until checked
+                    },
                     paint: f.type === 'municipality' ? 
                     { 'line-color': '#1c96c5', 'line-width': 2 } : 
-                    { 'fill-color': getFloodColor(f.vulnerability || 0), 'fill-opacity': 0.5 }
+                    { 'fill-color': getFloodColor(vulnValue), 'fill-opacity': 0.5 }
                 });
             });
+        });
+    });
+    
+    // Checkbox toggle handler for each risk category
+    document.querySelectorAll('.risk-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            const category = e.target.value;
+            const visibility = e.target.checked ? 'visible' : 'none';
+            if (riskLayers[category]) {
+                riskLayers[category].forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        map.setLayoutProperty(layerId, 'visibility', visibility);
+                    }
+                });
+            }
         });
     });
     
@@ -617,7 +723,6 @@
             </div>
         `;
         
-        // Remove the existing active popup if it exists before creating a new one
         if (activePopup) {
             activePopup.remove();
         }
@@ -1117,7 +1222,7 @@
             }
         });
     });
-
+    
     document.getElementById('logoutLink').addEventListener('click', function (e) {
         e.preventDefault();
         Swal.fire({
