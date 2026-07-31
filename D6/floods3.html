@@ -468,9 +468,9 @@
     
     function getFloodColor(vulnerability) {
       const val = parseFloat(vulnerability) || 0;
-      if (val >= 80 || vulnerability === 'severe') return 'rgba(255, 0, 0, 1)';     
-      if (val >= 50 || vulnerability === 'high') return 'rgba(253, 155, 0, 1)';    
-      if (val >= 20 || vulnerability === 'moderate') return 'rgba(255, 230, 0, 1)';     
+      if (val >=80 || vulnerability === 'severe') return 'rgba(255, 0, 0, 1)';     
+      if (val >=50 || vulnerability === 'high') return 'rgba(253, 155, 0, 1)';    
+      if (val >=20 || vulnerability === 'moderate') return 'rgba(255, 230, 0, 1)';     
       return 'rgba(144, 238, 144, .2)';                           
     }
 

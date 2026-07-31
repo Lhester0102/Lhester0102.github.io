@@ -776,10 +776,13 @@
       });
     }
     
-    // Dynamic Core Station Grid Rendering Subsystem
     function renderTable() {
       const tableBody = document.getElementById('flood-data-table');
       tableBody.innerHTML = '';
+      
+      // Check userLgu permission from sessionStorage
+      const userLgu = sessionStorage.getItem('userLgu');
+      const isDisabled = userLgu !== 'All' ? 'disabled' : '';
       
       const stationFilter = document.getElementById('filterStation').value.toLowerCase();
       const rowLimit = rowLimitSelect.value;
@@ -806,22 +809,26 @@
         const statusClass = item.status == 1 ? 'bg-success' : 'bg-secondary';
         
         const rowHTML = `
-            <tr>
-                <td class="ps-3">
-                  <div class="fw-bold text-dark">${stationStr}</div>
-                  <div class="text-muted" style="font-size:0.65rem;">ID: ${item.__key}</div>
-                </td>
-                <td class="text-center">
-                    <input type="number" class="form-control form-control-sm bg-light fw-bold text-center d-inline-block" 
-                        style="width: 75px; font-size:0.75rem;" value="${intervalVal}" 
-                        onchange="saveInterval('${item.__source}', '${item.__key}', this.value)">
-                </td>
-                <td class="text-end pe-3"><span class="badge rounded-pill ${statusClass}" style="font-size:0.65rem;">${statusText}</span></td>
-            </tr>`;
+        <tr>
+            <td class="ps-3">
+              <div class="fw-bold text-dark">${stationStr}</div>
+              <div class="text-muted" style="font-size:0.65rem;">ID: ${item.__key}</div>
+            </td>
+            <td class="text-center">
+                <input type="number" 
+                       class="form-control form-control-sm bg-light fw-bold text-center d-inline-block" 
+                       style="width: 75px; font-size:0.75rem;" 
+                       value="${intervalVal}" 
+                       ${isDisabled}
+                       onchange="saveInterval('${item.__source}', '${item.__key}', this.value)">
+            </td>
+            <td class="text-end pe-3">
+              <span class="badge rounded-pill ${statusClass}" style="font-size:0.65rem;">${statusText}</span>
+            </td>
+        </tr>`;
         tableBody.innerHTML += rowHTML;
       });
-    }
-    
+    } 
     // Interactive Dynamic Save Push to Firebase Database Nodes
     window.saveInterval = (source, key, value) => {
       const itemRef = db.ref(`${source}/${key}`);
