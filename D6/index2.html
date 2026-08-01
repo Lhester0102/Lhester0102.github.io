@@ -16,7 +16,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    
+    body{
+      background: #f4f6f9;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 1.125rem; /* ~18px (up from default 16px) */
+      line-height: 1.6;     /* Increases spacing between lines for easy scanning */
+      letter-spacing: 0.01em;
+    }
     /* Make the popup container larger */
     .popup-chart-container { 
       width: 320px; 
@@ -146,6 +152,7 @@
         <ul class="nav flex-column">
           <!-- <li class="mb-1"><a class="nav-link text-white" href="floods.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li> -->
           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
           <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white " href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li>
           <!-- <li class="nav-item">
@@ -177,7 +184,7 @@
             
             <div class="d-flex align-items-baseline gap-2">
               <h5 class="mb-0 fw-bold text-dark">Stations on Map</h5>
-              <span id="lastUpdated" class="text-muted small">
+              <span id="lastUpdated" class="text-dark small">
               </span>
             </div>
           </div>
@@ -230,7 +237,7 @@
           <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (50-89)</span></div>
           <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (20-49)</span></div>
           <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 20)</span></div>
-          <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
+          <p class="text-dark small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
         </div>
       </div>
     </div>
@@ -464,11 +471,11 @@
 
             <div class="row g-0 mb-3 border-top pt-2">
                 <div class="col-6 border-end">
-                    <small class="text-muted d-block" style="font-size: 0.6rem;">ALTITUDE</small>
+                    <small class="text-dark d-block" style="font-size: 0.6rem;">ALTITUDE</small>
                     <span class="fw-bold ${elevation < 10 ? 'text-danger' : ''}">${elevation.toFixed(1)}m ASL</span>
                 </div>
                 <div class="col-6 ps-2">
-                    <small class="text-muted d-block" style="font-size: 0.6rem;">RISK LEVEL</small>
+                    <small class="text-dark d-block" style="font-size: 0.6rem;">RISK LEVEL</small>
                     <span class="badge ${badgeClass}" style="font-size:0.65rem;">${riskLabel}</span>
                 </div>
             </div>
@@ -482,7 +489,7 @@
                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                          style="width: ${finalRisk}%; background-color: ${riskColor};"></div>
                 </div>
-                <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
+                <small class="text-dark d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
             </div>
         </div>`;
     
@@ -567,10 +574,10 @@
         <div class="popup-chart-container">
             <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
             <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
-                <div><small class="text-muted d-block" style="font-size: 0.55rem;">PROB</small><strong class="text-danger" style="font-size: 0.75rem;">${prob}%</strong></div>
+                <div><small class="text-dark d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
+                <div><small class="text-dark d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
+                <div><small class="text-dark d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
+                <div><small class="text-dark d-block" style="font-size: 0.55rem;">PROB</small><strong class="text-danger" style="font-size: 0.75rem;">${prob}%</strong></div>
             </div>
             <span hidden class="chart-label">Daily Historical Metrics</span>
             <canvas hidden id="${histChartId}" class="popup-chart"></canvas>
@@ -645,6 +652,6 @@
     window.location.href = 'log.html'; 
   });
 </script>
-
+<script src="menu.js"></script>
 </body>
 </html>

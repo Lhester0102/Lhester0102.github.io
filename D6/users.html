@@ -40,7 +40,6 @@
         
         /* Card & UI Refinement */
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
         /* Table Aesthetics */
         .table thead th { 
@@ -78,7 +77,6 @@
     
     <div class="container-fluid">
         <div class="row">
-            
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
@@ -97,7 +95,7 @@
                 </div>
                 
                 <ul class="nav flex-column">
-                    <li class="mb-1"><a class="nav-link text-white" href="newindex3.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="dash.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="rivers.html"><i class="bi bi-map me-2"></i>River Stations</a></li>
                     
                     <li class="nav-item">
@@ -114,6 +112,7 @@
                     <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
                     <hr>
                     <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
                 </ul>
@@ -121,7 +120,7 @@
             
             <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
                 
-                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-3 p-2 bg-white rounded shadow">
                     <div class="d-flex align-items-center gap-3">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
@@ -129,7 +128,7 @@
                         
                         <div class="d-flex align-items-baseline gap-2">
                             <h5 class="mb-0 fw-bold text-dark">User Management</h5>
-                            <span id="lastUpdated" class="text-muted small"></span>
+                            <span id="lastUpdated" class="text-dark small"></span>
                         </div>
                     </div>
                     
@@ -138,96 +137,31 @@
                             <i class="bi bi-person-circle"></i>
                             <span id="emails">User Loading...</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><h6 class="dropdown-header text-uppercase small fw-bold">Account Status</h6></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1">
+                            <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item small" href="#"><i class="bi bi-person me-2 text-danger"></i>Profile</a></li>
-                            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                           <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
+                            <!-- <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li> -->
                         </ul>
                     </div>
                 </div>
 
-                <div class="row g-4">
-                    <div class="col-xl-4 col-lg-5">
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-dark text-white py-3" id="formHeader">
-                                <i class="bi bi-person-plus me-2"></i> Create New Account
-                            </div>
-                            <div class="card-body p-4">
-                                <form id="userForm">
-                                    <input type="hidden" id="userId">
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Username</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-person text-muted"></i></span>
-                                            <input type="text" id="username" class="form-control border-0" placeholder="Enter username" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Access Password</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-key text-muted"></i></span>
-                                            <input type="password" id="password" class="form-control border-0" placeholder="Create password" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Designated LGU / Office</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-building text-muted"></i></span>
-                                            <input type="text" id="lgu" class="form-control border-0" placeholder="e.g., MDRRMC Pasuquin" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Assigned Data Node</label>
-                                        <div class="input-group shadow-sm border rounded">
-                                            <span class="input-group-text bg-white border-0"><i class="bi bi-hdd-network text-muted"></i></span>
-                                            <select id="nodeDropdown" class="form-select border-0" required>
-                                                <option value="" selected disabled>Select node context...</option>
-                                                <option value="data">data</option>
-                                                <option value="data2">data2</option>
-                                                <option value="data3">data3</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Account Role</label>
-                                        <select id="userType" class="form-select shadow-sm" required>
-                                            <option value="" selected disabled>Choose role...</option>
-                                            <option value="Admin">Administrator</option>
-                                            <option value="User">Standard User</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label small fw-bold d-block">Account Status</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="statusSwitch" checked>
-                                            <label class="form-check-label small text-muted" for="statusSwitch" id="statusLabel">Active</label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" id="submitBtn" class="btn btn-danger py-2 fw-bold">Save Account</button>
-                                        <button type="button" id="cancelBtn" class="btn btn-light text-muted border py-2" style="display:none;" onclick="resetUserForm()">Cancel Edit</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-8 col-lg-7">
+                <!-- MAIN SECTION: USER TABLE WITH ADD BUTTON -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
                         <div class="card shadow-sm">
                             <div class="card-body p-4">
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                                     <h6 class="fw-bold mb-0" style="color: #1c96c5;">Registered Accounts</h6>
-                                    <div class="input-group" style="max-width: 300px;">
-                                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Filter users...">
+                                    
+                                    <div class="d-flex gap-2">
+                                        <div class="input-group" style="max-width: 300px;">
+                                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Filter users...">
+                                        </div>
+                                        <button class="btn btn-danger fw-bold text-nowrap" data-bs-toggle="modal" data-bs-target="#userModal" onclick="resetUserForm()">
+                                            <i class="bi bi-person-plus me-1"></i> Add New Account
+                                        </button>
                                     </div>
                                 </div>
                                 
@@ -235,39 +169,158 @@
                                     <table class="table table-hover align-middle">
                                         <thead>
                                             <tr>
+                                                <th>Name</th>
                                                 <th>Username</th>
                                                 <th>LGU</th>
-                                                <th>Node</th>
+                                                <th>Dept / Contact</th>
                                                 <th>Role</th>
                                                 <th>Status</th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="userTable">
-                                            </tbody>
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
             </main>
         </div>
     </div>
 
+    <!-- USER FORM MODAL -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                <div class="modal-header bg-dark text-white py-3" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                    <h5 class="modal-title fw-bold" id="formHeader">
+                        <i class="bi bi-person-plus me-2"></i> Create New Account
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        
+                        <div class="row g-3">
+                            <!-- ROW 1 (4 COLUMNS) -->
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">First Name</label>
+                                <input type="text" id="firstName" class="form-control form-control-sm" placeholder="First Name" required>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Last Name</label>
+                                <input type="text" id="lastName" class="form-control form-control-sm" placeholder="Last Name" required>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Username</label>
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-white border-0"><i class="bi bi-person text-dark"></i></span>
+                                    <input type="text" id="username" class="form-control border-0" placeholder="Enter username" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Alt Email</label>
+                                <input type="email" id="altEmail" class="form-control form-control-sm" placeholder="alt@domain.com">
+                            </div>
+                            
+                            <!-- ROW 2 (4 COLUMNS) -->
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Access Password</label>
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-white border-0"><i class="bi bi-key text-dark"></i></span>
+                                    <input type="password" id="password" class="form-control border-0" placeholder="Create password" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Confirm Password</label>
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-white border-0"><i class="bi bi-key-fill text-dark"></i></span>
+                                    <input type="password" id="confirmPassword" class="form-control border-0" placeholder="Re-enter password" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Department</label>
+                                <input type="text" id="department" class="form-control form-control-sm" placeholder="e.g. Disaster Risk Unit" required>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Contact No.</label>
+                                <input type="tel" id="contactNo" class="form-control form-control-sm" placeholder="09xxxxxxxxx" required>
+                            </div>
+                            
+                            <!-- ROW 3 (4 COLUMNS: LGU, Node, Role/Status) -->
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Designated LGU</label>
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-white border-0"><i class="bi bi-building text-dark"></i></span>
+                                    <select id="lgu" class="form-select border-0" required>
+                                        <option value="" selected disabled>Loading LGUs...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold">Assigned Data Node</label>
+                                <div class="input-group input-group-sm border rounded">
+                                    <span class="input-group-text bg-white border-0"><i class="bi bi-hdd-network text-dark"></i></span>
+                                    <select id="nodeDropdown" class="form-select border-0" required>
+                                        <option value="" selected disabled>Select node context...</option>
+                                        <option value="data">data</option>
+                                        <option value="data2">data2</option>
+                                        <option value="data3">data3</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-12">
+                                <div class="d-flex gap-2 align-items-start">
+                                    <!-- 60% Width Column for Account Role -->
+                                    <div style="width: 60%;">
+                                        <label class="form-label small fw-bold">Account Role</label>
+                                        <select id="userType" class="form-select form-select-sm" required>
+                                            <option value="" selected disabled>Choose role...</option>
+                                            <option value="Admin">Administrator</option>
+                                            <option value="User">Standard User</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- 40% Width Column for Account Status -->
+                                    <div style="width: 40%;">
+                                        <label class="form-label small fw-bold d-block text-truncate">Status</label>
+                                        <div class="form-check form-switch pt-1">
+                                            <input class="form-check-input" type="checkbox" id="statusSwitch" checked>
+                                            <label class="form-check-label small text-dark fw-bold" for="statusSwitch" id="statusLabel">Active</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-light text-dark border px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" id="submitBtn" class="btn btn-danger px-4 py-2 fw-bold">Save Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    
     <script>
         window.onload = function() {
             if (sessionStorage.getItem('loggedIn') !== 'true') {
                 window.location.href = 'log.html';
             }
             document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail");
+            loadLguDropdown();
         };
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
             authDomain: "flooded-95eeb.firebaseapp.com",
@@ -283,11 +336,41 @@
         const form = document.getElementById("userForm");
         const table = document.getElementById("userTable");
         const submitBtn = document.getElementById("submitBtn");
-        const cancelBtn = document.getElementById("cancelBtn");
         const formHeader = document.getElementById("formHeader");
         const statusSwitch = document.getElementById("statusSwitch");
         const statusLabel = document.getElementById("statusLabel");
+        
+        // Bootstrap Modal Instance
+        let bsUserModal;
+        document.addEventListener('DOMContentLoaded', function () {
+            bsUserModal = new bootstrap.Modal(document.getElementById('userModal'));
+        });
 
+        // Dynamic population of LGU Dropdown from Flooded_Areas node
+        function loadLguDropdown() {
+            const lguSelect = document.getElementById("lgu");
+            db.ref("Flooded_Areas").once("value", snapshot => {
+                lguSelect.innerHTML = '<option value="" selected disabled>Select Municipality...</option>';
+                let foundAny = false;
+                snapshot.forEach(child => {
+                    const val = child.val();
+                    if (val && val.type === "Municipality" && val.name) {
+                        const opt = document.createElement("option");
+                        opt.value = val.name;
+                        opt.textContent = val.name;
+                        lguSelect.appendChild(opt);
+                        foundAny = true;
+                    }
+                });
+                if (!foundAny) {
+                    lguSelect.innerHTML = '<option value="" selected disabled>No Municipalities found</option>';
+                }
+            }).catch(error => {
+                console.error("Error fetching LGUs:", error);
+                lguSelect.innerHTML = '<option value="" selected disabled>Failed to load LGUs</option>';
+            });
+        }
+        
         statusSwitch.addEventListener("change", function() {
             statusLabel.innerText = this.checked ? "Active" : "Inactive";
         });
@@ -295,14 +378,38 @@
         form.addEventListener("submit", function(e){
             e.preventDefault();
             const UID = document.getElementById("userId").value;
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
             const user = document.getElementById("username").value;
             const pass = document.getElementById("password").value;
+            const confirmPass = document.getElementById("confirmPassword").value;
+            const department = document.getElementById("department").value;
+            const contactNo = document.getElementById("contactNo").value;
+            const altEmail = document.getElementById("altEmail").value;
             const lgu = document.getElementById("lgu").value;
             const node = document.getElementById("nodeDropdown").value;
             const type = document.getElementById("userType").value;
             const status = statusSwitch.checked ? 1 : 0;
             
-            const data = { user, pass, lgu, node, type, status };
+            // Password Match Validation
+            if (pass !== confirmPass) {
+                Swal.fire('Password Mismatch', 'Access Password and Confirm Password do not match.', 'error');
+                return;
+            }
+            
+            const data = { 
+                firstName, 
+                lastName, 
+                user, 
+                pass, 
+                department, 
+                contactNo, 
+                altEmail, 
+                lgu, 
+                node, 
+                type, 
+                status 
+            };
             
             if(UID){
                 userRef.child(UID).update(data, (error) => {
@@ -316,6 +423,7 @@
                             timer: 1800,
                             showConfirmButton: false
                         });
+                        bsUserModal.hide();
                     }
                 });
             } else {
@@ -330,6 +438,7 @@
                             timer: 1800,
                             showConfirmButton: false
                         });
+                        bsUserModal.hide();
                     }
                 });
             }
@@ -348,16 +457,20 @@
                 const fallbackLgu = data.lgu ? data.lgu : 'Unassigned';
                 const fallbackNode = data.node ? data.node : 'none';
                 
+                const fullName = (data.firstName || data.lastName) ? `${data.firstName || ''} ${data.lastName || ''}`.trim() : 'N/A';
+                const deptContact = `${data.department || 'N/A'} <br><small class="text-muted">${data.contactNo || ''}</small>`;
+                
                 table.innerHTML += `
                     <tr>
-                        <td class="fw-bold text-dark">${data.user}</td>
-                        <td class="text-muted small">${fallbackLgu}</td>
-                        <td><code class="text-dark fw-bold small">${fallbackNode}</code></td>
+                        <td class="fw-bold text-dark">${fullName}</td>
+                        <td class="text-dark small">${data.user}</td>
+                        <td class="text-dark small">${fallbackLgu}</td>
+                        <td class="small">${deptContact}</td>
                         <td><span class="badge ${badgeClass} opacity-75">${data.type}</span></td>
                         <td><span class="badge ${statusBadge}">${statusText}</span></td>
                         <td class="text-end">
-                            <button class="btn btn-outline-dark btn-sm me-1" title="View" onclick="viewUser('${data.user}','${data.type}','${fallbackLgu}','${fallbackNode}','${statusText}')"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-outline-warning btn-sm me-1" title="Edit" onclick="editUser('${key}','${data.user}','${data.pass}','${fallbackLgu}','${fallbackNode}', '${data.type}', ${data.status ?? 1})"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn btn-outline-dark btn-sm me-1" title="View" onclick="viewUser('${data.user}','${data.type}','${fallbackLgu}','${fallbackNode}','${statusText}', '${fullName}', '${data.department || 'N/A'}', '${data.contactNo || 'N/A'}', '${data.altEmail || 'N/A'}')"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-outline-warning btn-sm me-1" title="Edit" onclick="editUser('${key}','${data.user}','${data.pass}','${fallbackLgu}','${fallbackNode}', '${data.type}', ${data.status ?? 1}, '${data.firstName || ''}', '${data.lastName || ''}', '${data.department || ''}', '${data.contactNo || ''}', '${data.altEmail || ''}')"><i class="bi bi-pencil-square"></i></button>
                             <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="deleteUser('${key}', '${data.user}')"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -389,10 +502,16 @@
             });
         }
         
-        function editUser(id, username, password, lgu, node, type, status){
+        function editUser(id, username, password, lgu, node, type, status, firstName, lastName, department, contactNo, altEmail){
             document.getElementById("userId").value = id;
+            document.getElementById("firstName").value = firstName;
+            document.getElementById("lastName").value = lastName;
             document.getElementById("username").value = username;
             document.getElementById("password").value = password;
+            document.getElementById("confirmPassword").value = password;
+            document.getElementById("department").value = department;
+            document.getElementById("contactNo").value = contactNo;
+            document.getElementById("altEmail").value = altEmail;
             document.getElementById("lgu").value = lgu === 'Unassigned' ? '' : lgu;
             document.getElementById("nodeDropdown").value = node === 'none' ? '' : node;
             document.getElementById("userType").value = type;
@@ -402,8 +521,9 @@
             
             formHeader.innerHTML = '<i class="bi bi-pencil-square me-2"></i> Edit Account Parameters';
             submitBtn.innerText = "Update Changes";
-            submitBtn.className = "btn btn-warning fw-bold py-2";
-            cancelBtn.style.display = "block";
+            submitBtn.className = "btn btn-warning fw-bold px-4 py-2";
+
+            bsUserModal.show();
         }
         
         function resetUserForm() {
@@ -413,16 +533,19 @@
             statusLabel.innerText = "Active";
             formHeader.innerHTML = '<i class="bi bi-person-plus me-2"></i> Create New Account';
             submitBtn.innerText = "Save Account";
-            submitBtn.className = "btn btn-danger fw-bold py-2";
-            cancelBtn.style.display = "none";
+            submitBtn.className = "btn btn-danger fw-bold px-4 py-2";
         }
         
-        function viewUser(username, type, lgu, node, status){
+        function viewUser(username, type, lgu, node, status, fullName, department, contactNo, altEmail){
             Swal.fire({
                 title: `<span style="color:#1c96c5;">System Summary Profile</span>`,
                 html: `
                     <div class="text-start border p-3 rounded bg-light">
+                        <p class="mb-2"><strong>Full Name:</strong> ${fullName}</p>
                         <p class="mb-2"><strong>Profile Username:</strong> ${username}</p>
+                        <p class="mb-2"><strong>Alt Email:</strong> ${altEmail}</p>
+                        <p class="mb-2"><strong>Department:</strong> ${department}</p>
+                        <p class="mb-2"><strong>Contact Number:</strong> ${contactNo}</p>
                         <p class="mb-2"><strong>Designated Location:</strong> ${lgu}</p>
                         <p class="mb-2"><strong>Network Node Mapping:</strong> <code class="text-dark fw-bold">${node}</code></p>
                         <p class="mb-2"><strong>Assigned Role Level:</strong> ${type}</p>
@@ -441,7 +564,7 @@
                 row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
             });
         });
-
+        
         document.getElementById('logoutLink').addEventListener('click', function (e) {
             e.preventDefault();
             Swal.fire({
@@ -468,5 +591,6 @@
             });
         });
     </script>
+    <script src="menu.js"></script>
 </body>
 </html>
