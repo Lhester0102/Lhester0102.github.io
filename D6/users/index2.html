@@ -16,7 +16,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    
     /* Make the popup container larger */
     .popup-chart-container { 
       width: 320px; 
@@ -114,7 +113,6 @@
     .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
     .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
     
-    
     /* Popups */
     .popup-chart { width: 100% !important; height: 110px !important; margin-bottom: 6px; }
     .chart-label { font-size: 0.6rem; font-weight: 700; color: #6c757d; text-transform: uppercase; margin-bottom: 2px; display: block; }
@@ -144,29 +142,11 @@
         </div>
         
         <ul class="nav flex-column">
-          <!-- <li class="mb-1"><a class="nav-link text-white" href="floods.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li> -->
-          <!-- <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Map Flood Watch</a></li> -->
           <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-water me-2"></i>Flood Watch</a></li>
-          <!-- <li class="nav-item">
-            <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
-              <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
-            </a>
-            <div class="collapse" id="manageMenu">
-              <ul class="list-unstyled ps-3 small">
-                <li><a href="municipalities.html" class="nav-link text-white-50 py-1">Municipalities</a></li>
-                <li><a href="upload2.html" class="nav-link text-white-50 py-1">Upload GeoJSON</a></li>
-              </ul>
-            </div>
-          </li>
-          <li class="mb-1"><a class="nav-link text-white " href="users.html"><i class="bi bi-people me-2"></i>Users</a></li>
-          <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-clipboard-data me-2"></i>Flood Reports</a></li>
         </ul>
-        
-        <div class="mt-4 pt-3 border-top border-secondary">
-          <a id ="logoutLink" href="log.html" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
-        </div> -->
       </nav>
+
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
         <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
@@ -177,68 +157,80 @@
             
             <div class="d-flex align-items-baseline gap-2">
               <h5 class="mb-0 fw-bold text-dark">Stations on Map</h5>
-              <span id="lastUpdated" class="text-muted small">
-              </span>
+              <span id="lastUpdated" class="text-muted small"></span>
             </div>
-          </div>
-      </div>
-      <div class="row" style="height: 88%;">
-        <div class="col-12 h-100">
-          <div class="card h-100 p-1 position-relative">
-            <div id="map"></div>
-            
-            <div id="layer-controls">
-              <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 12px;">FLOOD PRONE RISKS</h6>
-              <div class="form-check mb-1">
-                <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
-                <label class="form-check-label text-dark" for="chkSevere">Severe</label>
-              </div>
-              <div class="form-check mb-1">
-                <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
-                <label class="form-check-label text-dark" for="chkHigh">High</label>
-              </div>
-              <div class="form-check mb-1">
-                <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
-                <label class="form-check-label text-dark" for="chkModerate">Moderate</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
-                <label class="form-check-label text-dark" for="chkLow">Low / Safe</label>
-              </div>
-            </div>
-            <div id="map-legend2">
-              <div class="dropdown w-100 ">
-                <button class="btn rounded btn-sm shadow-sm w-100 d-flex align-items-center 
-                justify-content-between dropdown-toggle text-dark" 
-                type="button" data-bs-toggle="dropdown">
-                <div class="d-flex align-items-center text-dark">
-                  <i class="text-dark bi bi-water me-2"></i>
-                  <span>River Stations</span>
-                </div>
-              </button>
-              
-              <ul class="dropdown-menu dropdown-menu-start shadow border-0 w-100" 
-              id="riverDropdownMenu" 
-              style="max-height:300px; overflow-y:auto;">
-            </ul>
           </div>
         </div>
-        
-        <div id="map-legend">
-          <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
-          <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
-          <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (< 30)</span></div>
-          <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
+
+        <div class="row" style="height: 88%;">
+          <div class="col-12 h-100">
+            <div class="card h-100 p-1 position-relative">
+              <div id="map"></div>
+              
+              <div id="layer-controls">
+                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 12px;">FLOOD PRONE RISKS</h6>
+                <div class="form-check mb-1">
+                  <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
+                  <label class="form-check-label text-dark" for="chkSevere">Severe</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
+                  <label class="form-check-label text-dark" for="chkHigh">High</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
+                  <label class="form-check-label text-dark" for="chkModerate">Moderate</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
+                  <label class="form-check-label text-dark" for="chkLow">Low / Safe</label>
+                </div>
+              </div>
+
+              <div id="map-legend2">
+                <div class="dropdown w-100 ">
+                  <button class="btn rounded btn-sm shadow-sm w-100 d-flex align-items-center justify-content-between dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown">
+                    <div class="d-flex align-items-center text-dark">
+                      <i class="text-dark bi bi-water me-2"></i>
+                      <span>River Stations</span>
+                    </div>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-start shadow border-0 w-100" id="riverDropdownMenu" style="max-height:300px; overflow-y:auto;"></ul>
+                </div>
+              </div>
+          
+              <div id="map-legend">
+                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
+                <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (&lt; 30)</span></div>
+                <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Video Popup Modal -->
+  <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="videoModalLabel">System Overview Video</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <video id="popupVideo" class="w-100" controls autoplay muted style="border-bottom-left-radius: .3rem; border-bottom-right-radius: .3rem;">
+            <source src="users.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
         </div>
       </div>
     </div>
   </div>
-  
-</main>
-</div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -247,15 +239,25 @@
 
 <script>
   let model, minVals = [], maxVals = [];
-  let stationMarkersArray = []; // Track active markers to allow dynamic clearing/re-coloring
-  let isMapFullyLoaded = false; // Prevents race conditions during initial load
+  let stationMarkersArray = []; 
+  let isMapFullyLoaded = false; 
 
   window.onload = function() {
     loadModel();
-    // if (sessionStorage.getItem('loggedIn') !== 'true') {
-    //   window.location.href = 'log.html';
-    // }
-    // document.getElementById("emails").innerHTML=sessionStorage.getItem("userEmail");
+
+    // Trigger Video Modal on Load
+    const videoModalElement = document.getElementById('videoModal');
+    const videoElement = document.getElementById('popupVideo');
+    const videoModal = new bootstrap.Modal(videoModalElement);
+    
+    videoModal.show();
+
+    // Pause video playback when closing the modal
+    videoModalElement.addEventListener('hidden.bs.modal', function () {
+      if (videoElement) {
+        videoElement.pause();
+      }
+    });
   };
   
   const firebaseConfig = {
@@ -304,7 +306,7 @@
     for (const h of horizons) {
       const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
       predictions.push(pred[0] * 100);
-      last[0] += 0.05; // Simulation increment
+      last[0] += 0.05; 
     }
     return predictions;
   }
@@ -326,10 +328,10 @@
   };
   
   const getMarkerColorByProb = (v) => {
-    if(v >= 80) return '#dc3545'; // Red
-    if(v >= 60) return '#fd7e14'; // Orange
-    if(v >= 30) return '#ffc107'; // Yellow
-    return '#198754';             // Green
+    if(v >= 80) return '#dc3545'; 
+    if(v >= 60) return '#fd7e14'; 
+    if(v >= 30) return '#ffc107'; 
+    return '#198754';             
   };
 
   const getFloodColor = (v) => {
@@ -504,7 +506,6 @@
     data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
   };
   
-  // --- ROBUST CHRONOLOGICAL POSITION MATCHING ---
   ['data', 'data2', 'data3'].forEach(nodeKey => {
     db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
       if (!snapshot.exists()) return;
@@ -518,20 +519,17 @@
         const key = child.key;
         entries.push(val);
         
-        // Explicitly isolate the absolute last chronological entry by sorting against node key IDs
         if (key > latestKey) {
           latestKey = key;
           latestRecord = val;
         }
       });
       
-      // Map historical sequence directly
       liveDataStore[nodeKey].history = entries.map(e => {
         if (nodeKey === 'data2') return e.water ?? e.level ?? 0;
         return e.level ?? e.water ?? 0;
       });
       
-      // Assign exclusively the absolute verified newest record without index guesswork
       liveDataStore[nodeKey].current = {
         level: nodeKey === 'data2' ? (latestRecord.water ?? latestRecord.level ?? 0) : (latestRecord.level ?? latestRecord.water ?? 0),
         flow: latestRecord.flow ?? latestRecord.discharge ?? 0,
@@ -678,12 +676,6 @@
       });
     }
   }
-  
-  document.getElementById('logoutLink').addEventListener('click', function(e) {
-    e.preventDefault();
-    sessionStorage.clear(); 
-    window.location.href = 'log.html'; 
-  });
 </script>
 </body>
 </html>
