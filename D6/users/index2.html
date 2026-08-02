@@ -223,8 +223,9 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-0">
-          <video id="popupVideo" class="w-100" controls autoplay muted style="border-bottom-left-radius: .3rem; border-bottom-right-radius: .3rem;">
-            <source src="users.mp4" type="video/mp4">
+          <!-- Note: Removed the "muted" attribute to enable audio -->
+          <video id="popupVideo" class="w-100" controls autoplay style="border-bottom-left-radius: .3rem; border-bottom-right-radius: .3rem;">
+            <source src="images/users.mp4" type="video/mp4">
             Your browser does not support the video tag.
           </video>
         </div>
@@ -251,6 +252,14 @@
     const videoModal = new bootstrap.Modal(videoModalElement);
     
     videoModal.show();
+
+    // Explicitly unmute and play video
+    if (videoElement) {
+      videoElement.muted = false;
+      videoElement.play().catch(function(error) {
+        console.warn("Autoplay with sound was prevented by browser policy:", error);
+      });
+    }
 
     // Pause video playback when closing the modal
     videoModalElement.addEventListener('hidden.bs.modal', function () {
