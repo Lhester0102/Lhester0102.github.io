@@ -42,13 +42,11 @@
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
-        /* Badges for Station Headers */
+        /* Specific Badges for Flood Data */
         .badge-metric { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-        
-        /* Text Value Color-Coding Threshold Classes */
-        .lvl-text-high { color: #dc3545 !important; } /* Red */
-        .lvl-text-med { color: #fd7e14 !important; }  /* Orange */
-        .lvl-text-low { color: #198754 !important; }  /* Green */
+        .lvl-high { background: #ffebee; color: #c62828; }
+        .lvl-med { background: #fff3e0; color: #ef6c00; }
+        .lvl-low { background: #e8f5e9; color: #2e7d32; }
         
         @media (min-width: 768px) {
             .sidebar { min-height: 100vh; height: 100vh; }
@@ -69,25 +67,11 @@
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 
-        /* Metric Box Interactive Design */
-        .metric-card-clickable {
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            user-select: none;
-            background-color: #f8f9fa;
-        }
-        .metric-card-clickable:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important;
-            background-color: #ffffff;
-        }
-        .metric-icon-wrapper {
-            font-size: 1.3rem;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-        .metric-title { font-size: 0.8rem; color: #000000; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .metric-value { font-weight: 800; margin-bottom: 0; font-size: 1.25rem; }
+        /* Metric Item Stylings forced to Black text output */
+        .metric-title { font-size: 0.7rem; color: #000000 !important; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metric-value { font-weight: 800; color: #000000 !important; margin-bottom: 0; font-size: 1rem; }
+        .workspace-station-title { color: #000000 !important; font-weight: 700 !important; }
+        .lvl-grey-box { background: #e9ecef !important; }
         
         /* Video Overlay Controls (Top Right) */
         .video-controls-top-right {
@@ -170,6 +154,7 @@
                         </button>
                         <h5 class="mb-0 fw-bold text-dark">Main Dashboard</h5>
                         
+                        <!-- Pushed to the right using ms-auto -->
                         <a href="newindex3.html" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 ms-auto me-2">
                             <i class="bi bi-house-door-fill"></i> Map View
                         </a>
@@ -188,122 +173,92 @@
                     </div>
                 </div>
 
-                <!-- MAIN WORKSPACE MATRIX: Stations and Icons Consolidated in Single Unified Cards -->
-                <div class="card p-3 bg-white shadow-sm mb-3">
-                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
+                <!-- TOP ROW: Three Side-by-Side Horizontal Station Headers -->
+                <div class="row g-3 mb-1">
+                    <!-- PASUQUIN STATION HEADER -->
+                    <div class="col-md-4">
+                        <div class="card border-top border-dark border-3 bg-white p-2 shadow-sm h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1"></i>Baldi Station</span>
+                                <div id="status-pasuquin"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-dark mt-2" style="font-size: 0.7rem;">
+                                <span id="interval-pasuquin"><i class="bi bi-clock"></i> Calc...</span>
+                                <span id="time-pasuquin" class="text-dark fw-semibold">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LAOAG BASIN HEADER -->
+                    <div class="col-md-4">
+                        <div class="card border-top border-dark border-3 bg-white p-2 shadow-sm h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1"></i>Padsan Station</span>
+                                <div id="status-laoag"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-dark mt-2" style="font-size: 0.7rem;">
+                                <span id="interval-laoag"><i class="bi bi-clock"></i> Calc...</span>
+                                <span id="time-laoag" class="text-dark fw-semibold">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BACARRA NODE HEADER -->
+                    <div class="col-md-4">
+                        <div class="card border-top border-dark border-3 bg-white p-2 shadow-sm h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1"></i>Bislak Station</span>
+                                <div id="status-bacarra"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-dark mt-2" style="font-size: 0.7rem;">
+                                <span id="interval-bacarra"><i class="bi bi-clock"></i> Calc...</span>
+                                <span id="time-bacarra" class="text-dark fw-semibold">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDDLE ROW: Consolidated Matrix Area Workspace containing Metrics and Trends -->
+                <div class="card p-2 bg-white shadow-sm mb-1">
+                    <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
                     
-                    <div class="row g-3">
-                        <!-- PASUQUIN / BALDI STATION CARD -->
-                        <div class="col-lg-4">
-                            <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
-                                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Baldi Station</span>
-                                    <div id="status-pasuquin"></div>
-                                </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
-                                    <span id="interval-pasuquin"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-pasuquin" class="fw-semibold text-dark">--:--</span>
-                                </div>
-
-                                <div class="row g-2 mt-1">
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('pasuquin', 'Baldi Station', 'water')">
-                                            <div class="metric-icon-wrapper text-primary"><i class="bi bi-droplet-fill"></i></div>
-                                            <div class="metric-title">Water Level</div>
-                                            <h6 id="lvl-pasuquin" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('pasuquin', 'Baldi Station', 'rain')">
-                                            <div class="metric-icon-wrapper text-info"><i class="bi bi-cloud-rain-fill"></i></div>
-                                            <div class="metric-title">Rainfall</div>
-                                            <h6 id="rain-pasuquin" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('pasuquin', 'Baldi Station', 'flow')">
-                                            <div class="metric-icon-wrapper text-success"><i class="bi bi-water"></i></div>
-                                            <div class="metric-title">Flow Rate</div>
-                                            <h6 id="flow-pasuquin" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="row g-4">
+                        <!-- Pasuquin Metrics & Chart Panel -->
+                        <div class="col-lg-4 border-end border-light">
+                            <div class="row g-1 mb-2">
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Water Lvl</div><h5 id="lvl-pasuquin" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Rainfall</div><h5 id="rain-pasuquin" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Flow</div><h5 id="flow-pasuquin" class="metric-value">--</h5></div>
+                                <div class="col-3 lvl-grey-box rounded p-2 text-center"><div class="metric-title">Flood Depth</div><h5 id="depth-pasuquin" class="metric-value">--</h5></div>
+                            </div>
+                            <div style="height: 140px; width: 100%;">
+                                <canvas id="inline-chart-pasuquin"></canvas>
                             </div>
                         </div>
 
-                        <!-- LAOAG / PADSAN STATION CARD -->
-                        <div class="col-lg-4">
-                            <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
-                                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Padsan Station</span>
-                                    <div id="status-laoag"></div>
-                                </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
-                                    <span id="interval-laoag"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-laoag" class="fw-semibold text-dark">--:--</span>
-                                </div>
-
-                                <div class="row g-2 mt-1">
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('laoag', 'Padsan Station', 'water')">
-                                            <div class="metric-icon-wrapper text-primary"><i class="bi bi-droplet-fill"></i></div>
-                                            <div class="metric-title">Water Level</div>
-                                            <h6 id="lvl-laoag" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('laoag', 'Padsan Station', 'rain')">
-                                            <div class="metric-icon-wrapper text-info"><i class="bi bi-cloud-rain-fill"></i></div>
-                                            <div class="metric-title">Rainfall</div>
-                                            <h6 id="rain-laoag" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('laoag', 'Padsan Station', 'flow')">
-                                            <div class="metric-icon-wrapper text-success"><i class="bi bi-water"></i></div>
-                                            <div class="metric-title">Flow Rate</div>
-                                            <h6 id="flow-laoag" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Laoag Metrics & Chart Panel -->
+                        <div class="col-lg-4 border-end border-light">
+                            <div class="row g-1 mb-2">
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Water Lvl</div><h5 id="lvl-laoag" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Rainfall</div><h5 id="rain-laoag" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Flow</div><h5 id="flow-laoag" class="metric-value">--</h5></div>
+                                <div class="col-3 lvl-grey-box rounded p-2 text-center"><div class="metric-title">Flood Depth</div><h5 id="depth-laoag" class="metric-value">--</h5></div>
+                            </div>
+                            <div style="height: 140px; width: 100%;">
+                                <canvas id="inline-chart-laoag"></canvas>
                             </div>
                         </div>
 
-                        <!-- BACARRA / BISLAK STATION CARD -->
+                        <!-- Bacarra Metrics & Chart Panel -->
                         <div class="col-lg-4">
-                            <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
-                                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Bislak Station</span>
-                                    <div id="status-bacarra"></div>
-                                </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
-                                    <span id="interval-bacarra"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-bacarra" class="fw-semibold text-dark">--:--</span>
-                                </div>
-
-                                <div class="row g-2 mt-1">
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('bacarra', 'Bislak Station', 'water')">
-                                            <div class="metric-icon-wrapper text-primary"><i class="bi bi-droplet-fill"></i></div>
-                                            <div class="metric-title">Water Level</div>
-                                            <h6 id="lvl-bacarra" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('bacarra', 'Bislak Station', 'rain')">
-                                            <div class="metric-icon-wrapper text-info"><i class="bi bi-cloud-rain-fill"></i></div>
-                                            <div class="metric-title">Rainfall</div>
-                                            <h6 id="rain-bacarra" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('bacarra', 'Bislak Station', 'flow')">
-                                            <div class="metric-icon-wrapper text-success"><i class="bi bi-water"></i></div>
-                                            <div class="metric-title">Flow Rate</div>
-                                            <h6 id="flow-bacarra" class="metric-value">--</h6>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="row g-1 mb-2">
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Water Lvl</div><h5 id="lvl-bacarra" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Rainfall</div><h5 id="rain-bacarra" class="metric-value">--</h5></div>
+                                <div class="col-3 bg-light rounded p-2 text-center"><div class="metric-title">Flow</div><h5 id="flow-bacarra" class="metric-value">--</h5></div>
+                                <div class="col-3 lvl-grey-box rounded p-2 text-center"><div class="metric-title">Flood Depth</div><h5 id="depth-bacarra" class="metric-value">--</h5></div>
+                            </div>
+                            <div style="height: 140px; width: 100%;">
+                                <canvas id="inline-chart-bacarra"></canvas>
                             </div>
                         </div>
                     </div>
@@ -311,8 +266,9 @@
 
                 <!-- LOWER WORKSPACE: 3 Circular/Doughnut Graphs for Infrastructure Metrics -->
                 <div class="card p-4 bg-white shadow-sm mb-1">
-                    <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart-fill me-2"></i>Infrastructure Overview Metrics Matrix</h6>
+                    <h6 class="fw-bold mb-4 text-secondary"><i class="bi bi-pie-chart-fill me-2"></i>Infrastructure Overview Metrics Matrix</h6>
                     <div class="row g-3 text-center">
+                        <!-- Chart 1: Users -->
                         <div class="col-md-4 border-end border-light">
                             <div class="mx-auto" style="position: relative; height: 100px; width: 100px;">
                                 <canvas id="usersCircleChart"></canvas>
@@ -322,6 +278,7 @@
                                 <small class="text-dark fw-semibold">12 Active Personnel</small>
                             </div>
                         </div>
+                        <!-- Chart 2: Stations -->
                         <div class="col-md-4 border-end border-light">
                             <div class="mx-auto" style="position: relative; height: 100px; width: 100px;">
                                 <canvas id="stationsCircleChart"></canvas>
@@ -331,6 +288,7 @@
                                 <small class="text-dark fw-semibold">3 Active Nodes</small>
                             </div>
                         </div>
+                        <!-- Chart 3: Municipalities -->
                         <div class="col-md-4">
                             <div class="mx-auto" style="position: relative; height: 100px; width: 100px;">
                                 <canvas id="municipalitiesCircleChart"></canvas>
@@ -347,44 +305,27 @@
         </div>
     </div>
 
-    <!-- Dynamic Metric Details Modal -->
-    <div class="modal fade" id="metricModal" tabindex="-1" aria-labelledby="metricModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title fw-bold text-dark" id="metricModalLabel"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Metric Analysis</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div style="height: 320px; width: 100%;">
-                        <canvas id="modalMetricChart"></canvas>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Video Popup Modal -->
+<!-- Video Popup Modal -->
     <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content bg-dark text-white border-0 shadow-lg">
-                <div class="modal-header border-dark">
+                <div class="modal-header border-secondary">
                     <h5 class="modal-title" id="videoModalLabel"><i class="bi bi-play-btn-fill me-2 text-danger"></i>Admin Overview</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeVideoBtn"></button>
                 </div>
                 <div class="modal-body p-0 position-relative text-center bg-black">
+                    <!-- Top-Right Action Controls (Enable Sound & Skip Buttons) -->
                     <div class="video-controls-top-right">
                         <button id="unmuteBtn" class="btn btn-primary btn-sm shadow rounded-pill px-3 py-1">
                             <i class="bi bi-volume-up-fill me-1"></i> Enable Sound
                         </button>
-                        <button id="skipBtn" class="btn btn-dark btn-sm shadow rounded-pill px-3 py-1" data-bs-dismiss="modal">
+                        <button id="skipBtn" class="btn btn-secondary btn-sm shadow rounded-pill px-3 py-1" data-bs-dismiss="modal">
                             <i class="bi bi-fast-forward-fill me-1"></i> Skip
                         </button>
                     </div>
                     
+                    <!-- Video Element with controls attribute enabled -->
                     <video id="popupVideo" class="w-100" style="max-height: 70vh;" controls muted playsinline loop>
                         <source src="admins.mp4" type="video/mp4">
                         Your browser does not support playing HTML video.
@@ -418,138 +359,6 @@
         const db = getDatabase(app);
 
         const chartInstances = {};
-        const stationRecordsMap = {};
-        let dbThresholds = null;
-
-        // Fetch threshold configurations from Firebase RTDB (under "threshold" node)
-        onValue(ref(db, 'threshold'), (snapshot) => {
-            if (snapshot.exists()) {
-                dbThresholds = snapshot.val();
-            }
-        });
-
-        // Determine threshold limits mapping directly to Firebase fields
-        function getThresholdValues(type) {
-            let warning = 2.5, high = 4.0;
-            if (type === 'water') {
-                warning = parseFloat(dbThresholds?.level) || 2.5;
-                high = parseFloat(dbThresholds?.level_high) || 4.0;
-            } else if (type === 'rain') {
-                warning = parseFloat(dbThresholds?.rain) || 7.5;
-                high = parseFloat(dbThresholds?.rain_high) || 15.0;
-            } else if (type === 'flow') {
-                warning = parseFloat(dbThresholds?.flow) || 10.0;
-                high = parseFloat(dbThresholds?.flow_high) || 25.0;
-            }
-            return { warning, high };
-        }
-
-        function getThresholdTextClass(type, val) {
-            const v = parseFloat(val);
-            if (isNaN(v)) return 'lvl-text-low';
-
-            const { warning, high } = getThresholdValues(type);
-
-            if (v >= high) return 'lvl-text-high';
-            if (v >= warning) return 'lvl-text-med';
-            return 'lvl-text-low';
-        }
-
-        function applyValueTextStyle(elemId, type, val) {
-            const elem = document.getElementById(elemId);
-            if (!elem) return;
-
-            elem.classList.remove('lvl-text-low', 'lvl-text-med', 'lvl-text-high');
-            const styleClass = getThresholdTextClass(type, val);
-            elem.classList.add(styleClass);
-        }
-
-        // Expose modal trigger to global scope with Threshold Reference Lines
-        window.openMetricModal = function(prefix, stationName, metricType) {
-            const records = stationRecordsMap[prefix] || [];
-            const trendData = generate30DayTrend(records);
-
-            let label = '';
-            let data = [];
-            let color = '';
-
-            if (metricType === 'water') {
-                label = 'Water Level (m)';
-                data = trendData.waterLevels;
-                color = '#0d6efd';
-            } else if (metricType === 'rain') {
-                label = 'Rainfall (mm)';
-                data = trendData.rainfalls;
-                color = '#0dcaf0';
-            } else if (metricType === 'flow') {
-                label = 'Flow Rate (m³/s)';
-                data = trendData.flowRates;
-                color = '#198754';
-            }
-
-            const limits = getThresholdValues(metricType);
-            const warningLineData = Array(trendData.labels.length).fill(limits.warning);
-            const highLineData = Array(trendData.labels.length).fill(limits.high);
-
-            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${stationName} - ${label} Trend`;
-
-            if (chartInstances['modalMetricChart']) {
-                chartInstances['modalMetricChart'].destroy();
-            }
-
-            const ctx = document.getElementById('modalMetricChart').getContext('2d');
-            chartInstances['modalMetricChart'] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: trendData.labels,
-                    datasets: [
-                        {
-                            label: label,
-                            data: data,
-                            borderColor: color,
-                            backgroundColor: color + '22',
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 2.5,
-                            pointRadius: 3,
-                            pointHoverRadius: 5
-                        },
-                        {
-                            label: `Warning Threshold (${limits.warning})`,
-                            data: warningLineData,
-                            borderColor: '#fd7e14', // Orange Warning Line
-                            borderDash: [6, 6],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false
-                        },
-                        {
-                            label: `High Risk Threshold (${limits.high})`,
-                            data: highLineData,
-                            borderColor: '#dc3545', // Red High Risk Line
-                            borderDash: [6, 6],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true, position: 'top' }
-                    },
-                    scales: {
-                        x: { display: true, title: { display: true, text: 'Date' } },
-                        y: { display: true, title: { display: true, text: label } }
-                    }
-                }
-            });
-
-            const metricModal = new bootstrap.Modal(document.getElementById('metricModal'));
-            metricModal.show();
-        };
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('loggedIn') !== 'true') { 
@@ -561,13 +370,18 @@
                 emailElem.innerHTML = sessionStorage.getItem("userEmail") || "Admin";
             }
 
+            // Initialize Video Popup Modal Logic
             initVideoModal();
+
+            // Build the 3 circle doughnut layouts
             initCircleGraphs();
 
+            // Bind real-time data listeners for nodes
             bindStationNode('data', 'pasuquin');
             bindStationNode('data2', 'laoag');
             bindStationNode('data3', 'bacarra');
 
+            // Logout event listeners
             const logoutLink = document.getElementById('logoutLink');
             if (logoutLink) {
                 logoutLink.addEventListener('click', logoutUser);
@@ -585,21 +399,27 @@
             const unmuteBtn = document.getElementById('unmuteBtn');
 
             if (videoModalElement && popupVideo) {
+                // Initialize Modal via Bootstrap
                 const videoModal = new bootstrap.Modal(videoModalElement);
+                
+                // Show video popup on page load
                 videoModal.show();
 
+                // Autoplay initial muted playback
                 popupVideo.play().catch(error => {
                     console.log("Autoplay blocked by browser settings:", error);
                 });
 
+                // Unmute sound on user click
                 if (unmuteBtn) {
                     unmuteBtn.addEventListener('click', () => {
                         popupVideo.muted = false;
                         popupVideo.play();
-                        unmuteBtn.style.display = 'none';
+                        unmuteBtn.style.display = 'none'; // Hide sound prompt
                     });
                 }
 
+                // Clean up video state when modal is closed or skipped
                 videoModalElement.addEventListener('hidden.bs.modal', () => {
                     popupVideo.pause();
                     popupVideo.currentTime = 0;
@@ -623,6 +443,7 @@
                 plugins: { legend: { display: false } }
             };
 
+            // Users Circle Graph
             chartInstances['usersCircleChart'] = new Chart(document.getElementById('usersCircleChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
@@ -636,6 +457,7 @@
                 options: commonOptions
             });
 
+            // Stations Circle Graph
             chartInstances['stationsCircleChart'] = new Chart(document.getElementById('stationsCircleChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
@@ -649,6 +471,7 @@
                 options: commonOptions
             });
 
+            // Municipalities Circle Graph
             chartInstances['municipalitiesCircleChart'] = new Chart(document.getElementById('municipalitiesCircleChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
@@ -663,12 +486,11 @@
             });
         }
 
-        function getDepthBadgeInfo(level) {
+        function getDepthInfo(level) {
             const l = parseFloat(level);
-            const { warning, high } = getThresholdValues('water');
-            if (l >= high) return { label: 'High Risk', class: 'bg-danger text-white' };
-            if (l >= warning) return { label: 'Warning', class: 'bg-warning text-dark' };
-            return { label: 'Safe', class: 'bg-success text-white' };
+            if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
+            if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
+            return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
         }
 
         function calculateInterval(records) {
@@ -718,6 +540,68 @@
             };
         }
 
+        function updateColumnChart(elementsPrefix, records) {
+            const trendData = generate30DayTrend(records);
+            const canvasId = `inline-chart-${elementsPrefix}`;
+            
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [
+                        {
+                            label: 'Level',
+                            data: trendData.waterLevels,
+                            borderColor: '#198754',
+                            borderWidth: 2,
+                            tension: 0.15,
+                            pointRadius: 1
+                        },
+                        {
+                            label: 'Rain',
+                            data: trendData.rainfalls,
+                            borderColor: '#ffc107',
+                            borderWidth: 1.5,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Flow',
+                            data: trendData.flowRates,
+                            borderColor: '#1c96c5',
+                            borderWidth: 1.5,
+                            tension: 0.1,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            labels: { boxWidth: 6, font: { size: 7.5 }, padding: 2 }
+                        } 
+                    },
+                    scales: {
+                        x: { 
+                            display: true, 
+                            grid: { display: false }, 
+                            ticks: { font: { size: 7.5 }, maxTicksLimit: 6 } 
+                        },
+                        y: { display: true, ticks: { font: { size: 7.5 }, maxTicksLimit: 3 } }
+                    }
+                }
+            });
+        }
+
         function bindStationNode(nodePath, elementsPrefix) {
             onValue(ref(db, nodePath), (snapshot) => {
                 let records = [];
@@ -734,15 +618,14 @@
                     }
                 }
 
-                stationRecordsMap[elementsPrefix] = records;
-
                 if (records.length === 0) {
                     document.getElementById(`lvl-${elementsPrefix}`).innerText = '--';
                     document.getElementById(`rain-${elementsPrefix}`).innerText = '--';
                     document.getElementById(`flow-${elementsPrefix}`).innerText = '--';
+                    document.getElementById(`depth-${elementsPrefix}`).innerText = '--';
                     document.getElementById(`time-${elementsPrefix}`).innerText = 'Offline';
                     document.getElementById(`interval-${elementsPrefix}`).innerText = 'Int: None';
-                    document.getElementById(`status-${elementsPrefix}`).innerHTML = `<span class="badge-metric bg-dark text-white">No Data</span>`;
+                    document.getElementById(`status-${elementsPrefix}`).innerHTML = `<span class="badge-metric lvl-high">No Data</span>`;
                     return;
                 }
                     
@@ -753,19 +636,18 @@
                 });
 
                 const current = records[records.length - 1]; 
-                const meta = getDepthBadgeInfo(current.level);
+                const meta = getDepthInfo(current.level);
 
                 document.getElementById(`lvl-${elementsPrefix}`).innerText = current.level !== undefined ? `${current.level} m` : '--';
                 document.getElementById(`rain-${elementsPrefix}`).innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
                 document.getElementById(`flow-${elementsPrefix}`).innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
+                document.getElementById(`depth-${elementsPrefix}`).innerText = current.level !== undefined ? meta.depthCalc : '--';
                 document.getElementById(`time-${elementsPrefix}`).innerText = current.time || current.date || '--:--';
                 document.getElementById(`interval-${elementsPrefix}`).innerHTML = `<i class="bi bi-clock"></i> Int: ${calculateInterval(records)}`;
                 
                 document.getElementById(`status-${elementsPrefix}`).innerHTML = `<span class="badge-metric ${meta.class}">${meta.label}</span>`;
                 
-                applyValueTextStyle(`lvl-${elementsPrefix}`, 'water', current.level);
-                applyValueTextStyle(`rain-${elementsPrefix}`, 'rain', current.rain);
-                applyValueTextStyle(`flow-${elementsPrefix}`, 'flow', current.flow);
+                updateColumnChart(elementsPrefix, records);
             });
         }
     </script>

@@ -49,9 +49,9 @@
     
     /* Map Layer & Filtration Control Overlays */
     #layer-controls {
-      position: absolute; top: 15px; left: 15px;
+      position: absolute; top: 15px; left: 15x;
       background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 10px; 
-      font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 160px;
+      font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 200px;
     }
     #map-legend2 {
       position: absolute; top: 15px; right: 15px;
@@ -119,7 +119,7 @@
           <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
-            <small class="text-white-50" style="font-size: 0.7rem;">Dashboard Matrix</small>
+            <small class="text-white-50" style="font-size: 1rem;">Dashboard Matrix</small>
           </div>
           <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
             <i class="bi bi-x-lg"></i>
@@ -189,33 +189,33 @@
               
               <!-- Unchecked by default so risk layer color is not loaded initially -->
               <div id="layer-controls" style="background-color: rgba(255, 255, 255, 0.2);">
-                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 11px;">FLOOD PRONE RISKS</h6>
-                <div class="form-check mb-1 d-flex align-items-center pe-1">
-                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="severe" id="chkSevere">
-                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0" for="chkSevere" style="cursor: pointer;">
+                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 14px;">FLOOD PRONE RISKS</h6>
+                <div class="form-check mb-2 d-flex align-items-center pe-1">
+                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="severe" id="chkSevere" style="width: 1rem; height: 1rem; cursor: pointer;">
+                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0 gap-2" for="chkSevere" style="cursor: pointer; font-size: 1rem; font-weight: 500;">
+                    <span style="display:inline-block; width:12px; height:12px; background:#dc3545; border-radius:2px;"></span>
                     Severe
-                    <span class="ms-auto" style="display:inline-block; width:20px; height:10px; background:#dc3545; border-radius:2px;"></span>
                   </label>
                 </div>
-                <div class="form-check mb-1 d-flex align-items-center pe-1">
-                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="high" id="chkHigh">
-                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0" for="chkHigh" style="cursor: pointer;">
+                <div class="form-check mb-2 d-flex align-items-center pe-1">
+                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="high" id="chkHigh" style="width: 1rem; height: 1rem; cursor: pointer;">
+                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0 gap-2" for="chkHigh" style="cursor: pointer; font-size: 1rem; font-weight: 500;">
+                    <span style="display:inline-block; width:12px; height:12px; background:#fd7e14; border-radius:2px;"></span>
                     High
-                    <span class="ms-auto" style="display:inline-block; width:20px; height:10px; background:#fd7e14; border-radius:2px;"></span>
                   </label>
                 </div>
-                <div class="form-check mb-1 d-flex align-items-center pe-1">
-                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="moderate" id="chkModerate">
-                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0" for="chkModerate" style="cursor: pointer;">
+                <div class="form-check mb-2 d-flex align-items-center pe-1">
+                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="moderate" id="chkModerate" style="width: 1rem; height: 1rem; cursor: pointer;">
+                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0 gap-2" for="chkModerate" style="cursor: pointer; font-size: 1rem; font-weight: 500;">
+                    <span style="display:inline-block; width:12px; height:12px; background:#ffc107; border-radius:2px;"></span>
                     Moderate
-                    <span class="ms-auto" style="display:inline-block; width:20px; height:10px; background:#ffc107; border-radius:2px;"></span>
                   </label>
                 </div>
                 <div class="form-check d-flex align-items-center pe-1">
-                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="low" id="chkLow">
-                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0" for="chkLow" style="cursor: pointer;">
+                  <input class="form-check-input risk-filter mt-0 me-2" type="checkbox" value="low" id="chkLow" style="width: 1rem; height: 1rem; cursor: pointer;">
+                  <label class="form-check-label text-dark flex-grow-1 d-flex align-items-center mb-0 gap-2" for="chkLow" style="cursor: pointer; font-size: 1rem; font-weight: 500;">
+                    <span style="display:inline-block; width:12px; height:12px; background:#90ee90; border-radius:2px;"></span>
                     Low / Safe
-                    <span class="ms-auto" style="display:inline-block; width:20px; height:10px; background:#90ee90; border-radius:2px;"></span>
                   </label>
                 </div>
               </div>
@@ -239,17 +239,17 @@
             <div class="card shadow-sm table-card" style="height: 520px;">
               
               <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center">
-                <span style="font-size:0.8rem;"><i class="bi bi-cpu me-2"></i>Stations Lists and interval Settings</span>
+                <span style="font-size:1.2rem;"><i class="bi bi-cpu me-2"></i>Stations Lists and interval Settings</span>
               </div>
               <div class="card-body p-2">
                 <div class="row g-2">
                   <div class="col-6">
-                    <select id="filterStation" class="form-select form-select-sm" style="font-size: 0.75rem;">
+                    <select id="filterStation" class="form-select form-select-sm" style="font-size: 1rem;">
                       <option value="">All Stations</option>
                     </select>
                   </div>
                   <div class="col-6">
-                    <select id="filterRowLimit" class="form-select form-select-sm" style="font-size: 0.75rem;">
+                    <select id="filterRowLimit" class="form-select form-select-sm" style="font-size: 1rem;">
                       <option value="5">5 Rows</option>
                       <option value="10" selected>10 Rows</option>
                       <option value="25">25 Rows</option>
@@ -257,8 +257,8 @@
                     </select>
                   </div>
                   <div class="col-12 d-flex gap-1">
-                    <button id="btnApplyFilters" class="btn btn-xs btn-primary py-1 flex-fill fw-bold" style="font-size:0.7rem;">Apply Filters</button>
-                    <button id="btnResetFilters" class="btn btn-xs btn-light border py-1 flex-fill" style="font-size:0.7rem;">Clear</button>
+                    <button id="btnApplyFilters" class="btn btn-xs btn-primary py-1 flex-fill fw-bold" style="width:50%;font-size:1rem;">Apply Filters</button>
+                    <button id="btnResetFilters" class="btn btn-xs btn-light border py-1 flex-fill" style="width:50%;font-size:1rem;">Clear</button>
                   </div>
                 </div>
               </div>
@@ -266,9 +266,9 @@
                 <table class="table table-hover mb-0 align-middle">
                   <thead class="sticky-top bg-white shadow-sm" style="z-index: 1;">
                     <tr>
-                      <th class="ps-3">River Station</th>
-                      <th class="text-center" style="width: 110px;">Interval/seconds</th>
-                      <th class="text-end pe-3">Status</th>
+                      <th class="ps-3" style="font-size: 0.9rem;">River Station</th>
+                      <th class="text-center" style="width: 110px;font-size: 0.9rem;">Interval/seconds</th>
+                      <th class="text-end pe-3" style="font-size: 0.9rem;">Status</th>
                     </tr>
                   </thead>
                   <tbody id="flood-data-table">
@@ -542,28 +542,28 @@
               </h6>
               <div class="mb-2">
                   <span class="d-block fw-bold text-dark">${municipality}</span>
-                  <span class="badge bg-secondary opacity-75" style="font-size:0.7rem;">Brgy. ${barangay}</span>
+                  <span class="badge bg-secondary opacity-75" style="font-size:1rem;">Brgy. ${barangay}</span>
               </div>
               <div class="row g-0 mb-3 border-top pt-2">
                   <div class="col-6 border-end">
-                      <small class="text-dark d-block" style="font-size: 0.6rem;">ALTITUDE</small>
+                      <small class="text-dark d-block" style="font-size: 1rem;">ALTITUDE</small>
                       <span class="fw-bold ${elevation < 10 ? 'text-danger' : ''}">${elevation.toFixed(1)}m ASL</span>
                   </div>
                   <div class="col-6 ps-2">
-                      <small class="text-dark d-block" style="font-size: 0.6rem;">RISK LEVEL</small>
-                      <span class="badge ${badgeClass}" style="font-size:0.65rem;">${riskLabel}</span>
+                      <small class="text-dark d-block" style="font-size: 1rem;">RISK LEVEL</small>
+                      <span class="badge ${badgeClass}" style="font-size:1rem;">${riskLabel}</span>
                   </div>
               </div>
               <div class="p-2 rounded border shadow-sm" style="background: #f8f9fa;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                      <small class="fw-bold text-uppercase" style="font-size:0.65rem;">Flood Risk Index</small>
+                      <small class="fw-bold text-uppercase" style="font-size:1rem;">Flood Risk Index</small>
                       <small class="fw-bold" style="color: ${riskColor === '#ffff00' ? '#b8b800' : riskColor};">${finalRisk}%</small>
                   </div>
                   <div class="progress" style="height: 8px;">
                       <div class="progress-bar progress-bar-striped progress-bar-animated" 
                            style="width: ${finalRisk}%; background-color: ${riskColor};"></div>
                   </div>
-                  <small class="text-dark d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
+                  <small class="text-dark d-block mt-1" style="font-size: 1rem;">*Computed via Spatio-temporal Elevation Data</small>
               </div>
           </div>`;
       
@@ -812,19 +812,19 @@
         const rowHTML = `
         <tr>
             <td class="ps-3">
-              <div class="fw-bold text-dark">${stationStr}</div>
-              <div class="text-dark" style="font-size:0.65rem;">ID: ${item.__key}</div>
+              <div class="fw-bold text-dark" style="font-size:0.8rem;">${stationStr}</div>
+              <div class="text-dark" style="font-size:0.9rem;">ID: ${item.__key}</div>
             </td>
             <td class="text-center">
                 <input type="number" 
                        class="form-control form-control-sm bg-light fw-bold text-center d-inline-block" 
-                       style="width: 75px; font-size:0.75rem;" 
+                       style="width: 75px; font-size:0.9rem;" 
                        value="${intervalVal}" 
                        ${isDisabled}
                        onchange="saveInterval('${item.__source}', '${item.__key}', this.value)">
             </td>
             <td class="text-end pe-3">
-              <span class="badge rounded-pill ${statusClass}" style="font-size:0.65rem;">${statusText}</span>
+              <span class="badge rounded-pill ${statusClass}" style="font-size:0.9rem;">${statusText}</span>
             </td>
         </tr>`;
         tableBody.innerHTML += rowHTML;
@@ -902,9 +902,9 @@
     });
     
     
-
+    
   </script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="menu.js"></script>
+  <script src="menu.js"></script>
 </body>
 </html>

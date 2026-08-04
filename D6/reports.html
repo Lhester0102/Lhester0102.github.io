@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Geospatial DSS | Flood Reports</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="icon" href="images/GDSS.png">
+    <link rel="icon" href="images/GDSS.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -54,9 +54,9 @@
         
         /* Specific Badges for Flood Data */
         .badge-metric { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-        .lvl-high { background: #ffebee; color: #c62828; }
-        .lvl-med { background: #fff3e0; color: #ef6c00; }
-        .lvl-low { background: #e8f5e9; color: #2e7d32; }
+        .lvl-high { background: #ffebee !important; color: #c62828 !important; border: 1px solid #ffcdd2 !important; }
+        .lvl-med { background: #fff3e0 !important; color: #ef6c00 !important; border: 1px solid #ffe0b2 !important; }
+        .lvl-low { background: #e8f5e9 !important; color: #2e7d32 !important; border: 1px solid #c8e6c9 !important; }
         
         @media (min-width: 768px) {
             .sidebar { min-height: 100vh; height: 100vh; }
@@ -129,7 +129,7 @@
                     </li>
                     <li class="mb-1"><a class="nav-link text-white active" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
-                    <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
                     <hr>
                     <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
@@ -159,7 +159,6 @@
                             <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
-                            <!-- <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li> -->
                         </ul>
                     </div>
                 </div>
@@ -269,6 +268,7 @@
         const data2Ref = ref(db, 'data2');
         const data3Ref = ref(db, 'data3');
         
+        let dbThresholds = null;
         let dataReports = [];
         let data2Reports = [];
         let data3Reports = [];
@@ -278,6 +278,38 @@
         const periodTypeSelect = document.getElementById('filterPeriodType');
         const dynamicContainer = document.getElementById('dynamicInputContainer');
         const rowLimitSelect = document.getElementById('filterRowLimit');
+
+        // Listen for Firebase Real-time Threshold settings ("threshold" node)
+        onValue(ref(db, 'threshold'), (snapshot) => {
+            if (snapshot.exists()) {
+                dbThresholds = snapshot.val();
+                if (allReports.length > 0) {
+                    renderTable();
+                }
+            }
+        });
+
+        // Determine dynamic threshold class based on Firebase thresholds
+        function getMetricClass(type, value) {
+            const val = parseFloat(value);
+            if (isNaN(val)) return 'lvl-low';
+
+            let warning = 2.5, high = 4.0;
+            if (type === 'water') {
+                warning = parseFloat(dbThresholds?.level) || 2.5;
+                high = parseFloat(dbThresholds?.level_high) || 4.0;
+            } else if (type === 'rain') {
+                warning = parseFloat(dbThresholds?.rain) || 7.5;
+                high = parseFloat(dbThresholds?.rain_high) || 15.0;
+            } else if (type === 'flow') {
+                warning = parseFloat(dbThresholds?.flow) || 10.0;
+                high = parseFloat(dbThresholds?.flow_high) || 25.0;
+            }
+
+            if (val >= high) return 'lvl-high';
+            if (val >= warning) return 'lvl-med';
+            return 'lvl-low';
+        }
         
         // Dynamic Filter UI Logic
         periodTypeSelect.addEventListener('change', function() {
@@ -317,9 +349,13 @@
         
         function getDepthInfo(level) {
             const l = parseFloat(level);
-            if (l >= 4.0) return { label: 'High Risk', class: 'lvl-high', depthCalc: (l * 0.8).toFixed(2) + ' m' };
-            if (l >= 2.5) return { label: 'Warning', class: 'lvl-med', depthCalc: (l * 0.4).toFixed(2) + ' m' };
-            return { label: 'Safe', class: 'lvl-low', depthCalc: '0.00 m' };
+            const waterClass = getMetricClass('water', level);
+            let label = 'Safe';
+            if (waterClass === 'lvl-high') label = 'High Risk';
+            else if (waterClass === 'lvl-med') label = 'Warning';
+
+            const depthCalc = (l * 0.4).toFixed(2) + ' m';
+            return { label, class: waterClass, depthCalc };
         }
         
         function formatField(f) {
@@ -396,13 +432,18 @@
                 const dateStr = formatField(item.date);
                 const timeStr = formatField(item.time);
                 const stationStr = formatField(item.station || item.city);
+                
                 const levelStr = (item.level === undefined || item.level === null || item.level === '') ? '' : `${item.level} m`;
                 const rainStr = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : `${item.rain} mm`;
                 const flowStr = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : `${item.flow} m³/s`;
                 const depthCalcStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.depthCalc;
                 const statusStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.label;
+
+                // Derive specific color threshold classes
+                const waterClass = getMetricClass('water', item.level);
+                const rainClass = getMetricClass('rain', item.rain);
+                const flowClass = getMetricClass('flow', item.flow);
                 
-                // Construct parameters containing current row live numbers
                 const lvlNum = item.level ?? 1.1;
                 const rainNum = item.rain ?? 0.1;
                 const flowNum = item.flow ?? 12.0;
@@ -413,9 +454,9 @@
                         <td class="ps-4"><div class="fw-bold text-dark">${dateStr}</div></td>
                         <td><div class="fw-bold text-dark">${timeStr}</div></td>
                         <td><div class="fw-bold text-dark">${stationStr}</div></td>
-                        <td>${levelStr ? `<span class="badge-metric ${depthMeta.class}">${levelStr}</span>` : ''}</td>
-                        <td>${rainStr ? `${rainStr}` : ''}</td>
-                        <td>${flowStr ? `${flowStr}` : ''}</td>
+                        <td>${levelStr ? `<span class="badge-metric ${waterClass}">${levelStr}</span>` : ''}</td>
+                        <td>${rainStr ? `<span class="badge-metric ${rainClass}">${rainStr}</span>` : ''}</td>
+                        <td>${flowStr ? `<span class="badge-metric ${flowClass}">${flowStr}</span>` : ''}</td>
                         <td class="fw-semibold text-dark">${depthCalcStr}</td>
                         <td>${statusStr ? `<span class="badge rounded-pill ${depthMeta.class}">${statusStr}</span>` : ''}</td>
                         <td>
@@ -526,36 +567,17 @@
             renderTable();
         });
         document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
-document.getElementById('logoutLink').addEventListener('click', function (e) {
-    e.preventDefault();
 
-    Swal.fire({
-        title: 'Logout?',
-        text: 'Are you sure you want to log out?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Logout',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            sessionStorage.clear();
-
-            Swal.fire({
-                title: 'Logged Out',
-                text: 'You have been logged out successfully.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function (e) {
+                e.preventDefault();
+                sessionStorage.clear();
                 window.location.href = 'log.html';
             });
         }
-    });
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="menu.js"></script>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="menu.js"></script>
 </body>
 </html>
