@@ -49,7 +49,7 @@
     
     /* Map Layer & Filtration Control Overlays */
     #layer-controls {
-      position: absolute; top: 15px; left: 15x;
+      position: absolute; top: 15px; left: 15px;
       background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 10px; 
       font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 200px;
     }
@@ -176,7 +176,6 @@
               <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
-              <!-- <li><a class="dropdown-item small text-danger fw-bold" href="#" id="signOutBtn"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li> -->
             </ul>
           </div>
         </div>
@@ -187,7 +186,6 @@
             <div class="card p-1 position-relative shadow-sm" style="height: 610px;">
               <div id="map"></div>
               
-              <!-- Unchecked by default so risk layer color is not loaded initially -->
               <div id="layer-controls" style="background-color: rgba(255, 255, 255, 0.2);">
                 <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 14px;">FLOOD PRONE RISKS</h6>
                 <div class="form-check mb-2 d-flex align-items-center pe-1">
@@ -291,6 +289,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -303,6 +302,7 @@
     let isMapFullyLoaded = false; 
     let allReports = []; 
     let currentFilteredData = [];
+    let rivers = []; // Populate dynamically from the stations node in Firebase
     
     // Global Identity & State Verification Gate Execution
     window.onload = function() {
@@ -377,7 +377,7 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-      center: [120.587385, 18.187710],
+      center: [120.6406251, 18.1636855],
       zoom: 11,
       pitch: 55
     });
@@ -412,7 +412,7 @@
     
     const floodLayers = [];
     
-    // Safely add 3D terrain inside style.load to eliminate terrain loading race warning
+    // Safely add 3D terrain inside style.load
     map.on('style.load', () => {
       if (!map.getSource('mapbox-dem')) {
         map.addSource('mapbox-dem', {
@@ -427,7 +427,7 @@
       updateMarkers(); 
     });
     
-    // Load Flood GeoJSON layers (Hidden by default unless checkbox is checked)
+    // Load Flood GeoJSON layers
     map.on('load', () => {
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
@@ -457,7 +457,7 @@
               type: 'fill',
               source: sourceId,
               layout: {
-                'visibility': 'none' // Set visibility to 'none' by default so colors do not load initially
+                'visibility': 'none'
               },
               paint: { 
                 'fill-color': getFloodColor(vulnVal), 
@@ -470,7 +470,7 @@
       });
     });
     
-    // Interaction Handlers for Risk Filter Controls Checkboxes Input Groups
+    // Checkboxes Input Filters
     document.querySelectorAll('.risk-filter').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
         const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
@@ -487,7 +487,7 @@
       });
     });
     
-    // Free Click Spatial Elevation Query Analysis Logic Engine
+    // Free Click Elevation Popup Module
     map.on('click', async (e) => {
       document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
       const { lng, lat } = e.lngLat;
@@ -617,15 +617,9 @@
       });
     });
     
-    const rivers = [
-    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
-    ];
-    
     const riverMenu = document.getElementById('riverDropdownMenu');
     
-    // Main Dynamic Visual Marker Generation Module
+    // Dynamic Visual Marker Generation Module
     async function updateMarkers() {
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
@@ -637,7 +631,7 @@
         const histChartId = `riverHist-${idx}`;
         const probChartId = `riverProb-${idx}`;
         
-        const data = liveDataStore[river.node];
+        const data = liveDataStore[river.node] || { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } };
         const cur = data.current;
         const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
         
@@ -751,9 +745,7 @@
       }
     }
     
-    // ==========================================
     // INTEGRATED STATIONS MANAGEMENT ENGINE LOGIC 
-    // ==========================================
     const stationsRef = db.ref('stations');
     const rowLimitSelect = document.getElementById('filterRowLimit');
     
@@ -761,7 +753,6 @@
       return (f === undefined || f === null || f === 'N/A') ? '' : f;
     }
     
-    // Dynamic Dropdown Station Aggregating Setup Module
     function updateStationFilter() {
       const stationSelect = document.getElementById('filterStation');
       const currentValue = stationSelect.value;
@@ -781,7 +772,6 @@
       const tableBody = document.getElementById('flood-data-table');
       tableBody.innerHTML = '';
       
-      // Check userLgu permission from sessionStorage
       const userLgu = sessionStorage.getItem('userLgu');
       const isDisabled = userLgu !== 'All' ? 'disabled' : '';
       
@@ -830,7 +820,7 @@
         tableBody.innerHTML += rowHTML;
       });
     } 
-    // Interactive Dynamic Save Push to Firebase Database Nodes
+
     window.saveInterval = (source, key, value) => {
       const itemRef = db.ref(`${source}/${key}`);
       itemRef.update({ interval: parseInt(value) || 15 })
@@ -842,19 +832,39 @@
     stationsRef.on('value', (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
+        
         allReports = Object.keys(data).map(key => ({
           ...data[key],
           __key: key,
           __source: 'stations'
         }));
+
+        // Dynamically build the 'rivers' array from lat/lng fields under 'stations'
+        rivers = Object.keys(data).map(key => {
+          const item = data[key];
+          return {
+            name: item.station || item.city || key,
+            lat: parseFloat(item.lat ?? item.latitude ?? 0),
+            lng: parseFloat(item.lng ?? item.longitude ?? item.lon ?? 0),
+            node: item.node || 'data',
+            id: key
+          };
+        }).filter(r => !isNaN(r.lat) && !isNaN(r.lng) && r.lat !== 0 && r.lng !== 0);
+
       } else {
         allReports = [];
+        rivers = [];
       }
+
       updateStationFilter();
       renderTable();
+
+      // Render map pins on load or snapshot updates
+      if (isMapFullyLoaded) {
+        updateMarkers();
+      }
     });
     
-    // Table Interaction Subsystems Binding Triggers
     document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
     document.getElementById('btnResetFilters').addEventListener('click', () => {
       const stationSelect = document.getElementById('filterStation');
@@ -863,7 +873,6 @@
       renderTable();
     });
     
-    // Session Termination Actions Cleanup Handlers
     function logoutUser() {
       sessionStorage.clear();
       window.location.href = 'log.html';
@@ -900,11 +909,7 @@
         }
       });
     });
-    
-    
-    
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="menu.js"></script>
 </body>
 </html>

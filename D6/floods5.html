@@ -65,8 +65,9 @@
                 <div class="card-header bg-dark text-white py-2">
                   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <div class="d-flex flex-wrap align-items-center gap-3 w-100 w-lg-auto">
-                      <select id="municipalityFilter" class="form-select form-select-sm bg-white border-white text-dark fw-semibold d-none" style="max-width: 230px;">
-                        <option value="All">All Municipalities</option>
+                      <!-- DYNAMIC MUNICIPALITY DROPDOWN BASED ON NODE -->
+                      <select id="municipalityFilter" class="form-select form-select-sm bg-white border-white text-dark fw-semibold" style="max-width: 230px;">
+                        <option value="All">All Covered Municipalities</option>
                       </select>
                     
                       <div style="max-width: 320px;" class="flex-grow-1">
@@ -154,6 +155,7 @@
   let currentDataListener = null;
   
   let allRawPins = []; 
+  let nodeCoveredPins = [];
   let rivers = [];     
   let lastComputedRenderList = [];
   
@@ -176,7 +178,6 @@
   const storageRef = firebase.storage().ref();
   
   window.onload = async function() {
-    
     document.getElementById('status').innerHTML = '<span class="loading-spinner"></span> Initializing system modules - Loading registry lists...';
     
     await loadModel(); 
@@ -189,24 +190,21 @@
     const rowLimitSelect = document.getElementById('rowLimitSelect');
     if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
     
+    const municipalityFilter = document.getElementById('municipalityFilter');
+    if (municipalityFilter) {
+      municipalityFilter.addEventListener('change', async function(e) {
+        await loadMunicipalityElevations(e.target.value);
+      });
+    }
+    
     document.getElementById('btnExportCSV').addEventListener('click', exportLocalTableToCSV);
 
-    // CHECK FOR TELEMETRY SOURCE ROUTING PARAMETERS
+    // CHECK FOR TELEMETRY SOURCE ROUTING PARAMETERS FROM REPORTS.HTML
     const urlParams = new URLSearchParams(window.location.search);
     const nodeParam = urlParams.get('node');
     const levelParam = urlParams.get('level');
     const rainParam = urlParams.get('rain');
     const flowParam = urlParams.get('flow');
-    
-    let targetMunicipality = "Laoag City"; // Fallback default
-
-    if (nodeParam === 'data') {
-      targetMunicipality = "Pasuquin";
-    } else if (nodeParam === 'data2') {
-      targetMunicipality = "Laoag City";
-    } else if (nodeParam === 'data3') {
-      targetMunicipality = "Bacarra";
-    }
     
     // Override live configuration metrics with clicked data snapshot if present
     if (nodeParam && levelParam !== null && rainParam !== null && flowParam !== null) {
@@ -217,31 +215,49 @@
       };
     }
 
-    const municipalityFilter = document.getElementById('municipalityFilter');
-    if (municipalityFilter) {
-      municipalityFilter.value = targetMunicipality;
-      await loadMunicipalityElevations(targetMunicipality);
-    }
+    // Populate dropdown based on node selected from reports.html
+    filterPinsAndPopulateDropdown(nodeParam || 'data2');
+    await loadMunicipalityElevations('All');
   }
   
-  // Finalized Depth Calculation factoring in AI Risk/Probability
+  function filterPinsAndPopulateDropdown(targetNode) {
+    const select = document.getElementById('municipalityFilter');
+    if (!select) return;
+
+    // Filter raw pins according to the basin node coverage
+    if (targetNode === 'data2') { // Padsan -> Laoag & San Nicolas
+      nodeCoveredPins = allRawPins.filter(r => r.node === 'data2' || r.municipality === 'Laoag City' || r.municipality === 'Laoag' || r.municipality === 'San Nicolas');
+    } else if (targetNode === 'data3') { // Bislak -> Bacarra & Vintar
+      nodeCoveredPins = allRawPins.filter(r => r.node === 'data3' || r.municipality === 'Bacarra' || r.municipality === 'Vintar');
+    } else if (targetNode === 'data') { // Baldi -> Pasuquin
+      nodeCoveredPins = allRawPins.filter(r => r.node === 'data' || r.municipality === 'Pasuquin');
+    } else {
+      nodeCoveredPins = [...allRawPins];
+    }
+
+    // Extract unique covered municipalities for the dropdown
+    const coveredMunicipalities = [...new Set(nodeCoveredPins.map(r => r.municipality))].sort();
+
+    select.innerHTML = '<option value="All">All Covered Municipalities</option>';
+    coveredMunicipalities.forEach(muni => {
+      const opt = document.createElement('option');
+      opt.value = muni;
+      opt.textContent = muni;
+      select.appendChild(opt);
+    });
+  }
+
   function getDepthCalcString(level, elevation, riskScore) {
     const l = parseFloat(level);
     const e = parseFloat(elevation);
-    const prob = parseFloat(riskScore) / 100; // Convert 0-100% to 0-1 decimal basis
+    const prob = parseFloat(riskScore) / 100;
     
     if (isNaN(l) || isNaN(e) || isNaN(prob)) return '0.00 m';
     
-    // Base depth based on absolute water displacement above local ground
-    let baselineDepth = l - (e*(prob-0.75)); // Factor in elevation as a mitigating factor against depth
+    let baselineDepth = l - (e*(prob-0.75));
+    if (baselineDepth <= 0) return '0.00 m';
     
-    if (baselineDepth <= 0) {
-      return '0.00 m';
-    }
-    
-    // Factor in AI Probability weight to smooth calculations down safely based on risk likelihood
     let probabilityWeightedDepth = baselineDepth * prob;
-    
     return probabilityWeightedDepth > 0 ? probabilityWeightedDepth.toFixed(2) + ' m' : '0.00 m';
   }
   
@@ -254,9 +270,6 @@
   
   function processMunicipalitySnapshot(snapshot, sourceName) {
     if (!snapshot.exists()) return;
-    snapshot.forEach(child => {
-      const v = child.val();
-    });
     document.getElementById('status').innerHTML = `${sourceName} matrix updates synced successfully.`;
     manualPredict();
   }
@@ -267,27 +280,17 @@
     currentMunicipality = municipality;
     
     let refPath = 'data';
-    if (municipality === 'Laoag City') refPath = 'data2';
-    else if (municipality === 'Bacarra') refPath = 'data3';
+    if (municipality === 'Laoag City' || municipality === 'Laoag' || municipality === 'San Nicolas') {
+      refPath = 'data2';
+    } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
+      refPath = 'data3';
+    } else if (municipality === 'Pasuquin') {
+      refPath = 'data';
+    }
     
     const ref = db.ref(refPath).orderByKey().limitToLast(1);
     currentDataListener = ref;
     ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, refPath));
-  }
-  
-  function populateMunicipalityDropdown() {
-    const select = document.getElementById('municipalityFilter');
-    if (!select) return;
-    
-    const uniqueMunicipalities = [...new Set(allRawPins.map(r => r.municipality))].sort();
-    
-    select.innerHTML = '<option value="All">Select Municipality...</option>';
-    uniqueMunicipalities.forEach(muni => {
-      const opt = document.createElement('option');
-      opt.value = muni;
-      opt.textContent = muni;
-      select.appendChild(opt);
-    });
   }
   
   async function fetchAllPinsMetadata() {
@@ -323,7 +326,6 @@
         });
         
         allRawPins = loadedPins;
-        populateMunicipalityDropdown();
       }
     } catch (error) {
       console.error("Error fetching pins metadata:", error);
@@ -331,8 +333,14 @@
     }
   }
 
-  async function loadMunicipalityElevations(municipalityName) {
-    let selectedRivers = allRawPins.filter(river => river.municipality === municipalityName);
+  async function loadMunicipalityElevations(selectedMuni) {
+    let selectedRivers = [];
+    
+    if (selectedMuni === 'All') {
+      selectedRivers = [...nodeCoveredPins];
+    } else {
+      selectedRivers = nodeCoveredPins.filter(river => river.municipality === selectedMuni);
+    }
     
     if (selectedRivers.length === 0) {
       rivers = [];
@@ -340,7 +348,7 @@
       return;
     }
 
-    document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} ${municipalityName} barangays...`;
+    document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} barangays...`;
     
     const chunkSize = 40; 
     const chunks = [];
@@ -376,7 +384,7 @@
       }
     });
     
-    document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${municipalityName}.`;
+    document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${selectedMuni === 'All' ? 'all covered municipalities' : selectedMuni}.`;
     rivers = selectedRivers;
     updateRiverTable();
   }
@@ -414,7 +422,7 @@
         <tr>
           <td colspan="7" class="text-center py-5 text-dark small">
             <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-dark"></i>
-            Select a specific municipality above to load data.
+            No river stations loaded for this selection.
           </td>
         </tr>`;
       return;
@@ -448,11 +456,13 @@
       return { ...river, computedRisk: riskScore };
     });
     
+    // Sort by Barangay Name first, then Municipality Name second
     processedList.sort((a, b) => {
-      if (b.computedRisk !== a.computedRisk) {
-        return b.computedRisk - a.computedRisk;
+      const nameCompare = a.name.localeCompare(b.name);
+      if (nameCompare !== 0) {
+        return nameCompare;
       }
-      return a.name.localeCompare(b.name);
+      return a.municipality.localeCompare(b.municipality);
     });
     
     if (selectedLimit !== 'All') {

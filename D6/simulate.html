@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>River Monitoring Data Input</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f7f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+      margin-bottom: 8px;
+      color: #1a202c;
+      font-size: 1.5rem;
+    }
+
+    .card p {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.875rem;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #2d3748;
+      background-color: #f8fafc;
+      transition: all 0.2s ease-in-out;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #3182ce;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3182ce;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #2b6cb0;
+    }
+
+    button:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      display: none;
+      text-align: center;
+    }
+
+    .status.success {
+      display: block;
+      background-color: #c6f6d5;
+      color: #22543d;
+    }
+
+    .status.error {
+      display: block;
+      background-color: #fed7d7;
+      color: #742a2a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Data Entry Form</h2>
+    <p>Submit environmental monitoring data to Realtime Database.</p>
+
+    <form id="dataForm">
+      <div class="form-group">
+        <label for="location">Location Path</label>
+        <select id="location" required>
+          <option value="" disabled selected>Select a station</option>
+          <option value="data2">Padsan (data2)</option>
+          <option value="data3">Bislak (data3)</option>
+          <option value="data">Baldi (data)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="level">Level (m)</label>
+        <input type="number" id="level" step="any" placeholder="e.g. 1.25" required />
+      </div>
+
+      <div class="form-group">
+        <label for="flow">Flow (m³/sqm/s)</label>
+        <input type="number" id="flow" step="any" placeholder="e.g. 0.85" required />
+      </div>
+
+      <div class="form-group">
+        <label for="rain">Rain (mm/h)</label>
+        <input type="number" id="rain" step="any" placeholder="e.g. 12.5" required />
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Data</button>
+    </form>
+
+    <div id="statusMessage" class="status"></div>
+  </div>
+
+  <!-- Firebase JavaScript SDK (v10) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // Your active Firebase credentials
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      databaseURL: "https://flooded-95eeb-default-rtdb.firebaseio.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Form submission handler
+    const form = document.getElementById("dataForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const statusMessage = document.getElementById("statusMessage");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const selectedPath = document.getElementById("location").value;
+      const level = parseFloat(document.getElementById("level").value);
+      const flow = parseFloat(document.getElementById("flow").value);
+      const rain = parseFloat(document.getElementById("rain").value);
+
+      // Generate local date & time strings
+      const now = new Date();
+      const dateString = now.toLocaleDateString("en-CA"); // Formats as YYYY-MM-DD
+      const timeString = now.toLocaleTimeString("en-GB"); // Formats as HH:mm:ss (24-hour)
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Submitting...";
+      statusMessage.className = "status";
+      statusMessage.innerText = "";
+
+      try {
+        const targetRef = ref(db, selectedPath);
+        
+        await push(targetRef, {
+          level: level,
+          flow: flow,
+          rain: rain,
+          date: dateString,
+          time: timeString,
+          timestamp: serverTimestamp() // Useful for sorting records in queries
+        });
+
+        statusMessage.innerText = `Data successfully saved to "${selectedPath}"!`;
+        statusMessage.classList.add("success");
+        form.reset();
+      } catch (error) {
+        console.error("Firebase Error:", error);
+        statusMessage.innerText = `Error adding data: ${error.message}`;
+        statusMessage.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Data";
+      }
+    });
+  </script>
+</body>
+</html>
