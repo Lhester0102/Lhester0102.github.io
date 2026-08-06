@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Geospatial DSS | Matrix Dashboard</title>
+    <title>Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link class="rounded-circle" rel="icon" href="images/GDSS.png">
     
@@ -11,7 +11,7 @@
     
     <style>
         /* Theme Core */
-        body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden;}
+        body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
         
         /* Sidebar Styles */
         .sidebar { 
@@ -22,10 +22,11 @@
         }
         
         .nav-link { 
-            color: rgba(255,255,255,0.8); 
+            color: rgba(255,255,255,0.85); 
             transition: 0.2s; 
             border-radius: 5px; 
             margin-bottom: 2px; 
+            font-weight: 500;
         }
         
         .nav-link:hover { 
@@ -43,7 +44,7 @@
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
         /* Badges for Station Headers */
-        .badge-metric { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .badge-metric { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; }
         
         /* Text Value Color-Coding Threshold Classes */
         .lvl-text-high { color: #dc3545 !important; } /* Red */
@@ -64,7 +65,7 @@
             margin-bottom: 15px;
         }
         .mobile-brand img { width: 35px; height: 35px; }
-        .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
+        .mobile-brand h6 { margin: 0; font-size: 0.95rem; font-weight: bold; }
         
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
@@ -82,12 +83,12 @@
             background-color: #ffffff;
         }
         .metric-icon-wrapper {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             line-height: 1;
             margin-bottom: 4px;
         }
-        .metric-title { font-size: 0.8rem; color: #000000; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .metric-value { font-weight: 800; margin-bottom: 0; font-size: 1.25rem; }
+        .metric-title { font-size: 0.82rem; color: #212529; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metric-value { font-weight: 800; margin-bottom: 0; font-size: 1.3rem; }
         
         /* Video Overlay Controls (Top Right) */
         .video-controls-top-right {
@@ -124,7 +125,7 @@
                     <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
                     <div>
                         <h6 class="text-white">Geospatial DSS</h6>
-                        <small class="text-white-50" style="font-size: 0.7rem;">Flood Reports</small>
+                        <small class="text-white-50" style="font-size: 0.75rem;">Flood Reports</small>
                     </div>
                     <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                         <i class="bi bi-x-lg"></i>
@@ -133,7 +134,7 @@
                 
                 <div class="text-center mb-4 d-none d-md-block">
                     <img src="images/GDSS.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
-                    <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+                    <h6 class="fw-bold mb-0 fs-6">Geospatial DSS</h6>
                 </div>
                 
                 <ul class="nav flex-column">
@@ -160,21 +161,31 @@
             </nav>
             
             <!-- Main Content Display Viewport -->
-            <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+            <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 
-                <!-- Navbar Control Strip -->
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 p-2 bg-white rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
                     <div class="d-flex align-items-center gap-3 w-100">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h5 class="mb-0 fw-bold text-dark">Main Dashboard</h5>
+                        <h5 class="mb-0 fw-bold text-dark me-auto"><i class="bi bi-speedometer2"></i> System Dashboard</h5>
                         
-                        <a href="newindex3.html" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 ms-auto me-2">
-                            <i class="bi bi-house-door-fill"></i> Map View
-                        </a>
+                        <!-- Submenu Action Buttons Strip -->
+                        <div class="d-flex flex-wrap align-items-center gap-2 me-2">
+                            <a href="dash.html" class="btn btn-sm btn-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-speedometer2"></i> Main Dashboard
+                            </a>
+                            <a href="dash4.html" class="btn btn-sm btn-outline-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-router-fill"></i> By Station
+                            </a>
+                            <a href="newindex3.html" class="btn btn-sm btn-outline-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-map-fill"></i>Flood Map
+                            </a>
+                            <a href="floods4.html" class="btn btn-sm btn-outline-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-list-task"></i> All Barangays
+                            </a>
+                        </div>
                     </div>
-                    
                     <div class="dropdown">
                         <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i>
@@ -188,21 +199,27 @@
                     </div>
                 </div>
 
-                <!-- MAIN WORKSPACE MATRIX: Stations and Icons Consolidated in Single Unified Cards -->
-                <div class="card p-3 bg-white shadow-sm mb-3">
-                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
+                <!-- MAIN WORKSPACE MATRIX -->
+               <!-- STATIONS & BARANGAYS WARNING LIST CONTAINER -->
+                <div class="card p-2 bg-white shadow-sm mb-1">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+
+
+                        <!-- Card Section Title -->
+                        <h6 class="fw-bold mb-0 text-dark fs-6"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
+                    </div>
                     
                     <div class="row g-3">
                         <!-- PASUQUIN / BALDI STATION CARD -->
                         <div class="col-lg-4">
                             <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
                                 <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Baldi Station</span>
+                                    <span class="text-dark fw-bold fs-6"><i class="bi bi-router-fill me-1 text-primary"></i>Baldi Station</span>
                                     <div id="status-pasuquin"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
+                                <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
                                     <span id="interval-pasuquin"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-pasuquin" class="fw-semibold text-dark">--:--</span>
+                                    <span id="time-pasuquin" class="fw-bold text-dark">--:--</span>
                                 </div>
 
                                 <div class="row g-2 mt-1">
@@ -235,12 +252,12 @@
                         <div class="col-lg-4">
                             <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
                                 <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Padsan Station</span>
+                                    <span class="text-dark fw-bold fs-6"><i class="bi bi-router-fill me-1 text-primary"></i>Padsan Station</span>
                                     <div id="status-laoag"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
+                                <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
                                     <span id="interval-laoag"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-laoag" class="fw-semibold text-dark">--:--</span>
+                                    <span id="time-laoag" class="fw-bold text-dark">--:--</span>
                                 </div>
 
                                 <div class="row g-2 mt-1">
@@ -273,12 +290,12 @@
                         <div class="col-lg-4">
                             <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
                                 <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                    <span class="text-dark fw-bold"><i class="bi bi-router-fill me-1 text-primary"></i>Bislak Station</span>
+                                    <span class="text-dark fw-bold fs-6"><i class="bi bi-router-fill me-1 text-primary"></i>Bislak Station</span>
                                     <div id="status-bacarra"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-dark my-2" style="font-size: 0.72rem;">
+                                <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
                                     <span id="interval-bacarra"><i class="bi bi-clock"></i> Calc...</span>
-                                    <span id="time-bacarra" class="fw-semibold text-dark">--:--</span>
+                                    <span id="time-bacarra" class="fw-bold text-dark">--:--</span>
                                 </div>
 
                                 <div class="row g-2 mt-1">
@@ -311,15 +328,15 @@
 
                 <!-- LOWER WORKSPACE: 3 Circular/Doughnut Graphs for Infrastructure Metrics -->
                 <div class="card p-4 bg-white shadow-sm mb-1">
-                    <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart-fill me-2"></i>Infrastructure Overview Metrics Matrix</h6>
+                    <h6 class="fw-bold mb-4 text-dark fs-6"><i class="bi bi-pie-chart-fill me-2"></i>Infrastructure Overview Metrics Matrix</h6>
                     <div class="row g-3 text-center">
                         <div class="col-md-4 border-end border-light">
                             <div class="mx-auto" style="position: relative; height: 100px; width: 100px;">
                                 <canvas id="usersCircleChart"></canvas>
                             </div>
                             <div class="mt-2">
-                                <span class="fw-bold text-dark small d-block">Registered Users</span>
-                                <small class="text-dark fw-semibold">12 Active Personnel</small>
+                                <span class="fw-bold text-dark small d-block fs-6">Registered Users</span>
+                                <small class="text-dark fw-bold">12 Active Personnel</small>
                             </div>
                         </div>
                         <div class="col-md-4 border-end border-light">
@@ -327,8 +344,8 @@
                                 <canvas id="stationsCircleChart"></canvas>
                             </div>
                             <div class="mt-2">
-                                <span class="fw-bold text-dark small d-block">Monitored Stations</span>
-                                <small class="text-dark fw-semibold">3 Active Nodes</small>
+                                <span class="fw-bold text-dark small d-block fs-6">Monitored Stations</span>
+                                <small class="text-dark fw-bold">3 Active Nodes</small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -336,8 +353,8 @@
                                 <canvas id="municipalitiesCircleChart"></canvas>
                             </div>
                             <div class="mt-2">
-                                <span class="fw-bold text-dark small d-block">Municipalities Covered</span>
-                                <small class="text-dark fw-semibold">23 Regions Engaged</small>
+                                <span class="fw-bold text-dark small d-block fs-6">Municipalities Covered</span>
+                                <small class="text-dark fw-bold">23 Regions Engaged</small>
                             </div>
                         </div>
                     </div>
@@ -361,7 +378,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-dark fw-bold" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -372,15 +389,15 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content bg-dark text-white border-0 shadow-lg">
                 <div class="modal-header border-dark">
-                    <h5 class="modal-title" id="videoModalLabel"><i class="bi bi-play-btn-fill me-2 text-danger"></i>Admin Overview</h5>
+                    <h5 class="modal-title fw-bold" id="videoModalLabel"><i class="bi bi-play-btn-fill me-2 text-danger"></i>Admin Overview</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeVideoBtn"></button>
                 </div>
                 <div class="modal-body p-0 position-relative text-center bg-black">
                     <div class="video-controls-top-right">
-                        <button id="unmuteBtn" class="btn btn-primary btn-sm shadow rounded-pill px-3 py-1">
+                        <button id="unmuteBtn" class="btn btn-primary btn-sm shadow rounded-pill px-3 py-1 fw-bold">
                             <i class="bi bi-volume-up-fill me-1"></i> Enable Sound
                         </button>
-                        <button id="skipBtn" class="btn btn-dark btn-sm shadow rounded-pill px-3 py-1" data-bs-dismiss="modal">
+                        <button id="skipBtn" class="btn btn-dark btn-sm shadow rounded-pill px-3 py-1 fw-bold" data-bs-dismiss="modal">
                             <i class="bi bi-fast-forward-fill me-1"></i> Skip
                         </button>
                     </div>

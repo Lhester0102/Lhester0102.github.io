@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Geospatial DSS | Matrix Dashboard</title>
+    <title>River Stations & Barangay Risk Status</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link class="rounded-circle" rel="icon" href="images/GDSS.png">
     
@@ -14,7 +14,13 @@
     
     <style>
         /* Theme Core */
-        body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+        body { 
+            background: #f4f6f9; 
+            height: 100vh; 
+            max-height: 100vh;
+            overflow: hidden; 
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; 
+        }
         
         /* Sidebar Styles */
         .sidebar { 
@@ -22,6 +28,7 @@
             transition: all 0.3s;
             z-index: 1050;
             overflow-y: auto;
+            height: 100vh;
         }
         
         .nav-link { 
@@ -49,8 +56,13 @@
         .badge-metric { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; }
         
         @media (min-width: 768px) {
-            .sidebar { min-height: 100vh; height: 100vh; }
-            .main-content { height: 100vh; overflow-y: auto; }
+            .main-content { 
+                height: 100vh; 
+                max-height: 100vh;
+                overflow: hidden; 
+                display: flex;
+                flex-direction: column;
+            }
         }
         
         .mobile-brand {
@@ -64,9 +76,6 @@
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.95rem; font-weight: bold; }
         
-        .main-content::-webkit-scrollbar { width: 6px; }
-        .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
         /* Station List Accordion / List Styling */
         .station-header-card {
             background-color: #ffffff;
@@ -92,7 +101,7 @@
         .barangay-subitem.risk-low {
             border-left-color: #198754;
         }
-
+        
         /* Collapsible Toggle Styling */
         .collapse-toggle-btn {
             cursor: pointer;
@@ -109,10 +118,18 @@
         .collapse-toggle-btn[aria-expanded="true"] .collapse-icon {
             transform: rotate(180deg);
         }
+        
+        /* Strict Viewport Fit Container */
+        .viewport-fit-wrapper {
+            height: calc(100vh - 85px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
 
-        /* Fixed Viewport Heights for Compact Display */
         .viewport-scroll-container {
-            max-height: calc(100vh - 160px);
+            flex-grow: 1;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -135,8 +152,8 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
             <!-- Sidebar Navigation -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
@@ -179,42 +196,57 @@
             </nav>
             
             <!-- Main Content Display Viewport -->
-            <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
+            <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 
-                <!-- Navbar Control Strip -->
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-2 p-2 bg-white rounded shadow-sm">
-                    <div class="d-flex align-items-center gap-3 w-100">
+                <!-- Navbar Control Strip with Submenu Buttons placed to the Left of the Username Dropdown -->
+                <div class="d-flex justify-content-between align-items-center mt-2 mb-2 p-2 bg-white rounded shadow-sm flex-shrink-0">
+                    <div class="d-flex align-items-center gap-3">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h5 class="mb-0 fw-bold text-dark">Station Flood Watch Warnings</h5>
-                        
-                        <a href="floods3.html" class="btn btn-sm btn-outline-primary fw-semibold d-flex align-items-center gap-1 ms-auto me-2">
-                            <i class="bi bi-eye-fill"></i> Flood Map
-                        </a>
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-router-fill"></i>River Stations & Barangay Risk Status</h5>
                     </div>
-                    
-                    <div class="dropdown">
-                        <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-6"></i>
-                            <span id="emails">User Loading...</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><h6 class="dropdown-header text-dark small fw-bold">Account Management</h6></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item small fw-semibold" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
-                        </ul>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Submenu Action Buttons (Left of Username) -->
+                        <div class="d-flex flex-wrap align-items-center gap-2 me-2">
+                            <a href="dash.html" class="btn btn-sm btn-outline-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-speedometer2"></i> Main Dashboard
+                            </a>
+                            <a href="dash4.html" class="btn btn-sm btn-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-router-fill"></i> By Station
+                            </a>
+                            <a href="newindex3.html" class="btn btn-sm btn-outline-primary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-map-fill"></i> Flood Map
+                            </a>
+                            <a href="floods4.html" class="btn btn-sm btn-outline-secondary fw-bold px-3 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-list-task"></i> All Barangays
+                            </a>
+                        </div>
+
+                        <!-- Username Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-1.5 fw-semibold" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle fs-6"></i>
+                                <span id="emails">User Loading...</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-
-                <!-- STATIONS & BARANGAYS WARNING LIST CONTAINER -->
-                <div class="card p-3 bg-white shadow-sm mb-2">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-dark fs-6"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Monitored River Stations & Barangay Risk Status</h6>
+                
+                <!-- Main Container Card Locked to Exact Viewport Height -->
+                <div class="card p-3 bg-white shadow-sm viewport-fit-wrapper">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 border-bottom pb-2 flex-shrink-0">
+                        <h6 class="fw-bold mb-0 text-dark fs-6"></i>Monitored River Stations & Barangay Risk Status</h6>
                         <span id="systemStatus" class="badge bg-light text-dark border fs-6 fw-bold">Initializing Machine Learning Grid...</span>
                     </div>
-
-                    <!-- Scrollable Viewport Container keeping everything fitting within 1 page -->
+                    
+                    <!-- Internal Scroll Area for Station Cards -->
                     <div class="viewport-scroll-container">
                         <div id="stationsListContainer" class="d-flex flex-column gap-3">
                             <div class="text-center py-5 text-muted fw-semibold">
@@ -238,7 +270,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getStorage, ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
             authDomain: "flooded-95eeb.firebaseapp.com",
@@ -247,47 +279,47 @@
             messagingSenderId: "142547476223",
             appId: "1:142547476223:web:70de7014c664e26d0636ca"
         };
-
+        
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const storage = getStorage(app);
-
+        
         let model = null;
         let minVals = [];
         let maxVals = [];
-
+        
         const stationDefinitions = [
-            {
-                node: "data",
-                id: "baldi",
-                name: "Baldi River Station",
-                basin: "Baldi River Basin",
-                municipalities: ["Pasuquin"]
-            },
-            {
-                node: "data2",
-                id: "padsan",
-                name: "Padsan River Station",
-                basin: "Padsan River Basin",
-                municipalities: ["Laoag City", "Laoag", "San Nicolas"]
-            },
-            {
-                node: "data3",
-                id: "bislak",
-                name: "Bislak River Station",
-                basin: "Bislak River Basin",
-                municipalities: ["Bacarra", "Vintar"]
-            }
+        {
+            node: "data",
+            id: "baldi",
+            name: "Baldi River Station",
+            basin: "Baldi River Basin",
+            municipalities: ["Pasuquin"]
+        },
+        {
+            node: "data2",
+            id: "padsan",
+            name: "Padsan River Station",
+            basin: "Padsan River Basin",
+            municipalities: ["Laoag City", "Laoag", "San Nicolas"]
+        },
+        {
+            node: "data3",
+            id: "bislak",
+            name: "Bislak River Station",
+            basin: "Bislak River Basin",
+            municipalities: ["Bacarra", "Vintar"]
+        }
         ];
-
+        
         const liveDataStore = {
             data: { level: 0, rain: 0, flow: 0, time: "" },
             data2: { level: 0, rain: 0, flow: 0, time: "" },
             data3: { level: 0, rain: 0, flow: 0, time: "" }
         };
-
+        
         let allBarangayPins = [];
-
+        
         window.addEventListener('DOMContentLoaded', async () => {
             if (sessionStorage.getItem('loggedIn') !== 'true') { 
                 window.location.href = 'log.html'; 
@@ -297,59 +329,65 @@
             if (emailElem) {
                 emailElem.innerHTML = sessionStorage.getItem("userEmail") || "Admin";
             }
-
+            
             document.getElementById('logoutLink')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 sessionStorage.clear();
                 window.location.href = 'log.html';
             });
-
+            
             await loadNeuralModel();
             await fetchBarangayPins();
             setupLiveTelemetry();
         });
-
+        
         async function loadNeuralModel() {
             try {
                 const jsonUrl = await getDownloadURL(storageRef(storage, 'models/flood_model.json'));
                 const weightsUrl = await getDownloadURL(storageRef(storage, 'models/flood_weights.bin'));
-
+                
                 const config = await (await fetch(jsonUrl)).json();
                 const weights = await (await fetch(weightsUrl)).arrayBuffer();
-
+                
                 minVals = config.metadata.minVals;
                 maxVals = config.metadata.maxVals;
-
+                
                 model = await tf.loadLayersModel(tf.io.fromMemory(
-                    config.modelTopology,
-                    config.weightSpecs,
-                    weights
+                config.modelTopology,
+                config.weightSpecs,
+                weights
                 ));
-
-                document.getElementById('systemStatus').innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> AI Risk Model Active';
+                
+                const sysStatus = document.getElementById('systemStatus');
+                if (sysStatus) {
+                    sysStatus.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> AI Risk Model Active';
+                }
             } catch (err) {
                 console.warn("Could not load neural model, falling back to threshold rule calculations:", err);
-                document.getElementById('systemStatus').innerHTML = '<i class="bi bi-info-circle-fill text-warning me-1"></i> Rule-Based Threshold Mode';
+                const sysStatus = document.getElementById('systemStatus');
+                if (sysStatus) {
+                    sysStatus.innerHTML = '<i class="bi bi-info-circle-fill text-warning me-1"></i> Rule-Based Threshold Mode';
+                }
             }
         }
-
+        
         async function fetchBarangayPins() {
             try {
                 const snapshot = await get(ref(db, 'pins'));
                 if (snapshot.exists()) {
                     const loadedPins = [];
                     const seen = new Set();
-
+                    
                     snapshot.forEach(child => {
                         const pin = child.val();
                         if (pin.node) {
                             const name = (pin.name || pin.barangayName || "Unknown Barangay").trim();
                             const muni = pin.municipality || "Laoag City";
                             const uniqueKey = `${muni.toLowerCase()}-${name.toLowerCase()}`;
-
+                            
                             const rawElevation = pin.elevation ?? pin.elev ?? pin.targetElevation ?? pin.altitude;
                             const parsedElevation = parseFloat(rawElevation);
-
+                            
                             if (!seen.has(uniqueKey)) {
                                 seen.add(uniqueKey);
                                 loadedPins.push({
@@ -364,25 +402,25 @@
                             }
                         }
                     });
-
+                    
                     allBarangayPins = loadedPins;
                 }
             } catch (err) {
                 console.error("Error loading barangay pins from database:", err);
             }
         }
-
+        
         function setupLiveTelemetry() {
             ['data', 'data2', 'data3'].forEach(nodeKey => {
                 onValue(ref(db, nodeKey), (snapshot) => {
                     if (!snapshot.exists()) return;
-
+                    
                     let records = [];
                     const raw = snapshot.val();
                     if (typeof raw === 'object' && raw !== null) {
                         records = Object.keys(raw).map(k => raw[k]);
                     }
-
+                    
                     if (records.length > 0) {
                         const latest = records[records.length - 1];
                         liveDataStore[nodeKey] = {
@@ -392,16 +430,16 @@
                             time: latest.time || latest.t || latest.date || ""
                         };
                     }
-
+                    
                     renderStationWarningLists();
                 });
             });
         }
-
+        
         function normalize(row) {
             return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
         }
-
+        
         function calculateBarangayRisk(telemetry, elevation) {
             if (model && minVals.length > 0 && maxVals.length > 0) {
                 try {
@@ -416,65 +454,65 @@
                     console.error("Prediction matrix calculation error:", err);
                 }
             }
-
+            
             if (telemetry.level >= 4.0 || telemetry.rain >= 15.0) return 85;
             if (telemetry.level >= 2.5 || telemetry.rain >= 7.5) return 50;
             return 15;
         }
-
+        
         function renderStationWarningLists() {
             const container = document.getElementById('stationsListContainer');
             if (!container) return;
-
+            
             const openStates = {};
             document.querySelectorAll('.collapse').forEach(elem => {
                 if (elem.id) {
                     openStates[elem.id] = elem.classList.contains('show');
                 }
             });
-
+            
             container.innerHTML = '';
-
+            
             stationDefinitions.forEach(station => {
                 const telemetry = liveDataStore[station.node];
-
+                
                 const coveredBarangays = allBarangayPins.filter(b => 
-                    b.node === station.node || 
-                    station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase())
+                b.node === station.node || 
+                station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase())
                 );
-
+                
                 const evaluatedBarangays = coveredBarangays.map(b => {
                     const risk = calculateBarangayRisk(telemetry, b.elevation);
                     return { ...b, risk };
                 });
-
+                
                 const warningBarangays = evaluatedBarangays.filter(b => b.risk >= 30);
-
+                
                 warningBarangays.sort((a, b) => {
                     if (b.risk !== a.risk) return b.risk - a.risk;
                     return a.name.localeCompare(b.name);
                 });
-
+                
                 let stationBadge = '<span class="badge bg-success fs-6">Normal</span>';
                 if (warningBarangays.some(b => b.risk >= 70)) {
                     stationBadge = '<span class="badge bg-danger fs-6">Severe Warning</span>';
                 } else if (warningBarangays.length > 0) {
                     stationBadge = '<span class="badge bg-warning text-dark fs-6">Moderate Warning</span>';
                 }
-
+                
                 const collapseId = `collapseStation_${station.id}`;
                 const isOpen = openStates[collapseId] !== undefined ? openStates[collapseId] : false;
-
+                
                 const stationCard = document.createElement('div');
                 stationCard.className = 'card border station-header-card p-3 shadow-sm';
-
+                
                 let barangaySublistHTML = '';
                 if (warningBarangays.length > 0) {
                     barangaySublistHTML = warningBarangays.map(b => {
                         let riskClass = 'risk-low';
                         let badgeBg = 'bg-success';
                         let riskLabel = 'Low';
-
+                        
                         if (b.risk >= 70) {
                             riskClass = 'risk-severe';
                             badgeBg = 'bg-danger';
@@ -484,89 +522,89 @@
                             badgeBg = 'bg-warning text-dark';
                             riskLabel = 'Moderate Risk';
                         }
-
+                        
                         const depth = Math.max(0, (telemetry.level - (b.elevation * (b.risk/100 - 0.75))) * (b.risk/100)).toFixed(2);
-
+                        
                         return `
-                            <div class="card p-2 px-3 border-0 barangay-subitem ${riskClass} mb-2">
-                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-0" style="font-size:0.95rem;">${b.name}</h6>
-                                        <span class="text-secondary fw-semibold" style="font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>${b.municipality} | Elevation: ${b.elevation.toFixed(1)}m</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="text-end">
-                                            <span class="d-block metric-label">Est. Depth</span>
-                                            <span class="fw-bold text-dark" style="font-size:0.95rem;">${depth} m</span>
+                                <div class="card p-2 px-3 border-0 barangay-subitem ${riskClass} mb-2">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0" style="font-size:0.95rem;">${b.name}</h6>
+                                            <span class="text-secondary fw-semibold" style="font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>${b.municipality} | Elevation: ${b.elevation.toFixed(1)}m</span>
                                         </div>
-                                        <span class="badge ${badgeBg} px-2 py-1" style="font-size:0.8rem;">${riskLabel} (${b.risk}%)</span>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="text-end">
+                                                <span class="d-block metric-label">Est. Depth</span>
+                                                <span class="fw-bold text-dark" style="font-size:0.95rem;">${depth} m</span>
+                                            </div>
+                                            <span class="badge ${badgeBg} px-2 py-1" style="font-size:0.8rem;">${riskLabel} (${b.risk}%)</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
                     }).join('');
                 } else {
                     barangaySublistHTML = `
-                        <div class="p-3 text-center text-secondary bg-light rounded border border-dashed fw-semibold small">
-                            <i class="bi bi-shield-check text-success fs-5 d-block mb-1"></i>
-                            No active warnings for barangays under ${station.name}. All parameters within safe limits.
+                            <div class="p-3 text-center text-secondary bg-light rounded border border-dashed fw-semibold small">
+                                <i class="bi bi-shield-check text-success fs-5 d-block mb-1"></i>
+                                No active warnings for barangays under ${station.name}. All parameters within safe limits.
+                            </div>
+                        `;
+                }
+                
+                stationCard.innerHTML = `
+                        <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 border-bottom mb-2 gap-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-router-fill me-2 text-primary"></i>${station.name}</h5>
+                                <span class="text-secondary fw-semibold" style="font-size:0.82rem;">${station.basin} | Sensor Time: ${telemetry.time || 'Live'}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                ${stationBadge}
+                                <span class="badge bg-light text-dark border fs-6 fw-bold"><i class="bi bi-exclamation-triangle text-warning me-1"></i>${warningBarangays.length} Warnings</span>
+                            </div>
+                        </div>
+
+                        <!-- Station Current Metrics Summary Bar -->
+                        <div class="row g-2 mb-2 text-center">
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded border">
+                                    <span class="metric-label d-block">WATER LEVEL</span>
+                                    <strong class="text-primary metric-value">${telemetry.level.toFixed(2)} m</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded border">
+                                    <span class="metric-label d-block">RAINFALL</span>
+                                    <strong class="text-info metric-value">${telemetry.rain.toFixed(1)} mm</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded border">
+                                    <span class="metric-label d-block">DISCHARGE FLOW</span>
+                                    <strong class="text-success metric-value">${telemetry.flow.toFixed(1)} m³/s</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Trigger Header for Barangay Sublist -->
+                        <div>
+                            <div class="p-2 px-3 rounded border d-flex justify-content-between align-items-center collapse-toggle-btn" 
+                                 data-bs-toggle="collapse" 
+                                 data-bs-target="#${collapseId}" 
+                                 aria-expanded="${isOpen ? 'true' : 'false'}">
+                                <span class="fw-bold text-dark small text-uppercase"><i class="bi bi-list-nested me-2"></i>Affected Barangays & Warning List (${warningBarangays.length})</span>
+                                <i class="bi bi-chevron-down collapse-icon text-dark fw-bold"></i>
+                            </div>
+
+                            <!-- Collapsible Barangay Sublist Body -->
+                            <div class="collapse ${isOpen ? 'show' : ''}" id="${collapseId}">
+                                <div class="pt-2">
+                                    ${barangaySublistHTML}
+                                </div>
+                            </div>
                         </div>
                     `;
-                }
-
-                stationCard.innerHTML = `
-                    <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 border-bottom mb-2 gap-2">
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-router-fill me-2 text-primary"></i>${station.name}</h5>
-                            <span class="text-secondary fw-semibold" style="font-size:0.82rem;">${station.basin} | Sensor Time: ${telemetry.time || 'Live'}</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            ${stationBadge}
-                            <span class="badge bg-light text-dark border fs-6 fw-bold"><i class="bi bi-exclamation-triangle text-warning me-1"></i>${warningBarangays.length} Warnings</span>
-                        </div>
-                    </div>
-
-                    <!-- Station Current Metrics Summary Bar -->
-                    <div class="row g-2 mb-2 text-center">
-                        <div class="col-4">
-                            <div class="p-2 bg-light rounded border">
-                                <span class="metric-label d-block">WATER LEVEL</span>
-                                <strong class="text-primary metric-value">${telemetry.level.toFixed(2)} m</strong>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-2 bg-light rounded border">
-                                <span class="metric-label d-block">RAINFALL</span>
-                                <strong class="text-info metric-value">${telemetry.rain.toFixed(1)} mm</strong>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-2 bg-light rounded border">
-                                <span class="metric-label d-block">DISCHARGE FLOW</span>
-                                <strong class="text-success metric-value">${telemetry.flow.toFixed(1)} m³/s</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Collapsible Trigger Header for Barangay Sublist -->
-                    <div>
-                        <div class="p-2 px-3 rounded border d-flex justify-content-between align-items-center collapse-toggle-btn" 
-                             data-bs-toggle="collapse" 
-                             data-bs-target="#${collapseId}" 
-                             aria-expanded="${isOpen ? 'true' : 'false'}">
-                            <span class="fw-bold text-dark small text-uppercase"><i class="bi bi-list-nested me-2"></i>Affected Barangays & Warning List (${warningBarangays.length})</span>
-                            <i class="bi bi-chevron-down collapse-icon text-dark fw-bold"></i>
-                        </div>
-
-                        <!-- Collapsible Barangay Sublist Body -->
-                        <div class="collapse ${isOpen ? 'show' : ''}" id="${collapseId}">
-                            <div class="pt-2">
-                                ${barangaySublistHTML}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
+                
                 container.appendChild(stationCard);
             });
         }
