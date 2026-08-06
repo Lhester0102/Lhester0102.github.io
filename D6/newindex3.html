@@ -81,7 +81,7 @@
             align-items: center;
             gap: 0.5rem;
         }
-
+        
         @media (max-width: 767.98px) {
             .submenu-actions {
                 width: 100%;
@@ -95,7 +95,7 @@
                 padding: 0.375rem 0.5rem;
             }
         }
-
+        
         @media (max-width: 480px) {
             .submenu-actions .btn {
                 flex: 1 1 100%;
@@ -175,16 +175,16 @@
                                 <i class="bi bi-speedometer2"></i> Main Dashboard
                             </a>
                             <a href="dash4.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                                <i class="bi bi-router-fill"></i> By Station
+                                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Flood Warnings
                             </a>
                             <a href="newindex3.html" class="btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                                 <i class="bi bi-map-fill"></i> Flood Map
+                                <i class="bi bi-map-fill text-info"></i> Flood Map
                             </a>
                             <a href="floods4.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                                <i class="bi bi-list-task"></i> All Barangays
+                                <i class="bi bi-list text-info"></i> All Barangays
                             </a>
                         </div>
-
+                        
                         <!-- Username Dropdown -->
                         <div class="dropdown ms-auto ms-md-2">
                             <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
@@ -440,14 +440,14 @@
             }
         });
     }
-
+    
     function focusGeocoderInput() {
         setTimeout(() => {
             const input = document.querySelector('.mapboxgl-ctrl-geocoder--input');
             if (input) input.focus();
         }, 300);
     }
-
+    
     function updateKPIs() {
         document.getElementById("kpiWater").innerHTML = document.getElementById("waterLevel").value;
         document.getElementById("kpiRain").innerHTML = document.getElementById("rainfall").value;
@@ -523,13 +523,13 @@
             currentDataListener = ref;
             ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
             document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data2) updates.`;
-        // Node data3 maps to Bacarra and Vintar
+            // Node data3 maps to Bacarra and Vintar
         } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
             const ref = data3Ref.orderByKey().limitToLast(1);
             currentDataListener = ref;
             ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
             document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data3) updates.`;
-        // Node data maps to Pasuquin
+            // Node data maps to Pasuquin
         } else if (municipality === 'Pasuquin') {
             const ref = dataRef.orderByKey().limitToLast(1);
             currentDataListener = ref;
