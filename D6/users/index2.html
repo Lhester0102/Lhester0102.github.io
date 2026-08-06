@@ -27,7 +27,7 @@
       max-width: 350px !important;
       z-index: 3000;
     }
-
+    
     /* Sidebar Styles */
     .sidebar { 
       background-color: #1c96c5; 
@@ -102,7 +102,7 @@
       font-size: 12px; background: rgba(255, 255, 255, 0.6); 
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 200px;
     }
-
+    
     /* Map Layer Toggles */
     #layer-controls {
       position: absolute; top: 15px; left: 15px;
@@ -144,9 +144,11 @@
         <ul class="nav flex-column">
           <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-water me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
+          
         </ul>
       </nav>
-
+      
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
         <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
@@ -161,7 +163,7 @@
             </div>
           </div>
         </div>
-
+        
         <div class="row" style="height: 88%;">
           <div class="col-12 h-100">
             <div class="card h-100 p-1 position-relative">
@@ -186,7 +188,7 @@
                   <label class="form-check-label text-dark" for="chkLow">Low / Safe</label>
                 </div>
               </div>
-
+              
               <div id="map-legend2">
                 <div class="dropdown w-100 ">
                   <button class="btn rounded btn-sm shadow-sm w-100 d-flex align-items-center justify-content-between dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown">
@@ -198,7 +200,7 @@
                   <ul class="dropdown-menu dropdown-menu-start shadow border-0 w-100" id="riverDropdownMenu" style="max-height:300px; overflow-y:auto;"></ul>
                 </div>
               </div>
-          
+              
               <div id="map-legend">
                 <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
                 <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
@@ -213,7 +215,7 @@
       </main>
     </div>
   </div>
-
+  
   <!-- Video Popup Modal -->
   <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -237,269 +239,269 @@
       </div>
     </div>
   </div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-  let model, minVals = [], maxVals = [];
-  let stationMarkersArray = []; 
-  let isMapFullyLoaded = false; 
-
-  window.onload = function() {
-    loadModel();
-
-    // Setup Video Modal
-    const videoModalElement = document.getElementById('videoModal');
-    const videoElement = document.getElementById('popupVideo');
-    const unmuteBtn = document.getElementById('unmuteBtn');
-    const videoModal = new bootstrap.Modal(videoModalElement);
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    let model, minVals = [], maxVals = [];
+    let stationMarkersArray = []; 
+    let isMapFullyLoaded = false; 
     
-    // Display Modal on load
-    videoModal.show();
-
-    // Ensure video starts playing muted (bypasses browser autoplay blocks)
-    if (videoElement) {
-      videoElement.muted = true;
-      videoElement.play().catch(err => console.log("Autoplay handled:", err));
-    }
-
-    // Toggle Audio on Click
-    if (unmuteBtn && videoElement) {
-      unmuteBtn.addEventListener('click', function() {
-        if (videoElement.muted) {
-          videoElement.muted = false;
-          unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
-          unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
-        } else {
-          videoElement.muted = true;
-          unmuteBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Unmute Audio';
-          unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
-        }
-      });
-    }
-
-    // Unmute automatically on first global page interaction
-    document.addEventListener('click', function enableAudioOnFirstClick() {
-      if (videoElement && videoElement.muted) {
-        videoElement.muted = false;
-        if (unmuteBtn) {
-          unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
-          unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
-        }
-      }
-    }, { once: true });
-
-    // Stop playback upon closing the modal
-    videoModalElement.addEventListener('hidden.bs.modal', function () {
+    window.onload = function() {
+      loadModel();
+      
+      // Setup Video Modal
+      const videoModalElement = document.getElementById('videoModal');
+      const videoElement = document.getElementById('popupVideo');
+      const unmuteBtn = document.getElementById('unmuteBtn');
+      const videoModal = new bootstrap.Modal(videoModalElement);
+      
+      // Display Modal on load
+      videoModal.show();
+      
+      // Ensure video starts playing muted (bypasses browser autoplay blocks)
       if (videoElement) {
-        videoElement.pause();
+        videoElement.muted = true;
+        videoElement.play().catch(err => console.log("Autoplay handled:", err));
       }
-    });
-  };
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-    authDomain: "flooded-95eeb.firebaseapp.com",
-    projectId: "flooded-95eeb",
-    storageBucket: "flooded-95eeb.firebasestorage.app",
-    messagingSenderId: "142547476223",
-    appId: "1:142547476223:web:70de7014c664e26d0636ca"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storageRef = firebase.storage().ref();
-
-  async function loadModel() {
-    try {
-      const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-      const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-      const config = await (await fetch(jsonUrl)).json();
-      const weights = await (await fetch(weightsUrl)).arrayBuffer();
       
-      minVals = config.metadata.minVals;
-      maxVals = config.metadata.maxVals;
-      
-      model = await tf.loadLayersModel(tf.io.fromMemory({
-        modelTopology: config.modelTopology,
-        weightSpecs: config.weightSpecs,
-        weightData: weights
-      }));
-      console.log("Model loaded for map overlays.");
-      if (isMapFullyLoaded) updateMarkers();
-    } catch (err) {
-      console.error("Model load error:", err);
-    }
-  }
-
-  function normalize(row) {
-    return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
-  }
-
-  async function getForecast(currentInput) {
-    const horizons = [1, 3, 12, 24];
-    let last = [...currentInput];
-    const predictions = [];
-    if (!model) return [0, 0, 0, 0];
-    for (const h of horizons) {
-      const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
-      predictions.push(pred[0] * 100);
-      last[0] += 0.05; 
-    }
-    return predictions;
-  }
-  
-  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-    center: [120.587385, 18.187710],
-    zoom: 11,
-    pitch: 55
-  });
-  
-  const getRiskCategory = (v) => {
-    if(v >= 80) return 'severe';
-    if(v >= 60) return 'high';
-    if(v >= 30) return 'moderate';
-    return 'low';
-  };
-  
-  const getMarkerColorByProb = (v) => {
-    if(v >= 80) return '#dc3545'; 
-    if(v >= 60) return '#fd7e14'; 
-    if(v >= 30) return '#ffc107'; 
-    return '#198754';             
-  };
-
-  const getFloodColor = (v) => {
-    if(v >= 80) return 'rgba(255,0,0,0.6)';
-    if(v >= 60) return 'rgba(255, 140, 0, 0.6)';
-    if(v >= 30) return 'rgba(255,255,0,0.6)';
-    return 'rgba(2, 251, 2, 0.6)';
-  };
-  
-  const floodLayers = [];
-  
-  map.on('load', () => {
-    if (!map.getSource('mapbox-dem')) {
-      map.addSource('mapbox-dem', {
-        'type': 'raster-dem',
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512,
-        'maxzoom': 14
-      });
-    }
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-    
-    db.ref('Flooded_Areas').once('value').then(snapshot => {
-      const data = snapshot.val();
-      if (!data) return;
-      
-      Object.entries(data).forEach(([id, f], i) => {
-        const geo = f.geojson;
-        if (!geo) return;
-        
-        const sourceId = `flood-src-${i}`;
-        const layerId = `flood-layer-${i}`;
-        map.addSource(sourceId, { type: 'geojson', data: geo });
-        
-        if (f.type?.toLowerCase() === 'municipality') {
-          map.addLayer({
-            id: `border-${i}`,
-            type: 'line',
-            source: sourceId,
-            paint: { 'line-color': '#1c96c5', 'line-width': 2 }
-          });
-        } else {
-          map.addLayer({
-            id: layerId,
-            type: 'fill',
-            source: sourceId,
-            paint: { 
-              'fill-color': getFloodColor(f.vulnerability || 0), 
-              'fill-opacity': 0.5 
-            }
-          });
-          floodLayers.push({ layerId, props: f });
-        }
-      });
-    });
-  });
-
-  map.on('style.load', () => {
-    isMapFullyLoaded = true;
-    updateMarkers(); 
-  });
-  
-  document.querySelectorAll('.risk-filter').forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
-      
-      floodLayers.forEach(item => {
-        const vuln = item.props.vulnerability || 0;
-        const category = getRiskCategory(vuln);
-        
-        if (activeCategories.includes(category)) {
-          map.setLayoutProperty(item.layerId, 'visibility', 'visible');
-        } else {
-          map.setLayoutProperty(item.layerId, 'visibility', 'none');
-        }
-      });
-    });
-  });
-  
-  map.on('click', async (e) => {
-    document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-    const { lng, lat } = e.lngLat;
-    const elevation = map.queryTerrainElevation(e.lngLat) || 0;
-    
-    const minElev = 5; 
-    const maxElev = 50; 
-    
-    let calcRisk = 0;
-    if (elevation <= minElev) {
-      calcRisk = 100;
-    } else if (elevation >= maxElev) {
-      calcRisk = 5; 
-    } else {
-      calcRisk = 100 - ((elevation - minElev) / (maxElev - minElev) * 100);
-    }
-    const finalRisk = Math.round(calcRisk);
-    
-    let riskColor, riskLabel, badgeClass;
-    if (finalRisk >= 80) { 
-      riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
-    } else if (finalRisk >= 60) { 
-      riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
-    } else if (finalRisk >= 30) { 
-      riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
-    } else { 
-      riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
-    }
-    
-    const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
-    
-    let address = "Scanning...";
-    let barangay = "N/A";
-    let municipality = "N/A";
-    
-    try {
-      const resp = await fetch(geoQuery);
-      const data = await resp.json();
-      if (data.features && data.features.length > 0) {
-        address = data.features[0].place_name.split(',')[0];
-        data.features[0].context.forEach(ctx => {
-          if (ctx.id.includes('neighborhood')) barangay = ctx.text;
-          if (ctx.id.includes('place')) municipality = ctx.text;
+      // Toggle Audio on Click
+      if (unmuteBtn && videoElement) {
+        unmuteBtn.addEventListener('click', function() {
+          if (videoElement.muted) {
+            videoElement.muted = false;
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
+            unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
+          } else {
+            videoElement.muted = true;
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Unmute Audio';
+            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
+          }
         });
       }
-    } catch (err) { address = "Location unavailable"; }
+      
+      // Unmute automatically on first global page interaction
+      document.addEventListener('click', function enableAudioOnFirstClick() {
+        if (videoElement && videoElement.muted) {
+          videoElement.muted = false;
+          if (unmuteBtn) {
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
+            unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
+          }
+        }
+      }, { once: true });
+      
+      // Stop playback upon closing the modal
+      videoModalElement.addEventListener('hidden.bs.modal', function () {
+        if (videoElement) {
+          videoElement.pause();
+        }
+      });
+    };
     
-    const html = `
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+    
+    async function loadModel() {
+      try {
+        const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+        const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+        const config = await (await fetch(jsonUrl)).json();
+        const weights = await (await fetch(weightsUrl)).arrayBuffer();
+        
+        minVals = config.metadata.minVals;
+        maxVals = config.metadata.maxVals;
+        
+        model = await tf.loadLayersModel(tf.io.fromMemory({
+          modelTopology: config.modelTopology,
+          weightSpecs: config.weightSpecs,
+          weightData: weights
+        }));
+        console.log("Model loaded for map overlays.");
+        if (isMapFullyLoaded) updateMarkers();
+      } catch (err) {
+        console.error("Model load error:", err);
+      }
+    }
+    
+    function normalize(row) {
+      return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
+    }
+    
+    async function getForecast(currentInput) {
+      const horizons = [1, 3, 12, 24];
+      let last = [...currentInput];
+      const predictions = [];
+      if (!model) return [0, 0, 0, 0];
+      for (const h of horizons) {
+        const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
+        predictions.push(pred[0] * 100);
+        last[0] += 0.05; 
+      }
+      return predictions;
+    }
+    
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+      center: [120.587385, 18.187710],
+      zoom: 11,
+      pitch: 55
+    });
+    
+    const getRiskCategory = (v) => {
+      if(v >= 80) return 'severe';
+      if(v >= 60) return 'high';
+      if(v >= 30) return 'moderate';
+      return 'low';
+    };
+    
+    const getMarkerColorByProb = (v) => {
+      if(v >= 80) return '#dc3545'; 
+      if(v >= 60) return '#fd7e14'; 
+      if(v >= 30) return '#ffc107'; 
+      return '#198754';             
+    };
+    
+    const getFloodColor = (v) => {
+      if(v >= 80) return 'rgba(255,0,0,0.6)';
+      if(v >= 60) return 'rgba(255, 140, 0, 0.6)';
+      if(v >= 30) return 'rgba(255,255,0,0.6)';
+      return 'rgba(2, 251, 2, 0.6)';
+    };
+    
+    const floodLayers = [];
+    
+    map.on('load', () => {
+      if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', {
+          'type': 'raster-dem',
+          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          'tileSize': 512,
+          'maxzoom': 14
+        });
+      }
+      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+      
+      db.ref('Flooded_Areas').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        Object.entries(data).forEach(([id, f], i) => {
+          const geo = f.geojson;
+          if (!geo) return;
+          
+          const sourceId = `flood-src-${i}`;
+          const layerId = `flood-layer-${i}`;
+          map.addSource(sourceId, { type: 'geojson', data: geo });
+          
+          if (f.type?.toLowerCase() === 'municipality') {
+            map.addLayer({
+              id: `border-${i}`,
+              type: 'line',
+              source: sourceId,
+              paint: { 'line-color': '#1c96c5', 'line-width': 2 }
+            });
+          } else {
+            map.addLayer({
+              id: layerId,
+              type: 'fill',
+              source: sourceId,
+              paint: { 
+                'fill-color': getFloodColor(f.vulnerability || 0), 
+                'fill-opacity': 0.5 
+              }
+            });
+            floodLayers.push({ layerId, props: f });
+          }
+        });
+      });
+    });
+    
+    map.on('style.load', () => {
+      isMapFullyLoaded = true;
+      updateMarkers(); 
+    });
+    
+    document.querySelectorAll('.risk-filter').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
+        
+        floodLayers.forEach(item => {
+          const vuln = item.props.vulnerability || 0;
+          const category = getRiskCategory(vuln);
+          
+          if (activeCategories.includes(category)) {
+            map.setLayoutProperty(item.layerId, 'visibility', 'visible');
+          } else {
+            map.setLayoutProperty(item.layerId, 'visibility', 'none');
+          }
+        });
+      });
+    });
+    
+    map.on('click', async (e) => {
+      document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+      const { lng, lat } = e.lngLat;
+      const elevation = map.queryTerrainElevation(e.lngLat) || 0;
+      
+      const minElev = 5; 
+      const maxElev = 50; 
+      
+      let calcRisk = 0;
+      if (elevation <= minElev) {
+        calcRisk = 100;
+      } else if (elevation >= maxElev) {
+        calcRisk = 5; 
+      } else {
+        calcRisk = 100 - ((elevation - minElev) / (maxElev - minElev) * 100);
+      }
+      const finalRisk = Math.round(calcRisk);
+      
+      let riskColor, riskLabel, badgeClass;
+      if (finalRisk >= 80) { 
+        riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
+      } else if (finalRisk >= 60) { 
+        riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
+      } else if (finalRisk >= 30) { 
+        riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
+      } else { 
+        riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
+      }
+      
+      const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
+      
+      let address = "Scanning...";
+      let barangay = "N/A";
+      let municipality = "N/A";
+      
+      try {
+        const resp = await fetch(geoQuery);
+        const data = await resp.json();
+        if (data.features && data.features.length > 0) {
+          address = data.features[0].place_name.split(',')[0];
+          data.features[0].context.forEach(ctx => {
+            if (ctx.id.includes('neighborhood')) barangay = ctx.text;
+            if (ctx.id.includes('place')) municipality = ctx.text;
+          });
+        }
+      } catch (err) { address = "Location unavailable"; }
+      
+      const html = `
         <div style="padding:10px; min-width: 230px;">
             <h6 class="fw-bold border-bottom mb-2 pb-1" style="color: #1c96c5;">
                 <i class="bi bi-water me-1"></i> Elevation Analysis
@@ -533,125 +535,125 @@
                 <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
             </div>
         </div>`;
-    
-    new mapboxgl.Popup({ maxWidth: '300px' })
-    .setLngLat(e.lngLat)
-    .setHTML(html)
-    .addTo(map);
-  });
-  
-  const liveDataStore = {
-    data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
-    data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
-    data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
-  };
-  
-  ['data', 'data2', 'data3'].forEach(nodeKey => {
-    db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
-      if (!snapshot.exists()) return;
       
-      const entries = [];
-      let latestKey = "";
-      let latestRecord = null;
-
-      snapshot.forEach(child => {
-        const val = child.val();
-        const key = child.key;
-        entries.push(val);
+      new mapboxgl.Popup({ maxWidth: '300px' })
+      .setLngLat(e.lngLat)
+      .setHTML(html)
+      .addTo(map);
+    });
+    
+    const liveDataStore = {
+      data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
+      data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
+      data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
+    };
+    
+    ['data', 'data2', 'data3'].forEach(nodeKey => {
+      db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
+        if (!snapshot.exists()) return;
         
-        if (key > latestKey) {
-          latestKey = key;
-          latestRecord = val;
+        const entries = [];
+        let latestKey = "";
+        let latestRecord = null;
+        
+        snapshot.forEach(child => {
+          const val = child.val();
+          const key = child.key;
+          entries.push(val);
+          
+          if (key > latestKey) {
+            latestKey = key;
+            latestRecord = val;
+          }
+        });
+        
+        liveDataStore[nodeKey].history = entries.map(e => {
+          if (nodeKey === 'data2') return e.water ?? e.level ?? 0;
+          return e.level ?? e.water ?? 0;
+        });
+        
+        liveDataStore[nodeKey].current = {
+          level: nodeKey === 'data2' ? (latestRecord.water ?? latestRecord.level ?? 0) : (latestRecord.level ?? latestRecord.water ?? 0),
+          flow: latestRecord.flow ?? latestRecord.discharge ?? 0,
+          rain: latestRecord.rain ?? latestRecord.rainfall ?? 0
+        };
+        
+        console.log(`Verified Sync [${nodeKey}] Latest Key ID: ${latestKey} Mapped Current Level: ${liveDataStore[nodeKey].current.level}`);
+        
+        if (isMapFullyLoaded) {
+          updateMarkers();
         }
       });
-      
-      liveDataStore[nodeKey].history = entries.map(e => {
-        if (nodeKey === 'data2') return e.water ?? e.level ?? 0;
-        return e.level ?? e.water ?? 0;
-      });
-      
-      liveDataStore[nodeKey].current = {
-        level: nodeKey === 'data2' ? (latestRecord.water ?? latestRecord.level ?? 0) : (latestRecord.level ?? latestRecord.water ?? 0),
-        flow: latestRecord.flow ?? latestRecord.discharge ?? 0,
-        rain: latestRecord.rain ?? latestRecord.rainfall ?? 0
-      };
-      
-      console.log(`Verified Sync [${nodeKey}] Latest Key ID: ${latestKey} Mapped Current Level: ${liveDataStore[nodeKey].current.level}`);
-      
-      if (isMapFullyLoaded) {
-        updateMarkers();
-      }
     });
-  });
-  
-  const rivers = [
+    
+    const rivers = [
     { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
     { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
     { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
-  ];
-  
-  const riverMenu = document.getElementById('riverDropdownMenu');
-  
-  async function updateMarkers() {
-    stationMarkersArray.forEach(m => m.remove());
-    stationMarkersArray = [];
+    ];
     
-    if (riverMenu) riverMenu.innerHTML = '';
+    const riverMenu = document.getElementById('riverDropdownMenu');
     
-    for (let idx = 0; idx < rivers.length; idx++) {
-      const river = rivers[idx];
-      const histChartId = `riverHist-${idx}`;
-      const probChartId = `riverProb-${idx}`;
+    async function updateMarkers() {
+      stationMarkersArray.forEach(m => m.remove());
+      stationMarkersArray = [];
       
-      const data = liveDataStore[river.node];
-      const cur = data.current;
-      const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
+      if (riverMenu) riverMenu.innerHTML = '';
       
-      let prob = 0;
-      let forecastData = [0, 0, 0, 0];
-      if (model && minVals.length > 0) {
-        forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
-        prob = Math.round(forecastData[0]);
-      }
-      
-      const calculatedPinColor = getMarkerColorByProb(prob);
-      const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
-      
-      const popup = new mapboxgl.Popup({ 
-        offset: 25,
-        anchor: sideAnchor 
-      });
-      
-      const marker = new mapboxgl.Marker({ color: calculatedPinColor })
-      .setLngLat([river.lng, river.lat])
-      .setPopup(popup)
-      .addTo(map);
-      
-      marker.getElement().addEventListener('click', (e) => {
-        e.stopPropagation();
-        map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
-        marker.togglePopup();
-      });
-      
-      stationMarkersArray.push(marker);
-      
-      if (riverMenu) {
-        const li = document.createElement('li');
-        li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${calculatedPinColor}"></i> ${river.name}</a>`;
-        li.onclick = () => {
-          map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
-          if (!marker.getPopup().isOpen()) marker.togglePopup();
-        };
-        riverMenu.appendChild(li);
-      }
-      
-      popup.on('open', async () => {
-        const currentPopupEl = popup.getElement();
-        document.querySelectorAll('.mapboxgl-popup').forEach(p => {
-          if (p !== currentPopupEl) p.remove();
+      for (let idx = 0; idx < rivers.length; idx++) {
+        const river = rivers[idx];
+        const histChartId = `riverHist-${idx}`;
+        const probChartId = `riverProb-${idx}`;
+        
+        const data = liveDataStore[river.node];
+        const cur = data.current;
+        const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
+        
+        let prob = 0;
+        let forecastData = [0, 0, 0, 0];
+        if (model && minVals.length > 0) {
+          forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
+          prob = Math.round(forecastData[0]);
+        }
+        
+        const calculatedPinColor = getMarkerColorByProb(prob);
+        const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
+        
+        const popup = new mapboxgl.Popup({ 
+          offset: 25,
+          anchor: sideAnchor 
         });
         
-        popup.setHTML(`
+        const marker = new mapboxgl.Marker({ color: calculatedPinColor })
+        .setLngLat([river.lng, river.lat])
+        .setPopup(popup)
+        .addTo(map);
+        
+        marker.getElement().addEventListener('click', (e) => {
+          e.stopPropagation();
+          map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+          marker.togglePopup();
+        });
+        
+        stationMarkersArray.push(marker);
+        
+        if (riverMenu) {
+          const li = document.createElement('li');
+          li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${calculatedPinColor}"></i> ${river.name}</a>`;
+          li.onclick = () => {
+            map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
+            if (!marker.getPopup().isOpen()) marker.togglePopup();
+          };
+          riverMenu.appendChild(li);
+        }
+        
+        popup.on('open', async () => {
+          const currentPopupEl = popup.getElement();
+          document.querySelectorAll('.mapboxgl-popup').forEach(p => {
+            if (p !== currentPopupEl) p.remove();
+          });
+          
+          popup.setHTML(`
           <div class="popup-chart-container">
               <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
               <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
@@ -668,54 +670,54 @@
               </div>
           </div>
         `);
-        
-        setTimeout(() => {
-          const hCtx = document.getElementById(histChartId);
-          if (hCtx) {
-            new Chart(hCtx, {
-              type: 'line',
-              data: {
-                labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
-                datasets: [
+          
+          setTimeout(() => {
+            const hCtx = document.getElementById(histChartId);
+            if (hCtx) {
+              new Chart(hCtx, {
+                type: 'line',
+                data: {
+                  labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
+                  datasets: [
                   { label: 'Level', data: data.history, borderColor: '#1f77b4', backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 },
                   { label: 'Rain', data: data.history.map(v => v * 15), borderColor: '#2ca02c', borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 }
-                ]
-              },
-              options: {
-                plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 9 } } } },
-                maintainAspectRatio: false,
-                scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 } } } }
-              }
-            });
-          }
-          
-          const pCtx = document.getElementById(probChartId);
-          if (pCtx) {
-            new Chart(pCtx, {
-              type: 'line',
-              data: {
-                labels: ["Now", "+3h", "+12h", "+24h"],
-                datasets: [{
-                  label: 'Prob %',
-                  data: forecastData,
-                  borderColor: calculatedPinColor,
-                  backgroundColor: 'rgba(0,0,0,0.03)',
-                  fill: true,
-                  tension: 0.4,
-                  pointRadius: 3
-                }]
-              },
-              options: {
-                plugins: { legend: { display: false } },
-                maintainAspectRatio: false,
-                scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } } }
-              }
-            });
-          }
-        }, 200); 
-      });
+                  ]
+                },
+                options: {
+                  plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 9 } } } },
+                  maintainAspectRatio: false,
+                  scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 } } } }
+                }
+              });
+            }
+            
+            const pCtx = document.getElementById(probChartId);
+            if (pCtx) {
+              new Chart(pCtx, {
+                type: 'line',
+                data: {
+                  labels: ["Now", "+3h", "+12h", "+24h"],
+                  datasets: [{
+                    label: 'Prob %',
+                    data: forecastData,
+                    borderColor: calculatedPinColor,
+                    backgroundColor: 'rgba(0,0,0,0.03)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3
+                  }]
+                },
+                options: {
+                  plugins: { legend: { display: false } },
+                  maintainAspectRatio: false,
+                  scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } } }
+                }
+              });
+            }
+          }, 200); 
+        });
+      }
     }
-  }
-</script>
+  </script>
 </body>
 </html>
