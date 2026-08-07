@@ -351,7 +351,7 @@
         function loadLguDropdown() {
             const lguSelect = document.getElementById("lgu");
             db.ref("Flooded_Areas").once("value", snapshot => {
-                lguSelect.innerHTML = '<option value="" selected disabled>Select Municipality...</option>';
+                lguSelect.innerHTML = '<option value="" selected disabled>Select Municipality...</option> <option value="All" selected>All Municipalities</option>';
                 let foundAny = false;
                 snapshot.forEach(child => {
                     const val = child.val();
