@@ -13,14 +13,30 @@
   
   <style>
     /* Theme Core & Structural Overhaul */
-    body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; }
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      padding: 0; 
+      background: #f4f6f9; 
+      overflow: hidden; 
+    }
     
-    /* Sidebar Navigation Layout styling */
+    /* App Viewport Container */
+    .app-container {
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Fixed Sidebar Navigation Layout Styling */
     .sidebar { 
       background-color: #1c96c5; 
       transition: all 0.3s;
       z-index: 1050;
       overflow-y: auto;
+      height: 100vh;
+      position: sticky;
+      top: 0;
     }
     
     .nav-link { 
@@ -39,6 +55,17 @@
       background-color: #212529 !important; 
       color: white !important; 
     }
+
+    /* Independent Scrollable Main Workspace Content */
+    .main-content { 
+      height: 100vh; 
+      overflow-y: auto; 
+      overflow-x: hidden;
+      padding-bottom: 2rem;
+    }
+    
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
     /* Card & Core Panels UI Elements */
     .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
@@ -85,10 +112,15 @@
     
     /* Layout Scaling Configurations & Multi-Panel Splits */
     @media (min-width: 768px) {
-      .sidebar { min-height: 100vh; height: 100vh; }
-      .main-content { height: 100vh; overflow-y: auto; }
       .col-map-split { width: 60%; flex: 0 0 auto; }
       .col-table-split { width: 40%; flex: 0 0 auto; }
+    }
+
+    @media (max-width: 767.98px) {
+      html, body { overflow: auto; }
+      .app-container { height: auto; overflow: visible; }
+      .sidebar { height: auto; position: relative; }
+      .main-content { height: auto; overflow-y: visible; }
     }
     
     .mobile-brand {
@@ -101,8 +133,6 @@
     }
     .mobile-brand img { width: 35px; height: 35px; }
     .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
-    .main-content::-webkit-scrollbar { width: 6px; }
-    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     .table-container::-webkit-scrollbar { width: 4px; }
     .table-container::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
   </style>
@@ -110,9 +140,10 @@
 
 <body>
   
-  <div class="container-fluid">
-    <div class="row">
+  <div class="container-fluid p-0 app-container">
+    <div class="row g-0 w-100">
       
+      <!-- Fixed Sidebar Navigation -->
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         
         <div class="d-md-none mobile-brand">
@@ -155,6 +186,7 @@
         </ul>
       </nav>
       
+      <!-- Scrollable Main Content Space -->
       <main class="col-lg-10 col-md-9 ms-sm-auto px-4 main-content">
         
         <div class="d-flex justify-content-between align-items-center mt-3 mb-3 p-2 bg-white rounded shadow-sm">
@@ -297,15 +329,13 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   
   <script>
-    // System Architecture Reactive Parameters Setup Variables
     let model, minVals = [], maxVals = [];
     let stationMarkersArray = []; 
     let isMapFullyLoaded = false; 
     let allReports = []; 
     let currentFilteredData = [];
-    let rivers = []; // Populate dynamically from the stations node in Firebase
+    let rivers = []; 
     
-    // Global Identity & State Verification Gate Execution
     window.onload = function() {
       if (sessionStorage.getItem('loggedIn') !== 'true') {
         window.location.href = 'log.html';
@@ -314,7 +344,6 @@
       loadModel();
     };
     
-    // Core Infrastructure Central Network Configuration Block Credentials Mapping Object
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
       authDomain: "flooded-95eeb.firebaseapp.com",
@@ -324,12 +353,10 @@
       appId: "1:142547476223:web:70de7014c664e26d0636ca"
     };
     
-    // Core Hub System Initialization Pipeline Calls Execution
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
     
-    // Deep Neural Network Model Parsing Engine Pipeline Functions Tasks
     async function loadModel() {
       try {
         const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
@@ -369,7 +396,6 @@
       return predictions;
     }
     
-    // Disable Mapbox telemetry to avoid console error blocks
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
     if ('telemetry' in mapboxgl) {
       mapboxgl.telemetry = false;
@@ -383,37 +409,35 @@
       pitch: 55
     });
     
-    // UI Color and Severity Index Evaluation Functions Modules
     const getRiskCategory = (v) => {
       const val = parseFloat(v) || 0;
       if (typeof v === 'string') {
         const lower = v.toLowerCase().trim();
         if (['severe', 'high', 'moderate', 'low'].includes(lower)) return lower;
       }
-      if(val >= 80) return 'severe';
+      if(val >= 70) return 'severe';
       if(val >= 50) return 'high';
       if(val >= 20) return 'moderate';
       return 'low';
     };
     
     const getMarkerColorByProb = (v) => {
-      if(v >= 80) return '#dc3545'; 
-      if(v >= 50) return '#fd7e14'; 
-      if(v >= 20) return '#ffc107'; 
-      return '#198754';             
+      if(v >= 70) return '#dc3545'; // Red Alert
+      if(v >= 50) return '#fd7e14'; // Orange Advisory
+      if(v >= 20) return '#ffc107'; // Yellow Advisory
+      return '#198754';             // Low / Safe
     };
     
     const getFloodColor = (v) => {
       const val = parseFloat(v) || 0;
-      if(val >= 80 || v === 'severe') return 'rgba(255,0,0,0.6)';
-      if(val >= 50 || v === 'high') return 'rgba(255, 140, 0, 0.6)';
-      if(val >= 20 || v === 'moderate') return 'rgba(255,255,0,0.6)';
-      return 'rgba(2, 251, 2, 0.6)';
+      if(val >= 70 || v === 'severe') return 'rgba(220, 53, 69, 0.6)';
+      if(val >= 50 || v === 'high') return 'rgba(253, 126, 20, 0.6)';
+      if(val >= 20 || v === 'moderate') return 'rgba(255, 193, 7, 0.6)';
+      return 'rgba(144, 238, 144, 0.6)';
     };
     
     const floodLayers = [];
     
-    // Safely add 3D terrain inside style.load
     map.on('style.load', () => {
       if (!map.getSource('mapbox-dem')) {
         map.addSource('mapbox-dem', {
@@ -428,7 +452,6 @@
       updateMarkers(); 
     });
     
-    // Load Flood GeoJSON layers
     map.on('load', () => {
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
@@ -471,7 +494,6 @@
       });
     });
     
-    // Checkboxes Input Filters
     document.querySelectorAll('.risk-filter').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
         const activeCategories = Array.from(document.querySelectorAll('.risk-filter:checked')).map(cb => cb.value);
@@ -488,7 +510,7 @@
       });
     });
     
-    // Free Click Elevation Popup Module
+    // Free Click Elevation Popup Module with Standardized Risk Logic
     map.on('click', async (e) => {
       document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
       const { lng, lat } = e.lngLat;
@@ -507,15 +529,19 @@
       }
       const finalRisk = Math.round(calcRisk);
       
-      let riskColor, riskLabel, badgeClass;
-      if (finalRisk >= 80) { 
-        riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
+      let riskColor, riskLabel, badgeClass, recommendationText;
+      if (finalRisk >= 70) { 
+        riskColor = '#dc3545'; riskLabel = 'Alert Level 3 - Red Warning'; badgeClass = 'bg-danger'; 
+        recommendationText = '<strong>CRITICAL HAZARD:</strong> Forced evacuation recommended. Move to high-ground emergency centers immediately.';
       } else if (finalRisk >= 50) { 
-        riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
+        riskColor = '#fd7e14'; riskLabel = 'Alert Level 2 - Orange Advisory'; badgeClass = 'bg-warning text-dark'; 
+        recommendationText = '<strong>HIGH VULNERABILITY:</strong> Execute pre-emptive evacuation in low-lying sectors and secure emergency kits.';
       } else if (finalRisk >= 20) { 
-        riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
+        riskColor = '#ffc107'; riskLabel = 'Alert Level 1 - Yellow Advisory'; badgeClass = 'bg-warning text-dark'; 
+        recommendationText = '<strong>MODERATE MONITORING:</strong> Prepare emergency supplies (Go-Bags) and clear local drainage channels.';
       } else { 
-        riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
+        riskColor = '#198754'; riskLabel = 'Low / Safe Scenario'; badgeClass = 'bg-success'; 
+        recommendationText = 'Maintain routine weather monitoring and community awareness.';
       }
       
       const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
@@ -537,51 +563,55 @@
       } catch (err) { address = "Location unavailable"; }
       
       const html = `
-          <div style="padding:10px; min-width: 230px;">
-              <h6 class="fw-bold border-bottom mb-2 pb-1" style="color: #1c96c5;">
-                  <i class="bi bi-water me-1"></i> Elevation Analysis
-              </h6>
+          <div style="padding:10px; min-width: 250px;">
+              <div class="d-flex justify-content-between align-items-center border-bottom mb-2 pb-1">
+                <h6 class="fw-bold mb-0" style="color: #1c96c5;">
+                    <i class="bi bi-water me-1"></i> Elevation Analysis
+                </h6>
+                <span class="badge ${badgeClass}" style="font-size:0.65rem;">Standard Hazard Metric</span>
+              </div>
               <div class="mb-2">
                   <span class="d-block fw-bold text-dark">${municipality}</span>
-                  <span class="badge bg-secondary opacity-75" style="font-size:1rem;">Brgy. ${barangay}</span>
+                  <span class="badge bg-secondary opacity-75" style="font-size:0.75rem;">Brgy. ${barangay}</span>
               </div>
-              <div class="row g-0 mb-3 border-top pt-2">
+              <div class="row g-0 mb-2 border-top pt-2">
                   <div class="col-6 border-end">
-                      <small class="text-dark d-block" style="font-size: 1rem;">ALTITUDE</small>
-                      <span class="fw-bold ${elevation < 10 ? 'text-danger' : ''}">${elevation.toFixed(1)}m ASL</span>
+                      <small class="text-dark d-block" style="font-size: 0.7rem;">ALTITUDE</small>
+                      <span class="fw-bold ${elevation < 10 ? 'text-danger' : ''}">${elevation.toFixed(1)}m MSL</span>
                   </div>
                   <div class="col-6 ps-2">
-                      <small class="text-dark d-block" style="font-size: 1rem;">RISK LEVEL</small>
-                      <span class="badge ${badgeClass}" style="font-size:1rem;">${riskLabel}</span>
+                      <small class="text-dark d-block" style="font-size: 0.7rem;">RISK CATEGORY</small>
+                      <span class="fw-bold" style="color:${riskColor}; font-size:0.8rem;">${riskLabel}</span>
                   </div>
               </div>
-              <div class="p-2 rounded border shadow-sm" style="background: #f8f9fa;">
+              <div class="p-2 rounded border shadow-sm mb-2" style="background: #f8f9fa;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                      <small class="fw-bold text-uppercase" style="font-size:1rem;">Flood Risk Index</small>
-                      <small class="fw-bold" style="color: ${riskColor === '#ffff00' ? '#b8b800' : riskColor};">${finalRisk}%</small>
+                      <small class="fw-bold text-uppercase" style="font-size:0.7rem;">Flood Risk Index</small>
+                      <small class="fw-bold" style="color: ${riskColor};">${finalRisk}%</small>
                   </div>
                   <div class="progress" style="height: 8px;">
                       <div class="progress-bar progress-bar-striped progress-bar-animated" 
                            style="width: ${finalRisk}%; background-color: ${riskColor};"></div>
                   </div>
-                  <small class="text-dark d-block mt-1" style="font-size: 1rem;">*Computed via Spatio-temporal Elevation Data</small>
+              </div>
+              <div class="border-top pt-2">
+                  <span class="text-dark d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Actionable Recommendation</span>
+                  <p class="mb-0 text-dark text-start" style="font-size: 0.75rem; line-height: 1.25;">${recommendationText}</p>
               </div>
           </div>`;
       
-      new mapboxgl.Popup({ maxWidth: '300px' })
+      new mapboxgl.Popup({ maxWidth: '310px' })
       .setLngLat(e.lngLat)
       .setHTML(html)
       .addTo(map);
     });
     
-    // Live Synchronized Map Data Stores Matrix Setup
     const liveDataStore = {
       data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
       data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
       data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
     };
     
-    // Realtime Sync Loop Routing Tasks Handling Execution
     ['data', 'data2', 'data3'].forEach(nodeKey => {
       db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
         if (!snapshot.exists()) return;
@@ -620,7 +650,6 @@
     
     const riverMenu = document.getElementById('riverDropdownMenu');
     
-    // Dynamic Visual Marker Generation Module
     async function updateMarkers() {
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
@@ -645,6 +674,11 @@
         
         const calculatedPinColor = getMarkerColorByProb(prob);
         const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
+
+        let waterStatusText = "Normal";
+        if (cur.level >= 5.0) waterStatusText = "Critical";
+        else if (cur.level >= 4.0) waterStatusText = "Alarm";
+        else if (cur.level >= 2.5) waterStatusText = "Alert";
         
         const popup = new mapboxgl.Popup({ 
           offset: 25,
@@ -682,7 +716,10 @@
           
           popup.setHTML(`
             <div class="popup-chart-container">
-                <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-2">
+                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;">${river.name}</h6>
+                    <span class="badge bg-secondary" style="font-size:0.6rem;">Status: ${waterStatusText}</span>
+                </div>
                 <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
                     <div><small class="text-dark d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
                     <div><small class="text-dark d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
@@ -746,7 +783,6 @@
       }
     }
     
-    // INTEGRATED STATIONS MANAGEMENT ENGINE LOGIC 
     const stationsRef = db.ref('stations');
     const rowLimitSelect = document.getElementById('filterRowLimit');
     
@@ -829,7 +865,6 @@
       .catch(err => alert("Realtime Sync Error: " + err.message));
     };
     
-    // Firebase Primary Realtime Snapshot Stream Binding Listener
     stationsRef.on('value', (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -840,7 +875,6 @@
           __source: 'stations'
         }));
 
-        // Dynamically build the 'rivers' array from lat/lng fields under 'stations'
         rivers = Object.keys(data).map(key => {
           const item = data[key];
           return {
@@ -860,7 +894,6 @@
       updateStationFilter();
       renderTable();
 
-      // Render map pins on load or snapshot updates
       if (isMapFullyLoaded) {
         updateMarkers();
       }

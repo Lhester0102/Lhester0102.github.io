@@ -234,10 +234,8 @@
                 </div>
 
                 <!-- MAIN WORKSPACE MATRIX -->
-                <!-- STATIONS & BARANGAYS WARNING LIST CONTAINER -->
                 <div class="card p-2 bg-white shadow-sm mb-1">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-                        <!-- Card Section Title -->
                         <h6 class="fw-bold mb-0 text-dark fs-6"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
                     </div>
                     
@@ -250,7 +248,7 @@
                                     <div id="status-pasuquin"></div>
                                 </div>
                                 <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
-                                    <span id="interval-pasuquin"><i class="bi bi-clock"></i> Calc...</span>
+                                    <span id="interval-pasuquin"><i class="bi bi-calendar3"></i> Date: --</span>
                                     <span id="time-pasuquin" class="fw-bold text-dark">--:--</span>
                                 </div>
 
@@ -288,7 +286,7 @@
                                     <div id="status-laoag"></div>
                                 </div>
                                 <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
-                                    <span id="interval-laoag"><i class="bi bi-clock"></i> Calc...</span>
+                                    <span id="interval-laoag"><i class="bi bi-calendar3"></i> Date: --</span>
                                     <span id="time-laoag" class="fw-bold text-dark">--:--</span>
                                 </div>
 
@@ -326,7 +324,7 @@
                                     <div id="status-bacarra"></div>
                                 </div>
                                 <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
-                                    <span id="interval-bacarra"><i class="bi bi-clock"></i> Calc...</span>
+                                    <span id="interval-bacarra"><i class="bi bi-calendar3"></i> Date: --</span>
                                     <span id="time-bacarra" class="fw-bold text-dark">--:--</span>
                                 </div>
 
@@ -483,7 +481,6 @@
         let loggedInUserKey = null;
         let bsVideoModalInstance = null;
 
-        // Fetch threshold configurations from Firebase RTDB
         onValue(ref(db, 'threshold'), (snapshot) => {
             if (snapshot.exists()) {
                 dbThresholds = snapshot.val();
@@ -525,6 +522,157 @@
             elem.classList.add(styleClass);
         }
 
+        // Helper function to format 24-hour time to 12-hour AM/PM format
+        function formatTimeTo12Hour(timeStr) {
+            if (!timeStr || timeStr === '--:--') return '--:--';
+            
+            const parts = timeStr.trim().split(':');
+            if (parts.length < 2) return timeStr;
+
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1];
+            if (isNaN(hours)) return timeStr;
+
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+
+            const formattedHours = hours < 10 ? `0${hours}` : hours;
+            return `${formattedHours}:${minutes} ${ampm}`;
+        }
+
+        // Helper function to format dates as MM-DD-YYYY
+        function formatDateToMMDDYYYY(dateStr) {
+            if (!dateStr || dateStr === '--') return '--';
+            
+            try {
+                // Check if string matches YYYY-MM-DD or YYYY/MM/DD
+                const parts = dateStr.trim().split(/[-/]/);
+                if (parts.length === 3) {
+                    // YYYY-MM-DD
+                    if (parts[0].length === 4) {
+                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                    }
+                    // Already MM-DD-YYYY
+                    if (parts[2].length === 4) {
+                        return `${parts[0]}-${parts[1]}-${parts[2]}`;
+                    }
+                }
+                const parsedDate = new Date(dateStr);
+                if (!isNaN(parsedDate.getTime())) {
+                    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(parsedDate.getDate()).padStart(2, '0');
+                    const year = parsedDate.getFullYear();
+                    return `${month}-${day}-${year}`;
+                }
+            } catch (e) {
+                console.warn("Date formatting error:", e);
+            }
+            return dateStr;
+        }
+
+        function generate30DayTrend(records) {
+            const emptyPredictions = {
+                water: { p1: null, p3: null, p12: null, p24: null },
+                rain: { p1: null, p3: null, p12: null, p24: null },
+                flow: { p1: null, p3: null, p12: null, p24: null }
+            };
+
+            if (!records || records.length === 0) {
+                return { labels: [], waterLevels: [], rainfalls: [], flowRates: [], predictions: emptyPredictions };
+            }
+
+            const dailyGroups = {};
+
+            records.forEach(item => {
+                if (!item.date) return;
+                const groupKey = item.date; 
+
+                if (!dailyGroups[groupKey]) {
+                    dailyGroups[groupKey] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
+                }
+
+                dailyGroups[groupKey].levelSum += parseFloat(item.level) || 0;
+                dailyGroups[groupKey].rainSum += parseFloat(item.rain) || 0;
+                dailyGroups[groupKey].flowSum += parseFloat(item.flow) || 0;
+                dailyGroups[groupKey].count++;
+            });
+
+            const sortedDates = Object.keys(dailyGroups).sort((a, b) => new Date(a) - new Date(b));
+            const last30Dates = sortedDates.slice(-30);
+
+            const labels = last30Dates.map(d => {
+                try {
+                    const parts = d.split('-');
+                    return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : d;
+                } catch(e) { return d; }
+            });
+
+            const waterLevels = last30Dates.map(d => (dailyGroups[d].levelSum / dailyGroups[d].count).toFixed(2));
+            const rainfalls = last30Dates.map(d => (dailyGroups[d].rainSum / dailyGroups[d].count).toFixed(1));
+            const flowRates = last30Dates.map(d => (dailyGroups[d].flowSum / dailyGroups[d].count).toFixed(1));
+
+            // Overwrite the last data point with the exact last stored record
+            const lastRecord = records[records.length - 1];
+            if (lastRecord && waterLevels.length > 0) {
+                const lastIdx = waterLevels.length - 1;
+                
+                if (lastRecord.level !== undefined && !isNaN(parseFloat(lastRecord.level))) {
+                    waterLevels[lastIdx] = parseFloat(lastRecord.level).toFixed(2);
+                }
+                if (lastRecord.rain !== undefined && !isNaN(parseFloat(lastRecord.rain))) {
+                    rainfalls[lastIdx] = parseFloat(lastRecord.rain).toFixed(1);
+                }
+                if (lastRecord.flow !== undefined && !isNaN(parseFloat(lastRecord.flow))) {
+                    flowRates[lastIdx] = parseFloat(lastRecord.flow).toFixed(1);
+                }
+            }
+
+            // Multi-step linear trend regression for 1h, 3h, 12h, and 24h horizons
+            function predictMultiHorizons(dataArr, decimals = 2) {
+                const numPoints = Math.min(dataArr.length, 7);
+                if (numPoints < 2) {
+                    const fallback = parseFloat(dataArr[dataArr.length - 1] || 0).toFixed(decimals);
+                    return { p1: fallback, p3: fallback, p12: fallback, p24: fallback };
+                }
+
+                const recent = dataArr.slice(-numPoints).map(v => parseFloat(v));
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+
+                for (let i = 0; i < numPoints; i++) {
+                    sumX += i;
+                    sumY += recent[i];
+                    sumXY += i * recent[i];
+                    sumXX += i * i;
+                }
+
+                const slope = (numPoints * sumXY - sumX * sumY) / (numPoints * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / numPoints;
+
+                const baseIdx = numPoints - 1;
+                const calcVal = (stepMult) => Math.max(0, slope * (baseIdx + stepMult) + intercept).toFixed(decimals);
+
+                return {
+                    p1: calcVal(0.2),   // +1h horizon step
+                    p3: calcVal(0.5),   // +3h horizon step
+                    p12: calcVal(1.2),  // +12h horizon step
+                    p24: calcVal(2.0)   // +24h horizon step
+                };
+            }
+
+            return {
+                labels: labels,
+                waterLevels: waterLevels,
+                rainfalls: rainfalls,
+                flowRates: flowRates,
+                predictions: {
+                    water: predictMultiHorizons(waterLevels, 2),
+                    rain: predictMultiHorizons(rainfalls, 1),
+                    flow: predictMultiHorizons(flowRates, 1)
+                }
+            };
+        }
+
         window.openMetricModal = function(prefix, stationName, metricType) {
             const records = stationRecordsMap[prefix] || [];
             const trendData = generate30DayTrend(records);
@@ -532,26 +680,46 @@
             let label = '';
             let data = [];
             let color = '';
+            let predObj = { p1: 0, p3: 0, p12: 0, p24: 0 };
 
             if (metricType === 'water') {
                 label = 'Water Level (m)';
                 data = trendData.waterLevels;
                 color = '#0d6efd';
+                predObj = trendData.predictions.water;
             } else if (metricType === 'rain') {
                 label = 'Rainfall (mm)';
                 data = trendData.rainfalls;
                 color = '#0dcaf0';
+                predObj = trendData.predictions.rain;
             } else if (metricType === 'flow') {
                 label = 'Flow Rate (m³/s)';
                 data = trendData.flowRates;
                 color = '#198754';
+                predObj = trendData.predictions.flow;
             }
 
             const limits = getThresholdValues(metricType);
-            const warningLineData = Array(trendData.labels.length).fill(limits.warning);
-            const highLineData = Array(trendData.labels.length).fill(limits.high);
 
-            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${stationName} - ${label} Trend`;
+            // X-Axis sequence extending through +1h, +3h, +12h, and +24h forecast markers
+            const extendedLabels = [...trendData.labels, '+1h (Pred)', '+3h (Pred)', '+12h (Pred)', '+24h (Pred)'];
+            
+            // Padding historical data array to match extended length
+            const historicalSeries = [...data, null, null, null, null];
+
+            // Projection dataset connecting last actual point through the 4 forecast horizons
+            const lastActualValue = data.length > 0 ? data[data.length - 1] : null;
+            const predictionSeries = Array(data.length - 1).fill(null);
+            predictionSeries.push(lastActualValue);
+            predictionSeries.push(predObj.p1);
+            predictionSeries.push(predObj.p3);
+            predictionSeries.push(predObj.p12);
+            predictionSeries.push(predObj.p24);
+
+            const warningLineData = Array(extendedLabels.length).fill(limits.warning);
+            const highLineData = Array(extendedLabels.length).fill(limits.high);
+
+            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${stationName} - ${label} (1h, 3h, 12h, 24h Forecast)`;
 
             if (chartInstances['modalMetricChart']) {
                 chartInstances['modalMetricChart'].destroy();
@@ -561,11 +729,11 @@
             chartInstances['modalMetricChart'] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: trendData.labels,
+                    labels: extendedLabels,
                     datasets: [
                         {
-                            label: label,
-                            data: data,
+                            label: `Historical ${label}`,
+                            data: historicalSeries,
                             borderColor: color,
                             backgroundColor: color + '22',
                             fill: true,
@@ -575,7 +743,18 @@
                             pointHoverRadius: 5
                         },
                         {
-                            label: `Warning Threshold (${limits.warning})`,
+                            label: 'Multi-Horizon Forecast',
+                            data: predictionSeries,
+                            borderColor: '#6f42c1',
+                            backgroundColor: '#6f42c133',
+                            borderDash: [5, 5],
+                            borderWidth: 2.5,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#6f42c1',
+                            fill: false
+                        },
+                        {
+                            label: 'Warning Threshold',
                             data: warningLineData,
                             borderColor: '#fd7e14',
                             borderDash: [6, 6],
@@ -584,7 +763,7 @@
                             fill: false
                         },
                         {
-                            label: `High Risk Threshold (${limits.high})`,
+                            label: 'High Risk Threshold',
                             data: highLineData,
                             borderColor: '#dc3545',
                             borderDash: [6, 6],
@@ -601,7 +780,7 @@
                         legend: { display: true, position: 'top' }
                     },
                     scales: {
-                        x: { display: true, title: { display: true, text: 'Date' } },
+                        x: { display: true, title: { display: true, text: 'Date / Projection Horizon' } },
                         y: { display: true, title: { display: true, text: label } }
                     }
                 }
@@ -641,7 +820,6 @@
             }
         });
 
-        // Function to update isPlay in Firebase when button is clicked
         async function saveUserPreference() {
             const dontPlayCheckbox = document.getElementById('dontPlayCheckbox');
             const isChecked = dontPlayCheckbox ? dontPlayCheckbox.checked : false;
@@ -649,7 +827,6 @@
 
             const activeEmail = (sessionStorage.getItem("userEmail") || "").trim().toLowerCase();
 
-            // Dynamic fallback: verify user key by checking the 'user' field under users -> key -> user
             if (!loggedInUserKey && activeEmail) {
                 try {
                     const snapshot = await get(ref(db, 'users'));
@@ -701,7 +878,6 @@
                 });
         }
 
-        // Fetch user from 'users' node checking specifically: users -> key -> user
         function checkUserIsPlayStatus(userEmail) {
             const usersRef = ref(db, 'users');
             const normalizedSessionEmail = userEmail.trim().toLowerCase();
@@ -713,7 +889,6 @@
 
                     for (const userKey in usersList) {
                         const currentUser = usersList[userKey];
-                        // Specifically check the 'user' field under users -> userKey -> user
                         const storedUserVal = (currentUser?.user || currentUser?.email || currentUser?.userEmail || "").trim().toLowerCase();
 
                         if (storedUserVal === normalizedSessionEmail || userKey.toLowerCase() === normalizedSessionEmail) {
@@ -724,7 +899,6 @@
                         }
                     }
 
-                    // Popup if isPlay is missing or 1 (or string "1")
                     if (!targetUserData || targetUserData.isPlay === undefined || targetUserData.isPlay == 1) {
                         initVideoModal();
                     }
@@ -834,53 +1008,6 @@
             return { label: 'Safe', class: 'bg-success text-white' };
         }
 
-        function calculateInterval(records) {
-            if (records.length < 2) return "Static";
-            let totalDiff = 0, count = 0;
-            for (let i = records.length - 1; i > Math.max(0, records.length - 4); i--) {
-                if (records[i].date && records[i].time && records[i-1].date && records[i-1].time) {
-                    const diff = Math.abs(new Date(`${records[i].date} ${records[i].time}`) - new Date(`${records[i-1].date} ${records[i-1].time}`)) / 60000;
-                    if (!isNaN(diff) && diff < 1440) { totalDiff += diff; count++; }
-                }
-            }
-            if (count === 0) return "Periodic";
-            const avg = Math.round(totalDiff / count);
-            return avg === 0 ? "<1m" : `${avg}m`;
-        }
-
-        function generate30DayTrend(records) {
-            const dailyGroups = {};
-
-            records.forEach(item => {
-                if (!item.date) return;
-                const groupKey = item.date; 
-
-                if (!dailyGroups[groupKey]) {
-                    dailyGroups[groupKey] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
-                }
-
-                dailyGroups[groupKey].levelSum += parseFloat(item.level) || 0;
-                dailyGroups[groupKey].rainSum += parseFloat(item.rain) || 0;
-                dailyGroups[groupKey].flowSum += parseFloat(item.flow) || 0;
-                dailyGroups[groupKey].count++;
-            });
-
-            const sortedDates = Object.keys(dailyGroups).sort((a, b) => new Date(a) - new Date(b));
-            const last30Dates = sortedDates.slice(-30);
-
-            return {
-                labels: last30Dates.map(d => {
-                    try {
-                        const parts = d.split('-');
-                        return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : d;
-                    } catch(e) { return d; }
-                }),
-                waterLevels: last30Dates.map(d => (dailyGroups[d].levelSum / dailyGroups[d].count).toFixed(2)),
-                rainfalls: last30Dates.map(d => (dailyGroups[d].rainSum / dailyGroups[d].count).toFixed(1)),
-                flowRates: last30Dates.map(d => (dailyGroups[d].flowSum / dailyGroups[d].count).toFixed(1))
-            };
-        }
-
         function bindStationNode(nodePath, elementsPrefix) {
             onValue(ref(db, nodePath), (snapshot) => {
                 let records = [];
@@ -904,7 +1031,7 @@
                     document.getElementById(`rain-${elementsPrefix}`).innerText = '--';
                     document.getElementById(`flow-${elementsPrefix}`).innerText = '--';
                     document.getElementById(`time-${elementsPrefix}`).innerText = 'Offline';
-                    document.getElementById(`interval-${elementsPrefix}`).innerText = 'Int: None';
+                    document.getElementById(`interval-${elementsPrefix}`).innerHTML = '<i class="bi bi-calendar3"></i> Date: --';
                     document.getElementById(`status-${elementsPrefix}`).innerHTML = `<span class="badge-metric bg-dark text-white">No Data</span>`;
                     return;
                 }
@@ -921,8 +1048,15 @@
                 document.getElementById(`lvl-${elementsPrefix}`).innerText = current.level !== undefined ? `${current.level} m` : '--';
                 document.getElementById(`rain-${elementsPrefix}`).innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
                 document.getElementById(`flow-${elementsPrefix}`).innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
-                document.getElementById(`time-${elementsPrefix}`).innerText = current.time || current.date || '--:--';
-                document.getElementById(`interval-${elementsPrefix}`).innerHTML = `<i class="bi bi-clock"></i> Int: ${calculateInterval(records)}`;
+                
+                // Convert timestamp to 12-hour AM/PM format
+                const rawTime = current.time || '';
+                const displayTime = rawTime ? formatTimeTo12Hour(rawTime) : '--:--';
+                document.getElementById(`time-${elementsPrefix}`).innerText = displayTime;
+                
+                // Display Date in MM-DD-YYYY format
+                const formattedDate = formatDateToMMDDYYYY(current.date);
+                document.getElementById(`interval-${elementsPrefix}`).innerHTML = `<i class="bi bi-calendar3"></i> Date: ${formattedDate}`;
                 
                 document.getElementById(`status-${elementsPrefix}`).innerHTML = `<span class="badge-metric ${meta.class}">${meta.label}</span>`;
                 

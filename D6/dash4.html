@@ -14,21 +14,31 @@
     
     <style>
         /* Theme Core */
-        body { 
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
             background: #f4f6f9; 
-            height: 100vh; 
-            max-height: 100vh;
             overflow: hidden; 
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; 
         }
         
-        /* Sidebar Styles */
+        /* App Viewport Container */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Fixed Sidebar Styles */
         .sidebar { 
             background-color: #1c96c5; 
             transition: all 0.3s;
             z-index: 1050;
             overflow-y: auto;
             height: 100vh;
+            position: sticky;
+            top: 0;
         }
         
         .nav-link { 
@@ -49,21 +59,20 @@
             color: white !important; 
         }
         
+        /* Fixed Main Content Area */
+        .main-content { 
+            height: 100vh; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 1rem;
+        }
+        
         /* Card & UI Refinement */
-        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
         .badge-metric { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; }
-        
-        @media (min-width: 768px) {
-            .main-content { 
-                height: 100vh; 
-                max-height: 100vh;
-                overflow: hidden; 
-                display: flex;
-                flex-direction: column;
-            }
-        }
         
         .mobile-brand {
             display: flex;
@@ -83,8 +92,19 @@
             align-items: center;
             gap: 0.5rem;
         }
+
+        /* Custom Darker Yellow Badge & Border Classes */
+        .bg-dark-yellow {
+            background-color: #d9a000 !important;
+            color: #ffffff !important;
+        }
         
         @media (max-width: 767.98px) {
+            html, body { overflow: auto; }
+            .app-container { height: auto; overflow: visible; }
+            .sidebar { height: auto; position: relative; }
+            .main-content { height: auto; overflow: visible; }
+
             .submenu-actions {
                 width: 100%;
                 margin-top: 0.5rem;
@@ -122,9 +142,14 @@
             border-left-color: #dc3545;
             background-color: #fff8f8;
         }
-        .barangay-subitem.risk-moderate {
+        .barangay-subitem.risk-orange {
             border-left-color: #fd7e14;
             background-color: #fffcf5;
+        }
+        .barangay-subitem.risk-yellow,
+        .barangay-subitem.risk-moderate {
+            border-left-color: #d9a000;
+            background-color: #fffdf0;
         }
         .barangay-subitem.risk-low {
             border-left-color: #198754;
@@ -147,20 +172,24 @@
             transform: rotate(180deg);
         }
         
-        /* Strict Viewport Fit Container */
+        /* Locked Card Wrapper taking remaining screen space */
         .viewport-fit-wrapper {
-            height: calc(100vh - 85px);
+            flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-height: 0; /* Critical for Flexbox child scrolling */
             margin-bottom: 10px;
+            overflow: hidden;
         }
         
+        /* Dedicated Inner Scroll Container for River Stations */
         .viewport-scroll-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding-right: 4px;
+            flex: 1;
+            overflow-y: auto !important;
+            padding-right: 6px;
+            min-height: 0;
         }
+
         .viewport-scroll-container::-webkit-scrollbar { width: 6px; }
         .viewport-scroll-container::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
         
@@ -180,9 +209,9 @@
 </head>
 
 <body>
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <!-- Sidebar Navigation -->
+    <div class="container-fluid p-0 app-container">
+        <div class="row g-0 w-100">
+            <!-- Fixed Sidebar Navigation -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
@@ -201,7 +230,7 @@
                 </div>
                 
                 <ul class="nav flex-column">
-                    <li class="mb-1"><a class="nav-link text-white active" href="dash.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="dash.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="rivers.html"><i class="bi bi-map me-2"></i>River Stations</a></li>
                     <li class="nav-item">
                         <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
@@ -224,7 +253,7 @@
                 </ul>
             </nav>
             
-            <!-- Main Content Display Viewport -->
+            <!-- Main Content Display Viewport (Fixed Height) -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 
                 <!-- Navbar Control Strip with Responsive Submenu Buttons -->
@@ -234,7 +263,7 @@
                             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                                 <i class="bi bi-list"></i>
                             </button>
-                            <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-router-fill"></i> River Stations & Barangay Risk Status</h5>
+                            <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-router-fill"></i> Station & Risk Status</h5>
                         </div>
                         
                         <!-- Submenu Action Buttons -->
@@ -268,14 +297,14 @@
                     </div>
                 </div>
                 
-                <!-- Main Container Card Locked to Exact Viewport Height -->
+                <!-- Main Container Card Locked to Remaining Viewport Height -->
                 <div class="card p-3 bg-white shadow-sm viewport-fit-wrapper">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 border-bottom pb-2 flex-shrink-0">
                         <h6 class="fw-bold mb-0 text-dark fs-6">Monitored River Stations & Barangay Risk Status</h6>
                         <span id="systemStatus" class="badge bg-light text-dark border fs-6 fw-bold">Initializing Machine Learning Grid...</span>
                     </div>
                     
-                    <!-- Internal Scroll Area for Station Cards -->
+                    <!-- Dedicated Inner Scroll Container for Station Cards -->
                     <div class="viewport-scroll-container">
                         <div id="stationsListContainer" class="d-flex flex-column gap-3">
                             <div class="text-center py-5 text-muted fw-semibold">
@@ -506,8 +535,8 @@
                 const telemetry = liveDataStore[station.node];
                 
                 const coveredBarangays = allBarangayPins.filter(b => 
-                b.node === station.node || 
-                station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase())
+                    b.node === station.node || 
+                    station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase())
                 );
                 
                 const evaluatedBarangays = coveredBarangays.map(b => {
@@ -515,18 +544,22 @@
                     return { ...b, risk };
                 });
                 
-                const warningBarangays = evaluatedBarangays.filter(b => b.risk >= 30);
+                // Show barangays triggering Moderate risk (>= 20%) or higher
+                const warningBarangays = evaluatedBarangays.filter(b => b.risk >= 20);
                 
                 warningBarangays.sort((a, b) => {
                     if (b.risk !== a.risk) return b.risk - a.risk;
                     return a.name.localeCompare(b.name);
                 });
                 
+                // Station Badge Header (Severe, High, Moderate, Normal)
                 let stationBadge = '<span class="badge bg-success fs-6">Normal</span>';
                 if (warningBarangays.some(b => b.risk >= 70)) {
-                    stationBadge = '<span class="badge bg-danger fs-6">Severe Warning</span>';
+                    stationBadge = '<span class="badge bg-danger fs-6">Severe</span>';
+                } else if (warningBarangays.some(b => b.risk >= 50)) {
+                    stationBadge = '<span class="badge bg-warning text-dark fs-6">High</span>';
                 } else if (warningBarangays.length > 0) {
-                    stationBadge = '<span class="badge bg-warning text-dark fs-6">Moderate Warning</span>';
+                    stationBadge = '<span class="badge bg-dark-yellow fs-6">Moderate</span>';
                 }
                 
                 const collapseId = `collapseStation_${station.id}`;
@@ -540,34 +573,47 @@
                     barangaySublistHTML = warningBarangays.map(b => {
                         let riskClass = 'risk-low';
                         let badgeBg = 'bg-success';
-                        let riskLabel = 'Low';
+                        let riskLabel = 'Normal';
+                        let actionRec = 'Maintain standard weather monitoring and community awareness.';
                         
+                        // Hazard Classification Tier (Severe, High, Moderate, Normal)
                         if (b.risk >= 70) {
                             riskClass = 'risk-severe';
                             badgeBg = 'bg-danger';
-                            riskLabel = 'Severe Risk';
-                        } else if (b.risk >= 30) {
-                            riskClass = 'risk-moderate';
+                            riskLabel = 'Severe';
+                            actionRec = '<strong>CRITICAL HAZARD (Forced Evacuation):</strong> Severe flood threat detected! Execute immediate high-ground evacuation protocols.';
+                        } else if (b.risk >= 50) {
+                            riskClass = 'risk-orange';
                             badgeBg = 'bg-warning text-dark';
-                            riskLabel = 'Moderate Risk';
+                            riskLabel = 'High';
+                            actionRec = '<strong>HIGH VULNERABILITY (Pre-emptive Evacuation):</strong> Execute pre-emptive evacuation, secure emergency kits, and transfer assets to higher floors.';
+                        } else if (b.risk >= 20) {
+                            riskClass = 'risk-yellow';
+                            badgeBg = 'bg-dark-yellow';
+                            riskLabel = 'Moderate';
+                            actionRec = '<strong>MODERATE MONITORING:</strong> Prepare emergency Go-Bags, clear community drainage pathways, and monitor upstream water trends.';
                         }
                         
                         const depth = Math.max(0, (telemetry.level - (b.elevation * (b.risk/100 - 0.75))) * (b.risk/100)).toFixed(2);
                         
                         return `
-                                <div class="card p-2 px-3 border-0 barangay-subitem ${riskClass} mb-2">
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <div class="card p-3 border-0 barangay-subitem ${riskClass} mb-2">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
                                         <div>
                                             <h6 class="fw-bold text-dark mb-0" style="font-size:0.95rem;">${b.name}</h6>
-                                            <span class="text-secondary fw-semibold" style="font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>${b.municipality} | Elevation: ${b.elevation.toFixed(1)}m</span>
+                                            <span class="text-secondary fw-semibold" style="font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>${b.municipality} | Elevation: ${b.elevation.toFixed(1)}m MSL</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="text-end">
-                                                <span class="d-block metric-label">Est. Depth</span>
+                                                <span class="d-block metric-label">Est. Water Depth</span>
                                                 <span class="fw-bold text-dark" style="font-size:0.95rem;">${depth} m</span>
                                             </div>
                                             <span class="badge ${badgeBg} px-2 py-1" style="font-size:0.8rem;">${riskLabel} (${b.risk}%)</span>
                                         </div>
+                                    </div>
+                                    <div class="mt-1 pt-1 border-top">
+                                        <span class="text-dark d-block text-uppercase fw-bold" style="font-size:0.65rem;">Actionable Safety Protocol</span>
+                                        <p class="mb-0 text-dark small" style="font-size:0.78rem; text-align: justify; line-height:1.25;">${actionRec}</p>
                                     </div>
                                 </div>
                             `;

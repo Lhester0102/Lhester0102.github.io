@@ -20,15 +20,30 @@
     
     <style>
         /* Theme Core */
-        body { background: #f4f6f9;}
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            background: #f4f6f9; 
+            overflow: hidden; 
+        }
         
-        /* Sidebar Styles */
+        /* Layout Structure */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Fixed Sidebar Styles */
         .sidebar { 
             background-color: #1c96c5; 
             transition: all 0.3s;
             z-index: 1050;
             overflow-y: auto;
-            height: 100%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
         }
         
         .nav-link { 
@@ -48,6 +63,17 @@
             color: white !important; 
         }
         
+        /* Scrollable Main Content Area */
+        .main-content { 
+            height: 100vh; 
+            overflow-y: auto; 
+            overflow-x: hidden;
+            padding-bottom: 2rem;
+        }
+
+        .main-content::-webkit-scrollbar { width: 6px; }
+        .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
@@ -56,11 +82,6 @@
             color: white; 
             font-size: 0.85rem;
             padding: 12px;
-        }
-        
-        @media (min-width: 768px) {
-            .sidebar { min-height: 100vh; height: 100vh; }
-            .main-content { height: 100vh; overflow-y: auto; }
         }
         
         .mobile-brand {
@@ -83,6 +104,11 @@
         }
         
         @media (max-width: 767.98px) {
+            html, body { overflow: auto; }
+            .app-container { height: auto; overflow: visible; }
+            .sidebar { height: auto; position: relative; }
+            .main-content { height: auto; overflow-y: visible; }
+
             .submenu-actions {
                 width: 100%;
                 margin-top: 0.5rem;
@@ -102,11 +128,7 @@
             }
         }
         
-        .main-content::-webkit-scrollbar { width: 6px; }
-        .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-        
-        #map { width: 100%; height: 250px; border-radius: 10px; }
-        .main-content { height: 100vh; overflow-y: auto; }
+        #map { width: 100%; height: 480px; border-radius: 10px; }
         
         /* Interactive Chart Styling */
         canvas { cursor: pointer; transition: transform 0.2s; }
@@ -118,8 +140,9 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid p-0 app-container">
+        <div class="row g-0 w-100">
+            <!-- Fixed Navigation Sidebar -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
@@ -159,7 +182,8 @@
                 </ul>
             </nav>
             
-            <main class="col-lg-10 col-md-9 ms-sm-auto px-3">
+            <!-- Independent Scrollable Main Workspace Content -->
+            <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
                     <div class="d-flex flex-wrap align-items-center gap-2 w-100 flex-md-nowrap">
                         <div class="d-flex align-items-center gap-2 me-auto">
@@ -233,7 +257,7 @@
                                 <h6 class="fw-bold border-bottom pb-1" style="color:#1c96c5;">System Field Analysis</h6>
                                 <div id="details"><span class="text-dark small">Click map or perform a search to visualize location analysis matrix.</span></div>
                             </div>
-                            <div class="card p-1">
+                            <div class="card p-1 mt-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6>Flood Probability</h6>
                                     <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
@@ -278,7 +302,7 @@
                                 </div>
                             </div>
                             
-                            <div class="card-body p-1"><div style="height: 480px;" id="map"></div></div>
+                            <div class="card-body p-1"><div id="map"></div></div>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-4"></div>
@@ -301,9 +325,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="">
+                        <div>
                             <div class="card mb-1 mt-1 p-1">
-                                <p id="status" class="small text-dark mt-1">Please select a local CSV file</p>
+                                <p id="status" class="small text-dark mt-1 mb-0">Please select a local CSV file</p>
                             </div>
                         </div>
                     </div>
@@ -311,7 +335,6 @@
             </main>
         </div>
     </div>
-</div>
 
 <div class="modal fade" id="probModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -517,19 +540,16 @@
         detachCurrentDataListener();
         currentMunicipality = municipality;
         
-        // Node data2 maps to Laoag and San Nicolas
         if (municipality === 'Laoag' || municipality === 'San Nicolas') {
             const ref = data2Ref.orderByKey().limitToLast(1);
             currentDataListener = ref;
             ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
             document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data2) updates.`;
-            // Node data3 maps to Bacarra and Vintar
         } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
             const ref = data3Ref.orderByKey().limitToLast(1);
             currentDataListener = ref;
             ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
             document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data3) updates.`;
-            // Node data maps to Pasuquin
         } else if (municipality === 'Pasuquin') {
             const ref = dataRef.orderByKey().limitToLast(1);
             currentDataListener = ref;
@@ -538,7 +558,6 @@
         }
     }
     
-    // Disable Mapbox telemetry to fix ERR_BLOCKED_BY_CLIENT console warning
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
         if (typeof args[0] === 'string' && args[0].includes('events.mapbox.com')) {
@@ -694,38 +713,60 @@
             updateKPIs();
             finalRisk = await generateForecastChart(input); 
         }
+
+        // =========================================================================
+        // 1. STANDARDIZED RISK LEVEL CLASSIFICATION
+        // =========================================================================
+        let interpretText = "Low / Safe Scenario";
+        let alertBadgeClass = "bg-success";
+        let interpretColor = "#198754"; // Green
+        let recommendation = "Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.";
         
-        let interpretText = "Low Risk Scenario";
-        let interpretColor = "#198754"; 
-        let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
-        
-        if (finalRisk > 70) {
-            interpretText = `Severe Flood Risk (${finalRisk}%)`;
+        if (finalRisk >= 70) {
+            // Alert Level 3 (Red)
+            interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
+            alertBadgeClass = "bg-danger";
             interpretColor = "#dc3545"; 
-            recommendation = `CRITICAL: High threat detected! Current factors (Water: ${currentWater}m, Rain: ${currentRain}mm, Discharge: ${currentDischarge}m³/s) combined with an elevation of ${elevation.toFixed(1)}m indicate imminent flash flooding. Initiate localized drainage clearance, prepare immediate high-ground evacuation protocols, and monitor warnings closely.`;
-        } else if (finalRisk > 30) {
-            interpretText = `Moderate Flood Risk (${finalRisk}%)`;
+            recommendation = `<strong>CRITICAL HAZARD (Forced Evacuation):</strong> Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding. Move to designated high-ground evacuation centers immediately. Do not walk or drive through moving floodwaters.`;
+        } else if (finalRisk >= 50) {
+            // Alert Level 2 (Orange)
+            interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
+            alertBadgeClass = "bg-warning text-dark";
             interpretColor = "#fd7e14"; 
-            recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed given Water Level at ${currentWater}m and Rainfall accumulation at ${currentRain}mm. Secure low-lying equipment, prevent water retention structures from exceeding capacity, and draft proactive sandbag lines.`;
-        } else {
-            interpretText = `Low Risk Scenario (${finalRisk}%)`;
+            recommendation = `<strong>HIGH VULNERABILITY (Pre-emptive Evacuation):</strong> River water levels approaching dangerous bank limits. Local government units and residents in low-lying areas should execute pre-emptive evacuation, secure emergency kits, transfer electrical assets to higher floors, and monitor advisories.`;
+        } else if (finalRisk >= 20) {
+            // Alert Level 1 (Yellow)
+            interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
+            alertBadgeClass = "bg-warning text-dark";
+            interpretColor = "#ffc107"; 
+            recommendation = `<strong>MODERATE / MONITORING PHASE:</strong> Rising water trends observed upstream. Prepare family emergency kits, clear community drainage pathways, and prepare livestock or vehicles for relocation if heavy rainfall persists.`;
         }
-        
+
+        // =========================================================================
+        // 2. HYDROLOGICAL WATER LEVEL THRESHOLDS
+        // =========================================================================
         let waterInterpretText = "Normal";
         let waterInterpretColor = "#198754"; 
         
-        if (currentWater > 5.0) { 
-            waterInterpretText = "Critical";
+        if (currentWater >= 5.0) { 
+            waterInterpretText = "Critical Level";
             waterInterpretColor = "#dc3545"; 
-        } else if (currentWater > 2.5) { 
-            waterInterpretText = "Elevated";
+        } else if (currentWater >= 4.0) { 
+            waterInterpretText = "Alarm Level";
             waterInterpretColor = "#fd7e14"; 
+        } else if (currentWater >= 2.5) { 
+            waterInterpretText = "Alert Level";
+            waterInterpretColor = "#ffc107"; 
         }
-        
+
+        // =========================================================================
+        // 3. GEOCODING & JURISDICTION ROUTING
+        // =========================================================================
         const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
         let locName = "Selected Coordinate Point";
         let municipality = null;
         let statusMessage = "";
+        
         try {
             const resp = await fetch(geoQuery);
             const data = await resp.json();
@@ -761,22 +802,28 @@
             statusMessage = 'Address detected in Pasuquin — using local Pasuquin (data) reference.';
             subscribeToMunicipalityData('Pasuquin');
         } else {
-            statusMessage = 'Location outside monitored areas. Search or click within Laoag, San Nicolas, Bacarra, Vintar, or Pasuquin for local reference.';
+            statusMessage = 'Location outside primary telemetry coverage. Manual or general model prediction active.';
             detachCurrentDataListener();
         }
         document.getElementById('status').innerHTML = statusMessage;
         
+        // =========================================================================
+        // 4. STRUCTURED POPUP & PANEL CONTENT DISPLAY
+        // =========================================================================
         const generateHtmlContent = () => `
             <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
-                <small class="d-block mb-2 text-dark" style="font-size: 0.8rem; font-weight:500;">${locName}</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-dark small">${locName}</span>
+                    <span class="badge ${alertBadgeClass}" style="font-size:0.65rem;">Standard Hazard Metric</span>
+                </div>
             
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-dark small">Target Elevation:</span>
-                    <span class="fw-semibold small">${elevation.toFixed(1)}m</span>
+                    <span class="fw-semibold small">${elevation.toFixed(1)}m MSL</span>
                 </div>
 
                 <div class="d-flex justify-content-between mb-1">
-                    <span class="text-dark small">Water Level:</span>
+                    <span class="text-dark small">River Hydrology:</span>
                     <span class="fw-semibold small">${currentWater.toFixed(2)}m 
                         <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 2px;">(${waterInterpretText})</small>
                     </span>
@@ -784,12 +831,12 @@
                 
                 <div class="mt-2 pt-2 border-top">
                     <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
-                    <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.9rem;">${interpretText}</span>
+                    <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.88rem;">${interpretText}</span>
                 </div>
                 
                 <div class="mt-2">
                     <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                    <p class="mb-0 text-dark text-start" style="font-size: 0.8rem; text-align: justify; margin-top: 2px; line-height:1.25;">${recommendation}</p>
+                    <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px; line-height:1.3;">${recommendation}</p>
                 </div>
             </div>
         `;
@@ -798,7 +845,7 @@
             activePopup.remove();
         }
         
-        activePopup = new mapboxgl.Popup({ maxWidth: '300px' })
+        activePopup = new mapboxgl.Popup({ maxWidth: '320px' })
         .setLngLat(lngLat)
         .setHTML(generateHtmlContent())
         .addTo(map);
@@ -1188,7 +1235,7 @@
         }
         lastProbData = predictions;
         const v = Math.round(predictions[0]);
-        const r = v < 30 ? ["Low","green"] : v < 70 ? ["Moderate","orange"] : ["Severe","red"];
+        const r = v < 20 ? ["Safe","green"] : v < 50 ? ["Yellow Alert","yellow"] : v < 70 ? ["Orange Alert","orange"] : ["Red Alert","red"];
         document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
         
         if(probChart) probChart.destroy();

@@ -245,13 +245,46 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
+        // Helper to format Date to MM-DD-YYYY
+        function formatDateToMMDDYYYY(dateStr) {
+            if (!dateStr || dateStr === 'N/A') return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr; 
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${month}-${day}-${year}`;
+        }
+
+        // Helper to format Time to 12-hour format with AM/PM
+        function formatTimeTo12Hour(timeStr) {
+            if (!timeStr || timeStr === 'N/A') return '';
+            const parts = timeStr.trim().split(':');
+            if (parts.length < 2) return timeStr; 
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1].substring(0, 2); 
+            if (isNaN(hours)) return timeStr;
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            const formattedHours = String(hours).padStart(2, '0');
+            return `${formattedHours}:${minutes} ${ampm}`;
+        }
+
         // Session Guard
         window.onload = function() {
             if (sessionStorage.getItem('loggedIn') !== 'true') {
                 window.location.href = 'log.html';
             }
             document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
-            document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
+            
+            // Format current datetime for print display
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const year = now.getFullYear();
+            const time12 = formatTimeTo12Hour(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`);
+            document.getElementById('printTimestamp').innerText = `Generated on: ${month}-${day}-${year} ${time12}`;
         };
         
         const firebaseConfig = {
@@ -430,8 +463,11 @@
             // Step 4: Render Rows
             displayData.forEach(item => {
                 const depthMeta = getDepthInfo(item.level);
-                const dateStr = formatField(item.date);
-                const timeStr = formatField(item.time);
+                
+                // Formatted Date and Time
+                const dateStr = formatDateToMMDDYYYY(formatField(item.date));
+                const timeStr = formatTimeTo12Hour(formatField(item.time));
+                
                 const stationStr = formatField(item.station || item.city);
                 
                 const levelStr = (item.level === undefined || item.level === null || item.level === '') ? '' : `${item.level} m`;
@@ -539,8 +575,8 @@
             let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
             exportData.forEach(item => {
                 const depthMeta = getDepthInfo(item.level);
-                const dateStr = formatField(item.date);
-                const timeStr = formatField(item.time);
+                const dateStr = formatDateToMMDDYYYY(formatField(item.date));
+                const timeStr = formatTimeTo12Hour(formatField(item.time));
                 const stationValue = formatField(item.station || item.city);
                 const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : item.level;
                 const rainVal = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : item.rain;
