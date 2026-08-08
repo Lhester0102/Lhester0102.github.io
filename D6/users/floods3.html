@@ -20,19 +20,31 @@
   
   <style>
     /* Theme Core */
-    body { background: #f4f6f9;}
+    body { background: #f4f6f9; overflow-x: hidden; }
     
-    /* Sidebar Styles */
+    /* Responsive Sidebar Styles */
     .sidebar { 
       background-color: #1c96c5; 
-      transition: all 0.3s;
+      transition: all 0.3s ease-in-out;
       z-index: 1050;
       overflow-y: auto;
-      height: 100%;
+    }
+
+    /* Mobile Sidebar Off-canvas Drawer Styling */
+    @media (max-width: 767.98px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+      }
     }
     
     .nav-link { 
-      color: rgba(3, 3, 3, 0.8); 
+      color: rgba(255, 255, 255, 0.9); 
       transition: 0.2s; 
       border-radius: 5px; 
       margin-bottom: 2px; 
@@ -68,7 +80,7 @@
       align-items: center;
       gap: 10px;
       padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
       margin-bottom: 15px;
     }
     .mobile-brand img { width: 35px; height: 35px; }
@@ -77,17 +89,35 @@
     .main-content::-webkit-scrollbar { width: 6px; }
     .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    #map { width: 100%; height: 350px; border-radius: 10px; }
-    .main-content { height: 100vh; overflow-y: auto; }
+    #map { width: 100%; height: 100%; min-height: 380px; border-radius: 10px; }
+    .main-content { min-height: 100vh; }
     
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.02); }
     
-    /* DISPLAY RISKS Control Box Overlay */
+    /* Responsive DISPLAY RISKS Control Box Overlay */
     #riskControlBox {
-      position: absolute; top: 60px; left: 15px;
-      background: rgba(255, 255, 255, 0.6); padding: 10px; border-radius: 10px; font-size: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 175px;
+      position: absolute; 
+      top: 10px; 
+      right: 10px;
+      background: rgba(255, 255, 255, 0.5); 
+      backdrop-filter: blur(4px);
+      padding: 10px; 
+      border-radius: 10px; 
+      font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+      z-index: 2; 
+      width: 160px;
+    }
+
+    @media (max-width: 576px) {
+      #riskControlBox {
+        top: 8px;
+        right: 8px;
+        width: 140px;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
     }
 
     /* Address Suggestion List */
@@ -110,6 +140,7 @@
 <body>
   <div class="container-fluid">
     <div class="row">
+      <!-- Main Navigation Menu (Sidebar) -->
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         
         <div class="d-md-none mobile-brand">
@@ -117,8 +148,8 @@
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
           </div>
-          <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="bi bi-x-lg"></i>
+          <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close menu">
+            <i class="bi bi-x-lg fs-5"></i>
           </button>
         </div>
         
@@ -134,95 +165,102 @@
         </ul>
       </nav>
       
-      <main class="col-lg-10 col-md-9 ms-sm-auto px-3">
-        <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
-          <div class="d-flex align-items-center gap-3">
-            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-              <i class="bi bi-list"></i>
+      <!-- Main Content Area -->
+      <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
+        <!-- Top Submenu & Page Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center my-2 p-2 bg-white rounded shadow-sm gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle Navigation">
+              <i class="bi bi-list fs-5"></i>
             </button>
-            <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-map"></i>Map Flood Watch</h5>
+            <div class="d-flex align-items-center gap-2">
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-map me-1"></i>Map Flood Watch</h5>
             </div>
           </div>
-          <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-            <a href="floods3.html" class="btn btn-primary"><i class="bi bi-map"></i> Flood Map</a>
-            <a href="floods7.html" class="btn btn-outline-primary"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
-            <a href="floods4.html" class="btn btn-outline-primary"><i class="bi bi-houses-fill"></i> By Municipality</a>
+          <!-- Action Submenu Buttons -->
+          <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
+            <a href="floods3.html" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-map"></i> Flood Map</a>
+            <a href="floods7.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
+            <a href="floods4.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-houses-fill"></i> By Municipality</a>
           </div>
         </div>
         
-        <div class="row g-3 mb-1">
-          <div class="col-md-3">
-            <div class="card p-3">
+        <!-- KPI Cards Grid -->
+        <div class="row g-2 g-md-3 mb-2">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
               <div class="d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-water text-primary fs-5"></i>
-                <h6 class="mb-0">Water Level (m)</h6>
+                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Water Level</h6>
               </div>
-              <h4 id="kpiWater">0.0</h4>
+              <h4 id="kpiWater" class="mb-0 fs-5 fs-md-4">0.0 m</h4>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card p-3">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
               <div class="d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-cloud-rain text-info fs-5"></i>
-                <h6 class="mb-0">Rainfall (mm)</h6>
+                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Rainfall</h6>
               </div>
-              <h4 id="kpiRain">0.0</h4>
+              <h4 id="kpiRain" class="mb-0 fs-5 fs-md-4">0.0 mm</h4>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card p-3">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
               <div class="d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-water text-primary fs-5"></i>
-                <h6 class="mb-0">Discharge (m³/s)</h6>
+                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Discharge</h6>
               </div>
-              <h4 id="kpiDischarge">0.0</h4>
+              <h4 id="kpiDischarge" class="mb-0 fs-5 fs-md-4">0.0 m³/s</h4>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card p-3">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
               <div class="d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
-                <h6 class="mb-0">Flood Risk Summary</h6>
+                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Flood Risk</h6>
               </div>
-              <h4 id="kpiRisk">--</h4>
+              <h4 id="kpiRisk" class="mb-0 fs-5 fs-md-4">--</h4>
             </div>
           </div>
         </div>
         
+        <!-- Map and Details Panel -->
         <div class="row g-3">
           <div class="col-lg-9 d-flex flex-column">
-            <div class="card mb-1" style="height: 480px; position: relative;">
-              <div class="card-body p-1"><div style="height: 480px;" id="map"></div></div>
+            <div class="card mb-2" style="height: 480px; position: relative;">
+              <div class="card-body p-1 h-100">
+                <div id="map"></div>
+              </div>
               
-              <!-- DISPLAY RISKS Control Overlay -->
+              <!-- DISPLAY RISKS Dynamic Floating Control Overlay -->
               <div id="riskControlBox" class="border">
-                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
                   FLOOD PRONE RISKS
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleSevere" value="severe" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size:0.75rem;">
-                      <span style="display:inline-block; width:10px; height:10px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size:0.7rem;">
+                      <span style="display:inline-block; width:8px; height:8px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleHigh" value="high" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size:0.75rem;">
-                      <span style="display:inline-block; width:10px; height:10px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size:0.7rem;">
+                      <span style="display:inline-block; width:8px; height:8px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleModerate" value="moderate" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size:0.75rem;">
-                      <span style="display:inline-block; width:10px; height:10px; background:rgba(255,193,7,1); border-radius:2px;"></span> Moderate
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size:0.7rem;">
+                      <span style="display:inline-block; width:8px; height:8px; background:rgba(255,193,7,1); border-radius:2px;"></span> Moderate
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleLow" value="low" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size:0.75rem;">
-                      <span style="display:inline-block; width:10px; height:10px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size:0.7rem;">
+                      <span style="display:inline-block; width:8px; height:8px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
                     </label>
                   </div>
                 </div>
@@ -231,8 +269,8 @@
           </div>
           
           <div class="col-lg-3">
-            <div class="card p-3">
-              <label id="details" class="form-label small text-dark mb-1">Details</label>
+            <div class="card p-3 mb-3">
+              <label id="details" class="form-label small text-dark mb-0">Select a location on the map to view detailed risk diagnostics.</label>
             </div>
             <div class="card p-3" hidden>
               <h6 class="mb-1">Model Control</h6>
@@ -265,10 +303,10 @@
         <div class="modal-header text-white" style="background-color: #1c96c5;">
           <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Select Initial Location</h5>
         </div>
-        <div class="modal-body p-4 text-center">
+        <div class="modal-body p-3 p-md-4 text-center">
           <p class="text-secondary mb-4">Choose how you would like to set your map starting position:</p>
           
-          <button id="useCurrentLocationBtn" class="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+          <button id="useCurrentLocationBtn" class="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center gap-2 fs-6 fs-md-5">
             <i class="bi bi-crosshair fs-5"></i> Use My Current Location
           </button>
           
@@ -280,8 +318,8 @@
           
           <div class="position-relative text-start mb-3">
             <div class="input-group">
-              <input type="text" id="initialAddressInput" class="form-control form-control-lg" placeholder="e.g. Laoag City, Ilocos Norte" autocomplete="off">
-              <button id="searchAddressBtn" class="btn btn-outline-primary px-4"><i class="bi bi-search"></i> Search</button>
+              <input type="text" id="initialAddressInput" class="form-control form-control-lg fs-6" placeholder="e.g. Laoag City, Ilocos Norte" autocomplete="off">
+              <button id="searchAddressBtn" class="btn btn-outline-primary px-3 px-md-4"><i class="bi bi-search"></i> Search</button>
             </div>
             <div id="addressSuggestions" class="suggestions-list list-group position-absolute w-100 shadow mt-1" style="display:none;"></div>
           </div>
@@ -308,7 +346,6 @@
     let selectedCoords = null;
     let searchDebounceTimeout = null;
     
-    // Group risk layer IDs by risk category
     let riskLayers = {
       severe: [],
       high: [],
@@ -562,9 +599,9 @@
     });
 
     function getFloodMarkerColor(probabilityValue) {
-      if (probabilityValue >= 70) return '#dc3545';     // Red (Severe Risk)
-      if (probabilityValue >= 30) return '#fd7e14';     // Orange (Moderate Risk)
-      return '#198754';                                 // Green (Low Risk)
+      if (probabilityValue >= 70) return '#dc3545';     
+      if (probabilityValue >= 30) return '#fd7e14';     
+      return '#198754';                                 
     }
     
     function getFloodColor(vulnerability) {
@@ -660,7 +697,6 @@
         await triggerAnalysis(point);
       });
       
-      // Load Flooded Areas from Firebase
       db.ref('Flooded_Areas').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) return;
@@ -699,7 +735,6 @@
       setupRiverStations();
     });
     
-    // Checkbox toggle event listeners for controlling map layer visibility by risk level
     document.querySelectorAll('.risk-toggle').forEach(checkbox => {
       checkbox.addEventListener('change', function(e) {
         const category = e.target.value;
@@ -1035,7 +1070,7 @@
       }
       
       const generateHtmlContent = () => `
-          <div style="padding:8px; font-family: system-ui, -apple-system, sans-serif;">
+          <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
               <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
               <small class="d-block mb-2 text-dark" style="font-size: 0.75rem;">${locName}</small>
           

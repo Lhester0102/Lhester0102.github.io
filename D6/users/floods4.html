@@ -15,19 +15,17 @@
   
   <style>
     /* Theme Core */
-    body { background: #f4f6f9;}
+    body { background: #f4f6f9; }
     
     /* Sidebar Styles */
     .sidebar { 
       background-color: #1c96c5; 
       transition: all 0.3s;
       z-index: 1050;
-      overflow-y: auto;
-      height: 100%;
     }
     
     .nav-link { 
-      color: rgba(3, 3, 3, 0.8); 
+      color: rgba(255, 255, 255, 0.9); 
       transition: 0.2s; 
       border-radius: 5px; 
       margin-bottom: 2px; 
@@ -52,10 +50,18 @@
       font-size: 0.85rem;
       padding: 12px;
     }
-    
+
+    /* Responsiveness Desktop layout adjustments */
     @media (min-width: 768px) {
-      .sidebar { min-height: 100vh; height: 100vh; }
-      .main-content { height: 100vh; overflow-y: auto; }
+      .sidebar-desktop {
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+      }
+      .main-content { 
+        min-height: 100vh;
+      }
     }
     
     .mobile-brand {
@@ -63,26 +69,30 @@
       align-items: center;
       gap: 10px;
       padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
       margin-bottom: 15px;
     }
     .mobile-brand img { width: 35px; height: 35px; }
     .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
     
-    .main-content::-webkit-scrollbar { width: 6px; }
-    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-    
-    .main-content { height: 100vh; overflow-y: auto; }
-    
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.01); }
     
-    .table-responsive { max-height: 460px; overflow-y: auto; }
+    /* Responsive Table Wrapper */
+    .table-responsive-custom {
+      max-height: 570px;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    .table-responsive-custom table {
+      min-width: 650px; /* Ensures minimum width so data columns stay readable on mobile */
+    }
     
     #map-legend {
       background: rgba(254, 254, 254, 1); padding: 12px; border-radius: 10px; font-size: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 100%;
-      margin-top: 2px;margin-bottom: 2px;
+      margin-top: 2px; margin-bottom: 12px;
     }
     .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
     .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
@@ -106,162 +116,157 @@
 </head>
 
 <body>
+  <!-- Offcanvas Navigation Sidebar for Mobile Devices -->
+  <div class="offcanvas offcanvas-start sidebar text-white p-3 d-md-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="mobile-brand">
+      <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+      <div>
+        <h6 class="text-white mb-0">Geospatial DSS</h6>
+        <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
+      </div>
+      <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <ul class="nav flex-column">
+      <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
+      <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i> Flood Watch</a></li>
+      <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
+    </ul>
+  </div>
+
   <div class="container-fluid">
     <div class="row">
-      <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
-        <div class="d-md-none mobile-brand">
-          <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
-          <div>
-            <h6 class="text-white">Geospatial DSS</h6>
-            <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
-          </div>
-          <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-        <div class="text-center mb-4 d-none d-md-block">
-          <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+      <!-- Desktop Sidebar -->
+      <nav class="col-md-3 col-lg-2 text-white p-3 sidebar sidebar-desktop d-none d-md-block">
+        <div class="text-center mb-4">
+          <img src="gds.png" class="rounded-circle w-50 mb-2 border shadow-sm" alt="Logo">
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
         </div>
         <ul class="nav flex-column">
-          <li class="mb-1"><a class="nav-link text-white" href="index2.html"> <i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"> <i class="bi bi-tsunami me-2"></i> Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
+          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i> Flood Watch</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
-          
         </ul>
       </nav>
       
-      <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
-        <div class="d-flex justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow">
-          <div class="d-flex align-items-center gap-3">
-            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+      <!-- Main Content Container -->
+      <main class="col-12 col-md-9 col-lg-10 ms-sm-auto px-2 px-md-3 main-content">
+        <!-- Top Responsive Navigation Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 mt-2 mb-3 p-2 p-md-3 bg-white rounded shadow-sm">
+          <div class="d-flex align-items-center gap-2">
+            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
               <i class="bi bi-list"></i>
             </button>
-            <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-houses-fill"></i>Municipality and Barangay Lists</h5>
+            <div class="d-flex align-items-center gap-2">
+              <h5 class="mb-0 fw-bold text-dark fs-6 fs-md-5"><i class="bi bi-houses-fill me-1"></i>Municipality and Barangay Lists</h5>
             </div>
           </div>
-          <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-            <a href="floods3.html" class="btn btn-outline-primary"><i class="bi bi-map"></i> Flood Map</a>
-            <a href="floods7.html" class="btn btn-outline-primary"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
-            <a href="floods4.html" class="btn btn-primary"><i class="bi bi-houses-fill"></i> By Municipality</a>
+          <!-- Submenu Quick Links -->
+          <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+            <a href="floods3.html" class="btn btn-sm btn-outline-primary flex-fill flex-md-grow-0"><i class="bi bi-map me-1"></i> Flood Map</a>
+            <a href="floods7.html" class="btn btn-sm btn-outline-primary flex-fill flex-md-grow-0"><i class="bi bi-geo-alt-fill me-1"></i> Location</a>
+            <a href="floods4.html" class="btn btn-sm btn-primary flex-fill flex-md-grow-0"><i class="bi bi-houses-fill me-1"></i> By Municipality</a>
           </div>
         </div>
         
-        <div class="container-fluid">
+        <div class="container-fluid p-0">
           <div class="row g-3">
             
-            <!-- LEFT PANEL -->
-            <div class="col-12 col-lg-9 d-flex flex-column">
-              
-              <div class="card mb-2" style="min-height: 500px; min-width: 0;">
+            <!-- LEFT PANEL TABLE & FILTERS -->
+            <div class="col-12 col-lg-8 col-xl-9 d-flex flex-column">
+              <div class="card mb-2">
                 
-                <!-- HEADER -->
-                <div class="card-header bg-dark text-white py-2">
-                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    
-                    <div class="d-flex flex-wrap align-items-center gap-3 w-100 w-lg-auto">
-                      
-                      <select id="municipalityFilter"
-                      class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                      style="max-width: 230px;">
-                      <option value="All">All Municipalities</option>
-                    </select>
-                    
-                    <div style="max-width: 320px;" class="flex-grow-1">
+                <!-- HEADER FILTERS (RESPONSIVE GRID / FLEXBOX) -->
+                <div class="card-header bg-dark text-white py-2 px-2 px-md-3">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-5 col-md-4">
+                      <select id="municipalityFilter" class="form-select form-select-sm bg-white border-white text-dark fw-semibold w-100">
+                        <option value="All">All Municipalities</option>
+                      </select>
+                    </div>
+                    <div class="col-8 col-sm-5 col-md-5">
                       <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-white text-dark">
                           <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" id="barangaySearchInput"
-                        class="form-control"
-                        placeholder="Search barangay...">
+                        <input type="text" id="barangaySearchInput" class="form-control" placeholder="Search barangay...">
                       </div>
                     </div>
-                    
-                    <select id="rowLimitSelect"
-                    class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                    style="max-width: 110px;">
-                    <option value="5">5 Rows</option>
-                    <option value="10" selected>10 Rows</option>
-                    <option value="25">25 Rows</option>
-                    <option value="All">All Rows</option>
-                  </select>
-                  
+                    <div class="col-4 col-sm-2 col-md-3">
+                      <select id="rowLimitSelect" class="form-select form-select-sm bg-white border-white text-dark fw-semibold w-100">
+                        <option value="5">5 Rows</option>
+                        <option value="10" selected>10 Rows</option>
+                        <option value="25">25 Rows</option>
+                        <option value="All">All Rows</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+            
+                <!-- RESPONSIVE DATA TABLE CONTAINER -->
+                <div class="card-body p-0 table-responsive-custom">
+                  <table class="table mt-0 table-hover align-middle mb-0 w-100">
+                    <thead class="table-primary text-white sticky-top">
+                      <tr>
+                        <th class="ps-3" style="width: 25%;">Barangay</th>
+                        <th style="width: 15%;">Water Level</th>
+                        <th style="width: 15%;">Rainfall</th>
+                        <th style="width: 15%;">Discharge</th>
+                        <th style="width: 15%;">Elevation</th>
+                        <th style="width: 15%;">Risk Score</th>
+                      </tr>
+                    </thead>
+                    <tbody id="riverTableBody">
+                      <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                          <div class="loading-spinner"></div>
+                          Loading Laoag City data...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-            
-            <!-- TABLE -->
-            <div class="card-body p-0 ms-0 table-responsive" style="max-height: 570px;">
-              <table class="table mt-1 table-hover align-middle mb-0 w-100" style="table-layout: fixed;">
-                
-                <thead class="table-primary text-white sticky-top">
-                  <tr>
-                    <th class="ps-3" style="width: 22%;">Barangay</th>
-                    <th style="width: 12%;">Water Level</th>
-                    <th style="width: 12%;">Rainfall</th>
-                    <th style="width: 12%;">Discharge</th>
-                    <th style="width: 20%;">Calculated Elevation</th>
-                    <th style="width: 22%;">Risk Classification</th>
-                  </tr>
-                </thead>
-                
-                <tbody id="riverTableBody">
-                  <tr>
-                    <td colspan="6" class="text-center text-muted py-5">
-                      <div class="loading-spinner"></div>
-                      Loading Laoag City data...
-                    </td>
-                  </tr>
-                </tbody>
-                
-              </table>
-            </div>
-            
-          </div>
           
-          <div class="card mb-1 mt-1 p-2">
-            <p id="status" class="small text-muted mb-0">
-              Initializing system modules...
-            </p>
-          </div>
-          
-        </div>
-        
-        <!-- RIGHT PANEL -->
-        <div class="col-12 col-lg-3">
-          <div id="map-legend">
-            <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
-            <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: lightgreen;"></div><span>Safe (< 30)</span></div>
-          </div>
-          <div class="card p-3" id="detailsContainer">
-            <div id="details">
-              <div class="text-center text-muted py-4 small">
-                <i class="bi bi-info-circle d-block mb-2 fs-4 text-secondary"></i>
-                Select a barangay to view flood risk analytics.
+              <div class="card mb-3 p-2">
+                <p id="status" class="small text-muted mb-0">
+                  Initializing system modules...
+                </p>
               </div>
             </div>
-          </div>
-          
-          <div class="card p-3 mt-3" hidden>
-            <input id="waterLevel" class="form-control mb-1" value="1.1">
-            <input id="rainfall" class="form-control mb-1" value="0.1">
-            <input id="discharge" class="form-control mb-1" value="12">
-            <input id="elevation" class="form-control mb-2" value="25">
-            <button hidden id="predictBtn" class="btn btn-danger w-100">Predict</button>
-          </div>
-          
-        </div>
         
-      </div>
-    </main>
+            <!-- RIGHT PANEL - MAP LEGEND & DETAILS -->
+            <div class="col-12 col-lg-4 col-xl-3">
+              <div id="map-legend">
+                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 11px;">FLOOD RISK INDEX</h6>
+                <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: lightgreen;"></div><span>Safe (&lt; 30)</span></div>
+              </div>
+
+              <div class="card p-3 mb-3" id="detailsContainer">
+                <div id="details">
+                  <div class="text-center text-muted py-4 small">
+                    <i class="bi bi-info-circle d-block mb-2 fs-4 text-secondary"></i>
+                    Select a barangay to view flood risk analytics.
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card p-3 mt-3" hidden>
+                <input id="waterLevel" class="form-control mb-1" value="1.1">
+                <input id="rainfall" class="form-control mb-1" value="0.1">
+                <input id="discharge" class="form-control mb-1" value="12">
+                <input id="elevation" class="form-control mb-2" value="25">
+                <button hidden id="predictBtn" class="btn btn-danger w-100">Predict</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
-  
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -423,7 +428,6 @@
   
   // FETCH ACCURATE ELEVATIONS ON-DEMAND PER CHOSEN MUNICIPALITY
   async function loadMunicipalityElevations(municipalityName) {
-    // Filter raw structures down strictly to the target choice
     let selectedRivers = allRawPins.filter(river => river.municipality === municipalityName);
     
     if (selectedRivers.length === 0) {
@@ -434,7 +438,6 @@
     
     document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} ${municipalityName} barangays...`;
     
-    // Chunking configurations to safely process open-meteo limits (max 50 per call)
     const chunkSize = 40; 
     const chunks = [];
     for (let i = 0; i < selectedRivers.length; i += chunkSize) {
@@ -460,7 +463,7 @@
           allElevations = [...allElevations, ...chunk.map(() => 12.5)];
         }
         
-        await new Promise(resolve => setTimeout(resolve, 200)); // Non-blocking delay
+        await new Promise(resolve => setTimeout(resolve, 200));
         
       } catch (apiErr) {
         console.error(`API error for batch ${chunkIndex + 1}:`, apiErr);
@@ -468,7 +471,6 @@
       }
     }
     
-    // Assign mapped array calculations back to items
     selectedRivers.forEach((river, index) => {
       if (allElevations[index] !== null && allElevations[index] !== undefined) {
         river.elevation = allElevations[index];
@@ -477,7 +479,6 @@
     
     document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${municipalityName}.`;
     
-    // Push updates downstream to the global data context table
     rivers = selectedRivers;
     updateRiverTable();
   }
@@ -521,7 +522,7 @@
     const selectedLimit = document.getElementById('rowLimitSelect').value;
     
     let processedList = rivers.filter(river => 
-    river.name.toLowerCase().includes(filterQuery)
+      river.name.toLowerCase().includes(filterQuery)
     );
     
     processedList = processedList.map(river => {
@@ -665,9 +666,8 @@
         <div style="font-family: system-ui, sans-serif;">
           <h6 class="fw-bold mb-1 border-bottom pb-2 text-primary" style="font-size: 0.95rem;">Flood Risk Analysis</h6>
           <div class="mb-1 bg-light p-1 rounded border">
-            <span class="d-block text-uppercase text-muted fw-bold" style="font-size:0.6rem;">Location${river.name},${river.municipality}
-          </span>
-              </div>
+            <span class="d-block text-uppercase text-muted fw-bold" style="font-size:0.6rem;">Location: ${river.name}, ${river.municipality}</span>
+          </div>
       
           <div style="font-size: 0.6rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
             <span class="text-muted">Elevation:</span>
@@ -757,10 +757,10 @@
   function manualPredict(){
     if(!model) return;
     const input = [
-    parseFloat(document.getElementById('waterLevel').value), 
-    parseFloat(document.getElementById('rainfall').value), 
-    parseFloat(document.getElementById('discharge').value), 
-    parseFloat(document.getElementById('elevation').value)
+      parseFloat(document.getElementById('waterLevel').value), 
+      parseFloat(document.getElementById('rainfall').value), 
+      parseFloat(document.getElementById('discharge').value), 
+      parseFloat(document.getElementById('elevation').value)
     ];
     const horizons = [1, 3, 12, 24];
     let last = [...input];

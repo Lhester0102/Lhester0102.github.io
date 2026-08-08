@@ -26,29 +26,51 @@
             margin: 0; 
             padding: 0; 
             background: #f4f6f9; 
-            overflow: hidden; 
+            overflow-x: hidden; 
         }
         
         /* Layout Structure */
         .app-container {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             overflow: hidden;
         }
 
-        /* Fixed Sidebar Styles */
+        /* Responsive Navigation Sidebar */
         .sidebar { 
             background-color: #1c96c5; 
-            transition: all 0.3s;
+            transition: all 0.3s ease-in-out;
             z-index: 1050;
             overflow-y: auto;
-            height: 100vh;
-            position: sticky;
-            top: 0;
+        }
+
+        /* Mobile Sidebar Off-canvas Overlay */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            }
+            .app-container {
+                height: auto;
+                overflow: visible;
+            }
         }
         
+        @media (min-width: 768px) {
+            .sidebar {
+                height: 100vh;
+                position: sticky;
+                top: 0;
+            }
+        }
+
         .nav-link { 
-            color: rgba(3, 3, 3, 0.8); 
+            color: rgba(255, 255, 255, 0.9); 
             transition: 0.2s; 
             border-radius: 5px; 
             margin-bottom: 2px; 
@@ -64,9 +86,9 @@
             color: white !important; 
         }
         
-        /* Scrollable Main Content Area */
+        /* Main Workspace Scroll Area */
         .main-content { 
-            height: 100vh; 
+            min-height: 100vh; 
             overflow-y: auto; 
             overflow-x: hidden;
             padding-bottom: 2rem;
@@ -90,19 +112,19 @@
             align-items: center;
             gap: 10px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
             margin-bottom: 15px;
         }
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
         
-        /* Darker Yellow Custom Badge Styling */
+        /* Custom Badge Styling */
         .bg-dark-yellow {
             background-color: #d9a000 !important;
             color: #ffffff !important;
         }
 
-        /* Geocoder Search Bar Custom Container */
+        /* Geocoder Search Bar Container */
         #geocoderContainer {
             width: 100%;
         }
@@ -114,7 +136,7 @@
             border-radius: 8px;
         }
 
-        /* KPI Card Interactive Styling */
+        /* KPI Cards Grid */
         .kpi-card {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -149,7 +171,7 @@
 
         /* Scrollable Right Panel Viewport */
         .analysis-scroll-panel {
-            max-height: 480px;
+            max-height: 100vh;
             overflow-y: auto;
         }
         .analysis-scroll-panel::-webkit-scrollbar { width: 5px; }
@@ -157,16 +179,14 @@
 
         @media (max-width: 767.98px) {
             html, body { overflow: auto; }
-            .app-container { height: auto; overflow: visible; }
-            .sidebar { height: auto; position: relative; }
-            .main-content { height: auto; overflow-y: visible; }
+            .analysis-scroll-panel { max-height: none; }
         }
         
         /* Interactive Chart Styling */
         canvas { cursor: pointer; transition: transform 0.2s; }
         canvas:hover { transform: scale(1.02); }
         
-        /* Instruction Modal Text Alignment Styling */
+        /* Instruction Modal Text Alignment */
         .swal2-html-container ul { text-align: left !important; }
 
         /* Barangay Below Search Styling */
@@ -187,7 +207,7 @@
 <body>
     <div class="container-fluid p-0 app-container">
         <div class="row g-0 w-100">
-            <!-- Fixed Navigation Sidebar -->
+            <!-- Navigation Sidebar Menu -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
@@ -195,8 +215,8 @@
                         <h6 class="text-white">Geospatial DSS</h6>
                         <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
                     </div>
-                    <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                        <i class="bi bi-x-lg"></i>
+                    <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close menu">
+                        <i class="bi bi-x-lg fs-5"></i>
                     </button>
                 </div>
                 <div class="text-center mb-4 d-none d-md-block">
@@ -210,22 +230,23 @@
                 </ul>
             </nav>
             
-            <!-- Independent Scrollable Main Workspace Content -->
-            <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
+            <!-- Main Content Area -->
+            <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
                 <!-- Submenu Header Control Strip -->
-                <div class="d-flex justify-content-between align-items-center mt-1 mb-2 p-2 bg-white rounded shadow">
-                    <div class="d-flex align-items-center gap-3">
-                        <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                            <i class="bi bi-list"></i>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center my-2 p-2 bg-white rounded shadow-sm gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle navigation">
+                            <i class="bi bi-list fs-5"></i>
                         </button>
-                        <div class="d-flex align-items-baseline gap-2">
-                            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-geo-alt-fill"></i>Location Dashboard</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-geo-alt-fill me-1"></i>Location Dashboard</h5>
                         </div>
                     </div>
-                    <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-                        <a href="floods3.html" class="btn btn-outline-primary"><i class="bi bi-map"></i> Flood Map</a>
-                        <a href="floods7.html" class="btn btn-primary"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
-                        <a href="floods4.html" class="btn btn-outline-primary"><i class="bi bi-houses-fill"></i>By Municipality</a>
+                    <!-- Action Submenu Buttons -->
+                    <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
+                        <a href="floods3.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-map"></i> Flood Map</a>
+                        <a href="floods7.html" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
+                        <a href="floods4.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-houses-fill"></i>By Municipality</a>
                     </div>
                 </div>
                 
@@ -241,7 +262,7 @@
                             <div id="geocoderContainer"></div>
                         </div>
 
-                        <!-- KPI METRICS SUMMARY GRID WITH POPUP ON CLICK -->
+                        <!-- KPI METRICS SUMMARY GRID -->
                         <div class="row g-2">
                             <div class="col-6 col-sm-3 col-lg-3">
                                 <div class="kpi-card shadow-sm" onclick="openKpiModal('water')">
@@ -275,12 +296,12 @@
 
                         <!-- BARANGAY FLOOD PROBABILITY LIST CONTAINER -->
                         <div class="card p-3 shadow-sm" id="barangayRiskCard">
-                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-bottom pb-2 mb-2 gap-1">
                                 <h6 class="fw-bold mb-0 text-dark">
                                     <i class="bi bi-buildings-fill text-primary me-1"></i> Predicted Flood Prone Barangays 
                                     <span id="selectedMunicipalityTitle" class="text-primary fs-6"></span>
                                 </h6>
-                                <span class="badge bg-secondary" id="totalBrgyCount">Select a municipality</span>
+                                <span class="badge bg-secondary align-self-start align-self-sm-auto" id="totalBrgyCount">Select a municipality</span>
                             </div>
                             <div id="barangayRiskContent">
                                 <p class="text-muted small mb-0">Search an address or municipality above to run real-time flood probability predictions for its barangays from database pins.</p>
@@ -290,7 +311,7 @@
 
                     <!-- RIGHT COLUMN: SYSTEM FIELD ANALYSIS & FLOOD PROBABILITY TREND -->
                     <div class="col-lg-6">
-                        <div class="card p-3 shadow-sm analysis-scroll-panel" id="detailsCard" style="max-height: 100vh;">
+                        <div class="card p-3 shadow-sm analysis-scroll-panel" id="detailsCard">
                             <h6 class="fw-bold border-bottom pb-2 mb-3" style="color:#1c96c5;">System Field Analysis</h6>
                             
                             <!-- System Field Analysis Section -->
@@ -353,7 +374,6 @@
     let forecastRain = [];
     let forecastFlow = [];
     
-    // Arrays for Historical Sensor Records
     let historyWater = [];
     let historyRain = [];
     let historyFlow = [];
@@ -518,7 +538,6 @@
         }
     }
 
-    // Dynamic 10-day calendar sequence calculated backwards from today's current date
     function getPastTenDaysLabels() {
         const labels = [];
         const today = new Date();
@@ -558,7 +577,6 @@
         historyRain = [];
         historyFlow = [];
 
-        // Partition available data into 10 historical daily reference buckets
         const totalRaw = rawWater.length;
         const chunkSize = Math.max(1, Math.floor(totalRaw / 10));
 
@@ -875,11 +893,11 @@
             return;
         }
 
-        let html = `<div class="row g-3">`;
+        let html = `<div class="row g-2 g-md-3">`;
 
         // Severe Section
         html += `
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-danger">
                         <strong class="text-danger small"><i class="bi bi-exclamation-octagon-fill me-1"></i> Severe Hazard (≥70%)</strong>
@@ -898,7 +916,7 @@
 
         // High Section
         html += `
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
                         <strong class="text-warning-emphasis small"><i class="bi bi-exclamation-triangle-fill me-1"></i> High Vulnerability (50-69%)</strong>
@@ -917,7 +935,7 @@
 
         // Moderate Section
         html += `
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
                         <strong style="color: #b38300;" class="small"><i class="bi bi-info-circle-fill me-1"></i> Moderate Risk (20-49%)</strong>
