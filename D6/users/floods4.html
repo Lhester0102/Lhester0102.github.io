@@ -125,9 +125,9 @@
         </div>
         <ul class="nav flex-column">
           <li class="mb-1"><a class="nav-link text-white" href="index2.html"> <i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"> <i class="bi bi-map me-2"></i> Flood Watch</a></li>
-        <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
-
+          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"> <i class="bi bi-tsunami me-2"></i> Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
+          
         </ul>
       </nav>
       
@@ -138,12 +138,13 @@
               <i class="bi bi-list"></i>
             </button>
             <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark">Flood Watch Lists</h5>
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-houses-fill"></i>Municipality and Barangay Lists</h5>
             </div>
           </div>
           <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
             <a href="floods3.html" class="btn btn-outline-primary"><i class="bi bi-eye me-1"></i> Flood Map</a>
-            <a href="floods4.html" class="btn btn-primary"> <i class="bi bi-water me-1"></i>Flood Lists</a>
+            <a href="floods7.html" class="btn btn-outline-primary"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
+            <a href="floods4.html" class="btn btn-primary"><i class="bi bi-houses-fill"></i> By Municipality</a>
           </div>
         </div>
         
@@ -215,7 +216,7 @@
                   </tr>
                 </tbody>
                 
-               </table>
+              </table>
             </div>
             
           </div>
@@ -323,7 +324,7 @@
     
     const rowLimitSelect = document.getElementById('rowLimitSelect');
     if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
-
+    
     // Trigger initial load for Laoag City by default safely
     if (municipalityFilter) {
       municipalityFilter.value = "Laoag City";
@@ -419,7 +420,7 @@
       document.getElementById('status').innerHTML = `Error: ${error.message}`;
     }
   }
-
+  
   // FETCH ACCURATE ELEVATIONS ON-DEMAND PER CHOSEN MUNICIPALITY
   async function loadMunicipalityElevations(municipalityName) {
     // Filter raw structures down strictly to the target choice
@@ -430,7 +431,7 @@
       updateRiverTable();
       return;
     }
-
+    
     document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} ${municipalityName} barangays...`;
     
     // Chunking configurations to safely process open-meteo limits (max 50 per call)
@@ -520,7 +521,7 @@
     const selectedLimit = document.getElementById('rowLimitSelect').value;
     
     let processedList = rivers.filter(river => 
-      river.name.toLowerCase().includes(filterQuery)
+    river.name.toLowerCase().includes(filterQuery)
     );
     
     processedList = processedList.map(river => {
@@ -756,10 +757,10 @@
   function manualPredict(){
     if(!model) return;
     const input = [
-      parseFloat(document.getElementById('waterLevel').value), 
-      parseFloat(document.getElementById('rainfall').value), 
-      parseFloat(document.getElementById('discharge').value), 
-      parseFloat(document.getElementById('elevation').value)
+    parseFloat(document.getElementById('waterLevel').value), 
+    parseFloat(document.getElementById('rainfall').value), 
+    parseFloat(document.getElementById('discharge').value), 
+    parseFloat(document.getElementById('elevation').value)
     ];
     const horizons = [1, 3, 12, 24];
     let last = [...input];

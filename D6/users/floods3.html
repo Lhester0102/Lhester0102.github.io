@@ -90,7 +90,7 @@
     }
     .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
     .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
-
+    
     /* DISPLAY RISKS Control Box Overlay */
     #riskControlBox {
       position: absolute; top: 60px; left: 15px;
@@ -122,9 +122,9 @@
         
         <ul class="nav flex-column">
           <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-water me-2"></i>Flood Watch</a></li>
-        <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
-
+          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
+          
         </ul>
       </nav>
       
@@ -140,7 +140,8 @@
           </div>
           <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
             <a href="floods3.html" class="btn btn-primary"><i class="bi bi-eye me-1"></i> Flood Map</a>
-            <a href="floods4.html" class="btn btn-outline-primary"> <i class="bi bi-water me-1"></i>Flood Lists</a>
+            <a href="floods7.html" class="btn btn-outline-primary"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
+            <a href="floods4.html" class="btn btn-outline-primary"><i class="bi bi-houses-fill"></i> By Municipality</a>
           </div>
         </div>
         
@@ -159,7 +160,7 @@
               <!-- DISPLAY RISKS Control Overlay -->
               <div id="riskControlBox" class="border">
                 <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                 FLOOD PRONE RISKS
+                  FLOOD PRONE RISKS
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="form-check m-0 d-flex align-items-center gap-1">
@@ -270,7 +271,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   
-<script>
+  <script>
     let model, minVals=[], maxVals=[], confChart, rocChart;
     let geocoder;
     let lastConfData = [], lastRocPoints = [], lastAUC = 0;
@@ -437,7 +438,7 @@
     if ('telemetry' in mapboxgl) {
       mapboxgl.telemetry = false;
     }
-
+    
     const initialCenter = [120.5927871, 18.1959782];
     
     const map = new mapboxgl.Map({
@@ -461,7 +462,7 @@
       if (val >=20 || vulnerability === 'moderate') return 'rgba(255, 230, 0, 1)';     
       return 'rgba(144, 238, 144, .2)';                           
     }
-
+    
     function getRiskCategory(val) {
       if (typeof val === 'string') {
         const strVal = val.toLowerCase().trim();
@@ -521,7 +522,7 @@
         });
       }
     });
-
+    
     map.on('load', async () => {
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
@@ -551,9 +552,9 @@
       db.ref('Flooded_Areas').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) return;
-
+        
         riskLayers = { severe: [], high: [], moderate: [], low: [] };
-
+        
         Object.entries(data).forEach(([id, f], i) => {
           if (!f.geojson) return;
           const sourceId = `flood-src-${i}`;
@@ -562,7 +563,7 @@
           const vulnVal = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
           const riskCat = getRiskCategory(vulnVal);
           riskLayers[riskCat].push(layerId);
-
+          
           map.addSource(sourceId, { type: 'geojson', data: f.geojson });
           map.addLayer({
             id: layerId,
@@ -585,7 +586,7 @@
       
       setupRiverStations();
     });
-
+    
     // Checkbox toggle event listeners for controlling map layer visibility by risk level
     document.querySelectorAll('.risk-toggle').forEach(checkbox => {
       checkbox.addEventListener('change', function(e) {
@@ -820,14 +821,14 @@
         });
       }
     }
-
+    
     async function triggerAnalysis(lngLat, forcedTelemetry = null) {
       const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
       const elevInput = document.getElementById('elevation');
       if (elevInput) {
         elevInput.value = Math.round(elevation);
       }
-  
+      
       let currentWater = 0;
       let currentRain = 0;
       let currentDischarge = 0;
@@ -836,13 +837,13 @@
         currentWater = parseFloat(forcedTelemetry.level) || 0;
         currentRain = parseFloat(forcedTelemetry.rain) || 0;
         currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
-
+        
         setSensorInputs(currentWater, currentRain, currentDischarge);
       } else {
         currentWater = parseFloat(document.getElementById('waterLevel')?.value) || 0;
         currentRain = parseFloat(document.getElementById('rainfall')?.value) || 0;
         currentDischarge = parseFloat(document.getElementById('discharge')?.value) || 0;
-
+        
         updateKPIs();
       }
       
@@ -1178,34 +1179,34 @@
     document.getElementById('predictBtn').onclick = manualPredict;
     document.getElementById('logoutLink').addEventListener('click', function (e) {
       e.preventDefault();
-
+      
       Swal.fire({
-          title: 'Logout?',
-          text: 'Are you sure you want to log out?',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Yes, Logout',
-          cancelButtonText: 'No'
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'No'
       }).then((result) => {
-          if (result.isConfirmed) {
-              sessionStorage.clear();
-
-              Swal.fire({
-                  title: 'Logged Out',
-                  text: 'You have been logged out successfully.',
-                  icon: 'success',
-                  timer: 1500,
-                  showConfirmButton: false
-              }).then(() => {
-                  window.location.href = 'log.html';
-              });
-          }
+        if (result.isConfirmed) {
+          sessionStorage.clear();
+          
+          Swal.fire({
+            title: 'Logged Out',
+            text: 'You have been logged out successfully.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = 'log.html';
+          });
+        }
       });
-  });
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="menu.js"></script>
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="menu.js"></script>
 </body>
 </html>

@@ -91,27 +91,34 @@
     #map { width: 100%; height: 100%; border-radius: 10px; }
     .main-content { height: 100vh; overflow-y: auto; }
     
-    /* Map Legend */
-    #map-legend {
-      position: absolute; top: 180px; left: 15px;
-      background: rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 10px; font-size: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 180px;
+    /* Combined Flood Prone Risk Box */
+    #layer-controls {
+      position: absolute; top: 15px; left: 15px;
+      background: rgba(255, 255, 255, 0.7); 
+      padding: 14px 16px; 
+      border-radius: 12px; 
+      font-size: 14px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+      z-index: 2; 
+      min-width: 190px;
+      backdrop-filter: blur(8px);
     }
+    
     #map-legend2 {
       position: absolute; top: 15px; right: 15px;
       font-size: 12px; background: rgba(255, 255, 255, 0.6); 
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 200px;
     }
     
-    /* Map Layer Toggles */
-    #layer-controls {
-      position: absolute; top: 15px; left: 15px;
-      background: rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 10px; 
-      font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; width: 180px;
+    .risk-color-box {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      margin-left: 6px;
+      margin-right: 6px;
+      vertical-align: middle;
     }
-    
-    .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
-    .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
     
     /* Popups */
     .popup-chart { width: 100% !important; height: 110px !important; margin-bottom: 6px; }
@@ -143,9 +150,8 @@
         
         <ul class="nav flex-column">
           <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
-          <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-water me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-tsunami me-2"></i>Flood Watch</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
-          
         </ul>
       </nav>
       
@@ -169,23 +175,36 @@
             <div class="card h-100 p-1 position-relative">
               <div id="map"></div>
               
+              <!-- FLOOD PRONE RISKS with Color Box Indicators -->
               <div id="layer-controls">
-                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 12px;">FLOOD PRONE RISKS</h6>
-                <div class="form-check mb-1">
+                <h6 class="fw-bold mb-3 text-dark" style="font-size: 13px; letter-spacing: 0.5px;">FLOOD PRONE RISKS</h6>
+                
+                <div class="form-check mb-2 d-flex align-items-center">
                   <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
-                  <label class="form-check-label text-dark" for="chkSevere">Severe</label>
+                  <label class="form-check-label text-dark fw-bold ms-1" for="chkSevere">
+                    <span class="risk-color-box" style="background-color: #b0101b;"></span>Severe
+                  </label>
                 </div>
-                <div class="form-check mb-1">
+                
+                <div class="form-check mb-2 d-flex align-items-center">
                   <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
-                  <label class="form-check-label text-dark" for="chkHigh">High</label>
+                  <label class="form-check-label text-dark fw-bold ms-1" for="chkHigh">
+                    <span class="risk-color-box" style="background-color: #d96100;"></span>High
+                  </label>
                 </div>
-                <div class="form-check mb-1">
+                
+                <div class="form-check mb-2 d-flex align-items-center">
                   <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
-                  <label class="form-check-label text-dark" for="chkModerate">Moderate</label>
+                  <label class="form-check-label text-dark fw-bold ms-1" for="chkModerate">
+                    <span class="risk-color-box" style="background-color: #a87900;"></span>Moderate
+                  </label>
                 </div>
-                <div class="form-check">
+                
+                <div class="form-check mb-1 d-flex align-items-center">
                   <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
-                  <label class="form-check-label text-dark" for="chkLow">Low / Safe</label>
+                  <label class="form-check-label text-dark fw-bold ms-1" for="chkLow">
+                    <span class="risk-color-box" style="background-color: #55a855;"></span>Low / Safe
+                  </label>
                 </div>
               </div>
               
@@ -201,14 +220,6 @@
                 </div>
               </div>
               
-              <div id="map-legend">
-                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 10px;">FLOOD RISK INDEX</h6>
-                <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:lightgreen;"></div><span>Safe (&lt; 30)</span></div>
-                <p class="text-muted small mt-3"><i class="bi bi-info-circle"></i> Use right-click or 3D pitch to view terrain analysis.</p>
-              </div>
             </div>
           </div>
         </div>
@@ -357,8 +368,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-      center: [120.587385, 18.187710],
-      zoom: 11,
+      center: [120.5831108, 18.1026371],
+      zoom: 10,
       pitch: 55
     });
     
@@ -587,9 +598,9 @@
     });
     
     const rivers = [
-    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
+    { name: "Baldi River", lat: 18.3471177, lng: 120.630181, node: 'data' }, 
+    { name: "Padsan River", lat: 18.094349, lng: 120.7089923, node: 'data2' }, 
+    { name: "Bislak River", lat: 18.2375679, lng: 120.6748498, node: 'data3' } 
     ];
     
     const riverMenu = document.getElementById('riverDropdownMenu');
