@@ -120,6 +120,40 @@
       }
     }
 
+    /* Floating Icon-Only Submenu for Mobile Devices */
+    @media (max-width: 767.98px) {
+      .mobile-floating-submenu {
+        position: fixed !important;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1040;
+        background: transparent !important;
+        backdrop-filter: none;
+        padding: 0 !important;
+        box-shadow: none !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: auto !important;
+      }
+      .mobile-floating-submenu .btn {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      }
+      .mobile-floating-submenu .btn span {
+        display: none !important;
+      }
+      .mobile-floating-submenu .btn i {
+        margin: 0 !important;
+        font-size: 1.25rem !important;
+      }
+    }
+
     /* Address Suggestion List */
     .suggestions-list {
       max-height: 200px;
@@ -178,10 +212,10 @@
             </div>
           </div>
           <!-- Action Submenu Buttons -->
-          <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
-            <a href="floods3.html" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-map"></i> Flood Map</a>
-            <a href="floods7.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-geo-alt-fill me-1"></i>Location</a>
-            <a href="floods4.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6"><i class="bi bi-houses-fill"></i> By Municipality</a>
+          <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end mobile-floating-submenu shadow-sm p-2 bg-white rounded">
+            <a href="floods3.html" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="Flood Map"><i class="bi bi-map"></i> <span>Flood Map</span></a>
+            <a href="floods7.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="Location"><i class="bi bi-geo-alt-fill me-1"></i> <span>Location</span></a>
+            <a href="floods4.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="By Municipality"><i class="bi bi-houses-fill"></i> <span>By Municipality</span></a>
           </div>
         </div>
         
@@ -300,8 +334,9 @@
   <div class="modal fade" id="initialLocationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content shadow border-0">
-        <div class="modal-header text-white" style="background-color: #1c96c5;">
+        <div class="modal-header text-white d-flex align-items-center justify-content-between" style="background-color: #1c96c5;">
           <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Select Initial Location</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="modalCloseBtn"></button>
         </div>
         <div class="modal-body p-3 p-md-4 text-center">
           <p class="text-secondary mb-4">Choose how you would like to set your map starting position:</p>
@@ -354,8 +389,22 @@
     };
     
     window.onload = async function() {
-      locationModal = new bootstrap.Modal(document.getElementById('initialLocationModal'));
+      const modalElement = document.getElementById('initialLocationModal');
+      locationModal = new bootstrap.Modal(modalElement);
       locationModal.show();
+      
+      modalElement.addEventListener('shown.bs.modal', () => {
+        const addressInputEl = document.getElementById('initialAddressInput');
+        if (addressInputEl) addressInputEl.focus();
+      });
+
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', () => {
+          const addressInputEl = document.getElementById('initialAddressInput');
+          if (addressInputEl) addressInputEl.focus();
+        });
+      }
       
       updateKPIs();
       await loadModel(); 
