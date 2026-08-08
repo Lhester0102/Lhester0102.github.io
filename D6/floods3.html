@@ -883,26 +883,71 @@
         kpiRiskEl.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
       }
       
+      // Visual Alert Setup based on Risk Level
       let interpretText = "Low / Safe Scenario";
       let alertBadgeClass = "bg-success";
       let interpretColor = "#198754";
-      let recommendation = "Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.";
+      let recommendation = "";
       
       if (finalRisk >= 70) {
         interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
         alertBadgeClass = "bg-danger";
         interpretColor = "#dc3545"; 
-        recommendation = `<strong>CRITICAL HAZARD (Forced Evacuation):</strong> Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding. Move to designated high-ground evacuation centers immediately. Do not walk or drive through moving floodwaters.`;
+        recommendation = `
+          <div class="alert alert-danger d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #dc3545;">
+            <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i>
+            <div>
+              <strong class="d-block text-danger">CRITICAL HAZARD (Forced Evacuation)</strong>
+              <p class="mb-1 small">Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding.</p>
+              <ul class="ps-3 mb-0 small">
+                <li><i class="bi bi-house-exclamation me-1"></i>Move to designated high-ground evacuation centers immediately.</li>
+                <li><i class="bi bi-x-octagon me-1"></i>Do not walk or drive through moving floodwaters.</li>
+              </ul>
+            </div>
+          </div>`;
       } else if (finalRisk >= 50) {
         interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
         alertBadgeClass = "bg-warning text-dark";
         interpretColor = "#fd7e14"; 
-        recommendation = `<strong>HIGH VULNERABILITY (Pre-emptive Evacuation):</strong> River water levels approaching dangerous bank limits. Local government units and residents in low-lying areas should execute pre-emptive evacuation, secure emergency kits, transfer electrical assets to higher floors, and monitor advisories.`;
+        recommendation = `
+          <div class="alert alert-warning text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #fd7e14; background-color: #fff3cd;">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i>
+            <div>
+              <strong class="d-block text-warning-emphasis">HIGH VULNERABILITY (Pre-emptive Evacuation)</strong>
+              <p class="mb-1 small">River water levels are approaching dangerous bank limits in low-lying areas.</p>
+              <ul class="ps-3 mb-0 small">
+                <li><i class="bi bi-box-seam me-1"></i>Secure emergency kits and water supplies.</li>
+                <li><i class="bi bi-plug me-1"></i>Transfer electrical assets and valuables to higher floors.</li>
+                <li><i class="bi bi-broadcast me-1"></i>Monitor local government advisories closely.</li>
+              </ul>
+            </div>
+          </div>`;
       } else if (finalRisk >= 20) {
         interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
         alertBadgeClass = "bg-dark-yellow";
         interpretColor = "#d9a000"; 
-        recommendation = `<strong>MODERATE / MONITORING PHASE:</strong> Rising water trends observed upstream. Prepare family emergency kits, clear community drainage pathways, and prepare livestock or vehicles for relocation if heavy rainfall persists.`;
+        recommendation = `
+          <div class="alert alert-info text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #d9a000; background-color: #fff8e1;">
+            <i class="bi bi-info-circle-fill fs-4 flex-shrink-0" style="color: #d9a000;"></i>
+            <div>
+              <strong class="d-block" style="color: #b38300;">MODERATE / MONITORING PHASE</strong>
+              <p class="mb-1 small">Rising water trends observed upstream.</p>
+              <ul class="ps-3 mb-0 small">
+                <li><i class="bi bi-journal-check me-1"></i>Prepare family emergency kits.</li>
+                <li><i class="bi bi-trash me-1"></i>Clear community drainage pathways to prevent blockages.</li>
+                <li><i class="bi bi-truck me-1"></i>Prepare livestock or vehicles for potential relocation.</li>
+              </ul>
+            </div>
+          </div>`;
+      } else {
+        recommendation = `
+          <div class="alert alert-success text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #198754; background-color: #e8f5e9;">
+            <i class="bi bi-shield-check text-success fs-4 flex-shrink-0"></i>
+            <div>
+              <strong class="d-block text-success">SAFE CONDITIONS</strong>
+              <p class="mb-0 small">Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.</p>
+            </div>
+          </div>`;
       }
       
       let waterInterpretText = "Normal";
@@ -988,7 +1033,7 @@
               
               <div class="mt-2">
                   <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                  <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px; line-height:1.3;">${recommendation}</p>
+                  ${recommendation}
               </div>
           </div>
       `;
