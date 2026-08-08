@@ -340,26 +340,6 @@
                 <div class="row g-3">
                     <div class="col-lg-3">
                         <div class="card p-2 shadow-sm mb-3" style="max-height: 100vh; overflow-y: auto;">
-                            <div class="d-none">
-                                <h6 class="mb-1">Model Control</h6>
-                                <div class="mb-2">
-                                    <label class="form-label small text-dark mb-1">Upload Training CSV</label>
-                                    <input type="file" id="csvFileInput" accept=".csv" class="form-control form-control-sm">
-                                    <small class="text-dark d-block mt-1" style="font-size:0.65rem;">Expected: water_level, rainfall, discharge, elevation, flood_label</small>
-                                </div>
-                                <button id="trainBtn" class="btn btn-primary w-100 mb-1" disabled><i class="bi bi-cpu"></i> Train Model</button>
-                                <button id="saveBtn" class="btn btn-success w-100 mb-1"><i class="bi bi-save"></i> Save Model</button>
-                                <button id="loadBtn" class="btn btn-secondary w-100 mb-1"><i class="bi bi-folder"></i> Load Model</button>
-                                <div class="d-none">
-                                    <h6 class="mt-2">Manual Prediction</h6>
-                                    <input value="" id="waterLevel" class="form-control mb-1" placeholder="Water Level">
-                                    <input value="" id="rainfall" class="form-control mb-1" placeholder="Rainfall">
-                                    <input value="" id="discharge" class="form-control mb-1" placeholder="Discharge">
-                                    <input value="" id="elevation" class="form-control mb-1" placeholder="Elevation">
-                                    <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
-                                </div>
-                            </div>
-                            
                             <!-- SYSTEM FIELD ANALYSIS CARD -->
                             <div class="card p-3 shadow-sm border" id="detailsCard">
                                 <h6 class="fw-bold border-bottom pb-2 mb-2" style="color:#1c96c5;">System Field Analysis</h6>
@@ -382,7 +362,7 @@
                         <!-- MAP CONTAINER WITH OVERLAYS -->
                         <div class="card mb-2" style="height:420px; position: relative;">
                             
-                            <!-- FLOOD PRONE RISKS OVERLAY (20% transparent = rgba 0.8, z-index set to 1) -->
+                            <!-- FLOOD PRONE RISKS OVERLAY -->
                             <div id="riskControlBox" class="p-2 rounded shadow-sm border" style="position: absolute; top: 60px; right: 10px; z-index: 1; font-size: 0.88rem; width: 220px; background-color: rgba(255, 255, 255, 0.5);">
                                 <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">
                                     FLOOD PRONE RISKS
@@ -415,7 +395,7 @@
                                 </div>
                             </div>
                             
-                            <!-- KPI METRICS OVERLAY (20% transparent = rgba 0.8, z-index set to 1) -->
+                            <!-- KPI METRICS OVERLAY -->
                             <div id="kpiMapOverlay" class="p-2 rounded shadow-sm border" style="position: absolute; top: 215px; right: 10px; z-index: 1; width: 220px; background-color: rgba(255, 255, 255, 0.5);">
                                 <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom">
                                     <small class="text-secondary fw-semibold" style="font-size:0.7rem;"><i class="bi bi-calendar-event me-1"></i>Date: <span id="currentDate">08-08-2026</span></small>
@@ -426,7 +406,6 @@
                                     <div class="col-6">
                                         <div class="embedded-kpi-card text-center">
                                             <i class="bi bi-droplet-fill text-primary fs-6 mb-1 d-block"></i>
-                                            <!-- <span class="fw-bold text-dark d-block mb-1" style="font-size:0.7rem;">Water Level</span> -->
                                             <h6 class="fw-bold mb-0 text-warning" style="font-size:1rem;" id="kpiWater">3.17 m</h6>
                                         </div>
                                     </div>
@@ -435,7 +414,6 @@
                                     <div class="col-6">
                                         <div class="embedded-kpi-card text-center">
                                             <i class="bi bi-cloud-rain-heavy-fill text-info fs-6 mb-1 d-block"></i>
-                                            <!-- <span class="fw-bold text-dark d-block mb-1" style="font-size:0.7rem;">Rainfall</span> -->
                                             <h6 class="fw-bold mb-0 text-success" style="font-size:1rem;" id="kpiRain">0 mm</h6>
                                         </div>
                                     </div>
@@ -444,7 +422,6 @@
                                     <div class="col-6">
                                         <div class="embedded-kpi-card text-center">
                                             <i class="bi bi-water text-success fs-6 mb-1 d-block"></i>
-                                            <!-- <span class="fw-bold text-dark d-block mb-1" style="font-size:0.7rem;">Flow Rate</span> -->
                                             <h6 class="fw-bold mb-0 text-success" style="font-size:1rem;" id="kpiDischarge">2.53 m³/s</h6>
                                         </div>
                                     </div>
@@ -453,7 +430,6 @@
                                     <div class="col-6">
                                         <div class="embedded-kpi-card text-center">
                                             <i class="bi bi-shield-exclamation text-danger fs-6 mb-1 d-block"></i>
-                                            <!-- <span class="fw-bold text-dark d-block mb-1" style="font-size:0.7rem;">Risk Summary</span> -->
                                             <h6 class="fw-bold mb-0 text-danger" style="font-size:1rem;" id="kpiRisk">100% - Alert</h6>
                                         </div>
                                     </div>
@@ -463,7 +439,7 @@
                             <div class="card-body p-1"><div id="map"></div></div>
                         </div>
                         
-                        <!-- BARANGAY FLOOD PROBABILITY LIST CONTAINER (BELOW MAP) -->
+                        <!-- BARANGAY FLOOD PROBABILITY LIST CONTAINER -->
                         <div class="card p-3 shadow-sm mb-2" id="barangayRiskCard">
                             <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                                 <h6 class="fw-bold mb-0 text-dark">
@@ -474,33 +450,6 @@
                             </div>
                             <div id="barangayRiskContent">
                                 <p class="text-muted small mb-0">Select a municipality on the map to run real-time flood probability predictions for its barangays from database pins.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-4"></div>
-                            <div class="col-md-4 d-none">
-                                <div class="card p-1">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h6>Confusion Matrix</h6>
-                                        <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
-                                    </div>
-                                    <canvas id="confMatrix"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-md-4 d-none">
-                                <div class="card p-1">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h6>ROC Curve</h6>
-                                        <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
-                                    </div>
-                                    <canvas id="rocChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="card mb-1 mt-1 p-1">
-                                <p id="status" class="small text-dark mt-1 mb-0">Please select a local CSV file</p>
                             </div>
                         </div>
                     </div>
@@ -524,61 +473,25 @@
         </div>
     </div>
     
-    <div class="modal fade" id="confModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Model Classification Performance</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <canvas id="confChartModal"></canvas>
-                    <div class="mt-3 p-2 bg-light rounded border small">
-                        <b>TP:</b> True Positives | <b>FP:</b> False Positives<br>
-                        <b>TN:</b> True Negatives | <b>FN:</b> False Negatives
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal fade" id="rocModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ROC Analysis & AUC Metric</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-8"><canvas id="rocChartModal"></canvas></div>
-                        <div class="col-md-4">
-                            <div class="p-3 bg-light rounded border">
-                                <h6 class="fw-bold">Performance Summary</h6><hr>
-                                <label class="small fw-bold text-dark">Area Under Curve (AUC)</label>
-                                <h3 class="text-primary mb-0" id="modalAUC">0.0000</h3>
-                                <p class="small text-dark mt-2">A higher AUC (closer to 1.0) represents superior predictive discrimination.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        let model, minVals=[], maxVals=[], probChart, confChart, rocChart;
-        let lastProbData = [], lastConfData = [], lastRocPoints = [], lastAUC = 0;
-        let parsedCsvFeatures = [], parsedCsvLabels = [];
+        let model, minVals=[], maxVals=[], probChart;
+        let lastProbData = [];
         let activeMarker = null;
         let pinsCache = null;
         let currentLocationName = "Selected Coordinate Point";
         let selectedActiveLngLat = null;
+        
+        // Dynamic input variables
+        let currentWaterVal = 0;
+        let currentRainVal = 0;
+        let currentDischargeVal = 0;
+        let currentElevationVal = 0;
         
         // Map style definitions
         const STYLE_TERRAIN = 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1';
@@ -602,18 +515,6 @@
             document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
             updateKPIs();
             loadModel();
-            
-            // Listen for parameter input updates to recalculate barangay predictions dynamically
-            ['waterLevel', 'rainfall', 'discharge', 'elevation'].forEach(id => {
-                const inputEl = document.getElementById(id);
-                if (inputEl) {
-                    inputEl.addEventListener('input', () => {
-                        if (currentMunicipality) {
-                            updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
-                        }
-                    });
-                }
-            });
         }
         
         function createOrMoveMarker(point) {
@@ -664,13 +565,9 @@
         }
         
         function updateKPIs() {
-            const w = document.getElementById("waterLevel")?.value || "0.00";
-            const r = document.getElementById("rainfall")?.value || "0.0";
-            const d = document.getElementById("discharge")?.value || "0.00";
-            
-            document.getElementById("kpiWater").innerHTML = w + " m";
-            document.getElementById("kpiRain").innerHTML = r + " mm";
-            document.getElementById("kpiDischarge").innerHTML = d + " m³/s";
+            document.getElementById("kpiWater").innerHTML = currentWaterVal.toFixed(2) + " m";
+            document.getElementById("kpiRain").innerHTML = currentRainVal.toFixed(1) + " mm";
+            document.getElementById("kpiDischarge").innerHTML = currentDischargeVal.toFixed(2) + " m³/s";
         }
         
         const firebaseConfig = {
@@ -702,22 +599,19 @@
         
         function setSensorInputs(level, rain, flow) {
             if (level !== undefined && level !== null) {
-                document.getElementById("waterLevel").value = level;
+                currentWaterVal = parseFloat(level) || 0;
             }
             if (rain !== undefined && rain !== null) {
-                document.getElementById("rainfall").value = rain;
+                currentRainVal = parseFloat(rain) || 0;
             }
             if (flow !== undefined && flow !== null) {
-                document.getElementById("discharge").value = flow;
+                currentDischargeVal = parseFloat(flow) || 0;
             }
             updateKPIs();
         }
         
-        function processMunicipalitySnapshot(snapshot, sourceName) {
-            if (!snapshot.exists()) {
-                document.getElementById('status').innerHTML = `${sourceName} has no latest value yet.`;
-                return;
-            }
+        function processMunicipalitySnapshot(snapshot) {
+            if (!snapshot.exists()) return;
             snapshot.forEach(child => {
                 const v = child.val();
                 const level = v.level ?? v.water ?? v.water_level ?? null;
@@ -725,7 +619,6 @@
                 const flow = v.flow ?? v.discharge ?? null;
                 setSensorInputs(level, rain, flow);
             });
-            document.getElementById('status').innerHTML = `${sourceName} latest values loaded.`;
             manualPredict();
         }
         
@@ -738,18 +631,15 @@
             if (municipality === 'Laoag' || municipality === 'San Nicolas') {
                 const ref = data2Ref.orderByKey().limitToLast(1);
                 currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
-                document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data2) updates.`;
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
             } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
                 const ref = data3Ref.orderByKey().limitToLast(1);
                 currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
-                document.getElementById('status').innerHTML = `Subscribed to latest ${municipality} (data3) updates.`;
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
             } else if (municipality === 'Pasuquin') {
                 const ref = dataRef.orderByKey().limitToLast(1);
                 currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
-                document.getElementById('status').innerHTML = 'Subscribed to latest Pasuquin (data) updates.';
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
             }
         }
         
@@ -773,7 +663,6 @@
             pitch: 55
         });
         
-        // Custom Mapbox White-Card Style Switcher Control
         class MapboxStyleSwitcherControl {
             onAdd(map) {
                 this._map = map;
@@ -831,17 +720,6 @@
             return 'low';
         }
         
-        function getDistanceKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-        
         map.on('style.load', () => {
             if (!map.getSource('mapbox-dem')) {
                 map.addSource('mapbox-dem', {
@@ -855,7 +733,6 @@
         });
         
         map.on('load', async () => {
-            // NATIVE DEFAULT MAPBOX CONTROLS STACKED AT BOTTOM-LEFT
             map.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
             
             const geolocateControl = new mapboxgl.GeolocateControl({
@@ -951,17 +828,11 @@
         
         async function triggerAnalysis(lngLat) {
             selectedActiveLngLat = lngLat;
-            const elevation = map.queryTerrainElevation(lngLat) || 0;
-            const elevInput = document.getElementById('elevation');
-            if (elevInput) {
-                elevInput.value = Math.round(elevation);
-            }
+            currentElevationVal = map.queryTerrainElevation(lngLat) || 0;
             
-            // Geocoding & Jurisdiction Routing
             const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
             currentLocationName = "Selected Coordinate Point";
             let municipality = null;
-            let statusMessage = "";
             
             try {
                 const resp = await fetch(geoQuery);
@@ -988,41 +859,22 @@
                 console.error("Geocode error lookup details:", err); 
             }
             
-            if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-                statusMessage = `Address detected in ${municipality} — using local data2 reference.`;
+            if (municipality === 'Laoag' || municipality === 'San Nicolas' || municipality === 'Bacarra' || municipality === 'Vintar' || municipality === 'Pasuquin') {
                 subscribeToMunicipalityData(municipality);
-            } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-                statusMessage = `Address detected in ${municipality} — using local data3 reference.`;
-                subscribeToMunicipalityData(municipality);
-            } else if (municipality === 'Pasuquin') {
-                statusMessage = 'Address detected in Pasuquin — using local Pasuquin (data) reference.';
-                subscribeToMunicipalityData('Pasuquin');
             } else {
-                statusMessage = 'Location outside primary telemetry coverage. Manual or general model prediction active.';
                 detachCurrentDataListener();
             }
-            document.getElementById('status').innerHTML = statusMessage;
-            
-            // ML Prediction
-            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-            const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
             
             if (model) {
-                const input = [currentWater, currentRain, currentDischarge, elevation];
+                const input = [currentWaterVal, currentRainVal, currentDischargeVal, currentElevationVal];
                 updateKPIs();
                 await generateForecastChart(input); 
             }
             
-            await updateBarangayRiskSection(municipality, lngLat);
+            await updateBarangayRiskSection(municipality);
         }
         
-        // Dynamic View Synchronizer
         function updateDashboardViews(finalRisk) {
-            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-            const elevation = parseFloat(document.getElementById('elevation').value) || 0;
-            
             let interpretText = "Low / Safe Scenario";
             let alertBadgeClass = "bg-success";
             let interpretColor = "#198754";
@@ -1037,7 +889,7 @@
                 <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i>
                 <div>
                   <strong class="d-block text-danger">CRITICAL HAZARD (Forced Evacuation)</strong>
-                  <p class="mb-1 small">Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding.</p>
+                  <p class="mb-1 small">Severe flood threat detected! Water level at <b>${currentWaterVal.toFixed(2)}m</b> with <b>${currentRainVal.toFixed(1)}mm</b> rainfall and elevation of <b>${currentElevationVal.toFixed(1)}m</b> indicates imminent flash flooding.</p>
                   <ul class="ps-3 mb-0 small">
                     <li><i class="bi bi-house-exclamation me-1"></i>Move to designated high-ground evacuation centers immediately.</li>
                     <li><i class="bi bi-x-octagon me-1"></i>Do not walk or drive through moving floodwaters.</li>
@@ -1092,13 +944,13 @@
             let waterInterpretText = "Normal";
             let waterInterpretColor = "#198754"; 
             
-            if (currentWater >= 5.0) { 
+            if (currentWaterVal >= 5.0) { 
                 waterInterpretText = "Critical Level";
                 waterInterpretColor = "#dc3545"; 
-            } else if (currentWater >= 4.0) { 
+            } else if (currentWaterVal >= 4.0) { 
                 waterInterpretText = "Alarm Level";
                 waterInterpretColor = "#fd7e14"; 
-            } else if (currentWater >= 2.5) { 
+            } else if (currentWaterVal >= 2.5) { 
                 waterInterpretText = "Alert Level";
                 waterInterpretColor = "#d9a000"; 
             }
@@ -1112,12 +964,12 @@
             
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-dark small">Target Elevation:</span>
-                    <span class="fw-semibold small">${elevation.toFixed(1)}m MSL</span>
+                    <span class="fw-semibold small">${currentElevationVal.toFixed(1)}m MSL</span>
                 </div>
 
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-dark small">River Hydrology:</span>
-                    <span class="fw-semibold small">${currentWater.toFixed(2)}m 
+                    <span class="fw-semibold small">${currentWaterVal.toFixed(2)}m 
                         <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 2px;">(${waterInterpretText})</small>
                     </span>
                 </div>
@@ -1140,7 +992,7 @@
             }
         }
         
-        async function updateBarangayRiskSection(municipality, targetLngLat = null) {
+        async function updateBarangayRiskSection(municipality) {
             const titleEl = document.getElementById("selectedMunicipalityTitle");
             const countBadgeEl = document.getElementById("totalBrgyCount");
             const contentEl = document.getElementById("barangayRiskContent");
@@ -1160,10 +1012,6 @@
                 if (!pinData) return;
                 const fallbackMunRegex = new RegExp(municipality.trim(), 'i');
                 
-                const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-                const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-                const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
-                
                 for (const [id, p] of Object.entries(pinData)) {
                     const pinMun = p.municipality || p.city || p.town || "";
                     
@@ -1179,11 +1027,11 @@
                         if (isNaN(pinElev) && !isNaN(pinLat) && !isNaN(pinLng)) {
                             pinElev = map.queryTerrainElevation([pinLng, pinLat]) || 0;
                         }
-                        if (isNaN(pinElev)) pinElev = parseFloat(document.getElementById('elevation').value) || 0;
+                        if (isNaN(pinElev)) pinElev = currentElevationVal;
                         
-                        const pinWater = parseFloat(p.water_level ?? p.water ?? p.level) || currentWater;
-                        const pinRain = parseFloat(p.rainfall ?? p.rain) || currentRain;
-                        const pinFlow = parseFloat(p.discharge ?? p.flow) || currentDischarge;
+                        const pinWater = parseFloat(p.water_level ?? p.water ?? p.level) || currentWaterVal;
+                        const pinRain = parseFloat(p.rainfall ?? p.rain) || currentRainVal;
+                        const pinFlow = parseFloat(p.discharge ?? p.flow) || currentDischargeVal;
                         
                         let predictedProbability = 0;
                         
@@ -1290,368 +1138,9 @@
             
             function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
             
-            document.getElementById('csvFileInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const text = evt.target.result;
-                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                    if(lines.length < 2) return alert("Insufficient data structural lines in selected CSV.");
-                    
-                    const firstLine = lines[0].toLowerCase();
-                    let indexOffset = 0;
-                    if (firstLine.includes('water') || firstLine.includes('rain') || firstLine.includes('label')) {
-                        indexOffset = 1;
-                    }
-                    
-                    parsedCsvFeatures = [];
-                    parsedCsvLabels = [];
-                    
-                    for(let i = indexOffset; i < lines.length; i++) {
-                        const columns = lines[i].split(',').map(v => parseFloat(v.trim()));
-                        if(columns.length >= 5 && !columns.some(isNaN)) {
-                            parsedCsvFeatures.push([columns[0], columns[1], columns[2], columns[3]]);
-                            parsedCsvLabels.push(columns[4]);
-                        }
-                    }
-                    
-                    if(parsedCsvFeatures.length === 0) {
-                        document.getElementById("status").innerHTML = "Error parsing file format matrices.";
-                        document.getElementById('trainBtn').disabled = true;
-                    } else {
-                        document.getElementById("status").innerHTML = `Parsed ${parsedCsvFeatures.length} records locally. Ready to train.`;
-                        document.getElementById('trainBtn').disabled = false;
-                    }
-                };
-                reader.readAsText(file);
-            });
-            
-            function buildModel(initialBias = null) {
-                const m = tf.sequential();
-                m.add(tf.layers.dense({
-                    inputShape: [4], 
-                    units: 16, 
-                    activation: 'relu',
-                    kernelRegularizer: tf.regularizers.l2({l2: 0.001})
-                }));
-                m.add(tf.layers.dropout({rate: 0.2}));
-                m.add(tf.layers.dense({
-                    units: 8, 
-                    activation: 'relu',
-                    kernelRegularizer: tf.regularizers.l2({l2: 0.001})
-                }));
-                
-                const finalLayerConfig = { units: 1, activation: 'sigmoid' };
-                if (initialBias !== null) {
-                    finalLayerConfig.biasInitializer = tf.initializers.constant({ value: initialBias });
-                }
-                m.add(tf.layers.dense(finalLayerConfig));
-                
-                m.compile({
-                    optimizer: tf.train.adam(0.01), 
-                    loss: 'binaryCrossentropy',
-                    metrics: ['accuracy']
-                });
-                return m;
-            }
-            
-            async function autoTrain(){
-                if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
-                const statusEl = document.getElementById("status");
-                statusEl.innerHTML = "Preparing data matrix streams...";
-                
-                const shuffle = arr => {
-                    for(let i=arr.length-1;i>0;i--){
-                        const j=Math.floor(Math.random()*(i+1));
-                        [arr[i],arr[j]]=[arr[j],arr[i]];
-                    } return arr;
-                };
-                
-                tf.tidy(() => {
-                    const featTensor = tf.tensor2d(parsedCsvFeatures);
-                    minVals = featTensor.min(0).arraySync();
-                    maxVals = featTensor.max(0).arraySync();
-                });
-                
-                const normX = parsedCsvFeatures.map(normalize);
-                const normY = parsedCsvLabels.slice();
-                
-                const N = normY.length;
-                const posSamples = normY.filter(l => l === 1).length;
-                const negSamples = N - posSamples;
-                
-                if (posSamples === 0) return alert("Error: Dataset contains no positive flood labels.");
-                
-                const initialBias = Math.log(posSamples / negSamples);
-                const weightFor0 = (1 / negSamples) * (N / 2.0);
-                const weightFor1 = (1 / posSamples) * (N / 2.0);
-                const classWeight = { 0: weightFor0, 1: weightFor1 };
-                
-                const batchSize = 16; 
-                const epochs = 500;   
-                const patience = 100;  
-                
-                const posIdx = normY.map((l,i)=>l===1?i:-1).filter(i=>i>=0);
-                const negIdx = normY.map((l,i)=>l===0?i:-1).filter(i=>i>=0);
-                shuffle(posIdx); shuffle(negIdx);
-                
-                const posCut = Math.round(posIdx.length * 0.8);
-                const negCut = Math.round(negIdx.length * 0.8);
-                
-                const trainIdx = [...posIdx.slice(0, posCut), ...negIdx.slice(0, negCut)];
-                const testIdx = [...posIdx.slice(posCut), ...negIdx.slice(negCut)];
-                shuffle(trainIdx); shuffle(testIdx);
-                
-                let trainX = trainIdx.map(i => normX[i]);
-                let trainY = trainIdx.map(i => normY[i]);
-                let testX = testIdx.map(i => normX[i]);
-                let testY = testIdx.map(i => normY[i]);
-                
-                const xTr = tf.tensor2d(trainX);
-                const yTr = tf.tensor2d(trainY,[trainY.length,1]);
-                const xTe = tf.tensor2d(testX);
-                const yTe = tf.tensor2d(testY,[testY.length,1]);
-                
-                const m = buildModel(initialBias);
-                let bestValLoss = Infinity;
-                let bestWeights = null;
-                let wait = 0;
-                
-                await m.fit(xTr, yTr, {
-                    epochs: epochs,
-                    batchSize: batchSize,
-                    shuffle: true,
-                    validationData: [xTe, yTe],
-                    classWeight: classWeight, 
-                    callbacks: {
-                        onEpochEnd: async (epoch, logs) => {
-                            const currentPct = Math.round(((epoch + 1) / epochs) * 100);
-                            const vl = logs.val_loss ?? logs.loss;
-                            
-                            statusEl.innerHTML = `Training Progress: <b>${currentPct}%</b> (Epoch ${epoch + 1}/${epochs}) &emsp; Loss: ${logs.loss.toFixed(4)} &emsp; Val Loss: ${vl.toFixed(4)}`;
-                            
-                            if (vl < bestValLoss - 0.001) {
-                                bestValLoss = vl;
-                                wait = 0;
-                                if(bestWeights) bestWeights.forEach(w=>w.dispose());
-                                bestWeights = m.getWeights().map(w => w.clone());
-                            } else {
-                                wait++;
-                                if (wait >= patience) { m.stopTraining = true; }
-                            }
-                        }
-                    }
-                });
-                
-                if(bestWeights) {
-                    m.setWeights(bestWeights);
-                    bestWeights.forEach(w=>w.dispose());
-                }
-                
-                const preds = await m.predict(xTe).data();
-                let tp=0, tn=0, fp=0, fn=0;
-                
-                const DECISION_THRESHOLD = 0.40; 
-                preds.forEach((p,i)=>{
-                    const pred = p >= DECISION_THRESHOLD ? 1 : 0;
-                    if(pred===1 && testY[i]===1) tp++;
-                    else if(pred===0 && testY[i]===0) tn++;
-                    else if(pred===1 && testY[i]===0) fp++;
-                    else fn++;
-                });
-                
-                const acc  = (tp+tn)/(tp+tn+fp+fn||1);
-                const prec = tp/(tp+fp||1);
-                const rec  = tp/(tp+fn||1);
-                const f1   = 2*(prec*rec)/(prec+rec||1);
-                
-                let pts=[];
-                for(let t=0;t<=1.01;t+=0.02){
-                    let tp2=0,fp2=0,tn2=0,fn2=0;
-                    preds.forEach((p,i)=>{ const pr=p>=t?1:0; if(pr===1&&testY[i]===1)tp2++; else if(pr===1&&testY[i]===0)fp2++; else if(pr===0&&testY[i]===0)tn2++; else fn2++; });
-                    pts.push({fpr:fp2/(fp2+tn2||1), tpr:tp2/(tp2+fn2||1)});
-                }
-                pts.sort((a,b)=>a.fpr-b.fpr);
-                let auc=0;
-                for(let i=0;i<pts.length-1;i++) auc+=(pts[i+1].fpr-pts[i].fpr)*(pts[i+1].tpr+pts[i].tpr)/2;
-                auc=Math.abs(auc);
-                
-                if(model) model.dispose();
-                model = m;
-                
-                statusEl.innerHTML =
-                `Training Complete (Holdout Split) &emsp;<b>Acc:</b> ${acc.toFixed(3)}&emsp;<b>Precision:</b> ${prec.toFixed(3)}&emsp;<b>Recall:</b> ${rec.toFixed(3)}&emsp;<b>F1-Score:</b> ${f1.toFixed(3)}&emsp;<b>AUC:</b> ${auc.toFixed(4)}`;
-                
-                const xAll = tf.tensor2d(normX);
-                const yAll = tf.tensor2d(normY,[normY.length,1]);
-                await evaluateModel(xAll, yAll);
-                
-                xTr.dispose(); yTr.dispose(); xTe.dispose(); yTe.dispose();
-                xAll.dispose(); yAll.dispose();
-                
-                if(activeMarker) {
-                    triggerAnalysis(activeMarker.getLngLat());
-                } else {
-                    manualPredict();
-                }
-            }
-            
-            async function evaluateModel(xs, ys) {
-                const predVals = await model.predict(xs).data();
-                const trueVals = await ys.data();
-                let tp = 0, tn = 0, fp = 0, fn = 0;
-                
-                const THRESHOLD = 0.50; 
-                for (let i = 0; i < predVals.length; i++) {
-                    let p = predVals[i] >= THRESHOLD ? 1 : 0;
-                    if (p == 1 && trueVals[i] == 1) tp++;
-                    else if (p == 0 && trueVals[i] == 0) tn++;
-                    else if (p == 1 && trueVals[i] == 0) fp++;
-                    else fn++;
-                }
-                
-                lastConfData = [tp, fp, tn, fn];
-                let accuracy = (tp + tn) / (tp + tn + fp + fn || 1);
-                let precision = tp / (tp + fp || 1), recall = tp / (tp + fn || 1);
-                let f1 = 2 * ((precision * recall) / (precision + recall || 1));
-                
-                if (confChart) confChart.destroy();
-                const cCtx = document.getElementById("confMatrix");
-                confChart = new Chart(cCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ["TP", "FP", "TN", "FN"],
-                        datasets: [{
-                            data: lastConfData,
-                            backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107']
-                        }]
-                    },
-                    options: {
-                        layout: { padding: { top: 20 } },
-                        plugins: { legend: { display: false } }
-                    },
-                    plugins: [{
-                        id: 'topLabels',
-                        afterDatasetsDraw(chart) {
-                            const { ctx } = chart;
-                            ctx.save();
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'bottom';
-                            ctx.font = 'bold 12px Arial';
-                            ctx.fillStyle = '#000';
-                            
-                            chart.data.datasets.forEach((dataset, i) => {
-                                chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                                    const value = dataset.data[index];
-                                    ctx.fillText(value, bar.x, bar.y - 5);
-                                });
-                            });
-                            ctx.restore();
-                        }
-                    }]
-                });
-                
-                const topLabelsPlugin = {
-                    id: 'topLabels',
-                    afterDatasetsDraw(chart) {
-                        const { ctx } = chart;
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'bottom';
-                        ctx.font = 'bold 12px sans-serif';
-                        ctx.fillStyle = '#333';
-                        
-                        chart.data.datasets.forEach((dataset, i) => {
-                            chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                                const value = dataset.data[index];
-                                ctx.fillText(value, bar.x, bar.y - 5);
-                            });
-                        });
-                        ctx.restore();
-                    }
-                };
-                
-                cCtx.onclick = () => {
-                    new bootstrap.Modal(document.getElementById('confModal')).show();
-                    setTimeout(() => {
-                        if (window.mConf) window.mConf.destroy();
-                        window.mConf = new Chart(document.getElementById("confChartModal"), {
-                            type: 'bar',
-                            plugins: [topLabelsPlugin], 
-                            data: { 
-                                labels: ["True Positive", "False Positive", "True Negative", "False Negative"], 
-                                datasets: [{ 
-                                    data: lastConfData, 
-                                    backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107'] 
-                                }] 
-                            },
-                            options: { 
-                                layout: { padding: { top: 20 } },
-                                plugins: { legend: { display: false } },
-                                scales: { y: { beginAtZero: true } }
-                            }
-                        });
-                    }, 300);
-                };
-                
-                let points = [];
-                for (let t = 0; t <= 1.01; t += 0.02) {
-                    let tp_t = 0, fp_t = 0, tn_t = 0, fn_t = 0;
-                    for (let i = 0; i < predVals.length; i++) {
-                        let p = predVals[i] >= t ? 1 : 0;
-                        if (p == 1 && trueVals[i] == 1) tp_t++;
-                        else if (p == 1 && trueVals[i] == 0) fp_t++;
-                        else if (p == 0 && trueVals[i] == 0) tn_t++;
-                        else fn_t++;
-                    }
-                    points.push({ fpr: fp_t / (fp_t + tn_t || 1), tpr: tp_t / (tp_t + fn_t || 1) });
-                }
-                points.sort((a, b) => a.fpr - b.fpr);
-                lastRocPoints = points;
-                
-                let auc = 0;
-                for (let i = 0; i < points.length - 1; i++) {
-                    auc += (points[i+1].fpr - points[i].fpr) * (points[i+1].tpr + points[i].tpr) / 2;
-                }
-                lastAUC = Math.abs(auc);
-                
-                const rCtx = document.getElementById("rocChart");
-                if (rocChart) rocChart.destroy();
-                rocChart = new Chart(rCtx, {
-                    type: 'line',
-                    data: { labels: points.map(p => p.fpr.toFixed(2)), datasets: [{ data: points.map(p => p.tpr), borderColor: '#1c96c5', fill: true, backgroundColor: 'rgba(128,0,0,0.1)', tension: 0.2 }] },
-                    options: { 
-                        plugins: { legend: { display: false } }, 
-                        scales: { x: { display: false }, y: { display: false } }
-                    }
-                });
-                
-                document.getElementById("status").innerHTML +=
-                `&emsp;<b>Accuracy:</b> ${accuracy.toFixed(3)}&emsp;<b>Precision:</b> ${precision.toFixed(3)}&emsp;<b>Recall:</b> ${recall.toFixed(3)}, &emsp;<b>F1:</b> ${f1.toFixed(3)}`;
-                
-                rCtx.onclick = () => {
-                    document.getElementById('modalAUC').innerText = lastAUC.toFixed(4);
-                    new bootstrap.Modal(document.getElementById('rocModal')).show();
-                    setTimeout(() => {
-                        if (window.mRoc) window.mRoc.destroy();
-                        window.mRoc = new Chart(document.getElementById("rocChartModal"), {
-                            type: 'line',
-                            data: { labels: lastRocPoints.map(p => p.fpr.toFixed(2)), datasets: [{ label: 'ROC Curve', data: lastRocPoints.map(p => p.tpr), borderColor: '#1c96c5' }, { label: 'Baseline', data: [0, 1], borderColor: '#ccc', borderDash: [5, 5] }] }
-                        });
-                    }, 300);
-                };
-            }
-            
             async function manualPredict(){
                 if(!model) return;
-                const input = [
-                parseFloat(document.getElementById('waterLevel').value) || 0, 
-                parseFloat(document.getElementById('rainfall').value) || 0, 
-                parseFloat(document.getElementById('discharge').value) || 0, 
-                parseFloat(document.getElementById('elevation').value) || 0
-                ];
+                const input = [currentWaterVal, currentRainVal, currentDischargeVal, currentElevationVal];
                 updateKPIs();
                 return await generateForecastChart(input);
             }
@@ -1669,15 +1158,12 @@
                 const v = Math.round(predictions[0]);
                 const r = v < 20 ? ["Safe","green"] : v < 50 ? ["Yellow Alert","#d9a000"] : v < 70 ? ["Orange Alert","orange"] : ["Red Alert","red"];
                 
-                // Update Risk Summary inside floating KPI overlay
                 document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}%</b>`;
                 
-                // Synchronize System Field Analysis, Model Interpretation, and Actionable Recommendation
                 updateDashboardViews(v);
                 
-                // Synchronize dynamic predictions for all barangay pins in selected municipality
                 if (currentMunicipality) {
-                    updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
+                    updateBarangayRiskSection(currentMunicipality);
                 }
                 
                 if(probChart) probChart.destroy();
@@ -1703,25 +1189,7 @@
                 return v; 
             }
             
-            async function saveModel() {
-                if (!model) return alert("Train first!");
-                const status = document.getElementById("status");
-                status.innerHTML = "Saving serialized data...";
-                await model.save(tf.io.withSaveHandler(async (artifacts) => {
-                    const weightsBlob = new Blob([artifacts.weightData], {type: 'application/octet-stream'});
-                    await storageRef.child('models/flood_weights.bin').put(weightsBlob);
-                    const modelConfig = { modelTopology: artifacts.modelTopology, weightSpecs: artifacts.weightSpecs, metadata: { minVals, maxVals } };
-                    const configBlob = new Blob([JSON.stringify(modelConfig)], {type: 'application/json'});
-                    await storageRef.child('models/flood_model.json').put(configBlob);
-                    status.innerHTML = "Saved to Cloud Storage!";
-                    return { modelArtifactsInfo: { dateSaved: new Date() } };
-                }));
-            }
-            
             async function loadModel() {
-                const status = document.getElementById("status");
-                status.innerHTML = "Downloading Architecture Down...";
-                
                 try {
                     const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
                     const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
@@ -1738,7 +1206,6 @@
                         weightData: weights
                     }));
                     
-                    status.innerHTML = "Model Loaded Active";
                     if (activeMarker) {
                         await triggerAnalysis(activeMarker.getLngLat());
                     } else {
@@ -1746,42 +1213,9 @@
                     }
                     return model;
                 } catch (err) {
-                    status.innerHTML = "Load Error: Check CORS configurations.";
-                    console.error(err);
+                    console.error("Load Error: Check CORS configurations.", err);
                 }
             }
-            
-            document.getElementById('trainBtn').onclick = autoTrain;
-            document.getElementById('saveBtn').onclick = saveModel;
-            document.getElementById('loadBtn').onclick = loadModel;
-            document.getElementById('predictBtn').onclick = manualPredict;
-            
-            document.getElementById('dropdownLogout')?.addEventListener('click', function (e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Logout?',
-                    text: 'Are you sure you want to log out?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, Logout',
-                    cancelButtonText: 'No'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        sessionStorage.clear();
-                        Swal.fire({
-                            title: 'Logged Out',
-                            text: 'You have been logged out successfully.',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.href = 'log.html';
-                        });
-                    }
-                });
-            });
             
             document.getElementById('logoutLink')?.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1810,7 +1244,6 @@
                 });
             });
         </script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="menu.js"></script>
     </body>
     </html>

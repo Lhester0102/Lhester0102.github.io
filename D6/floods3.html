@@ -100,14 +100,6 @@
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.02); }
     
-    #map-legend {
-      position: absolute; top: 170px; left: 15px;
-      background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 10px; font-size: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 175px;
-    }
-    .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
-    .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
-    
     /* DISPLAY RISKS Control Box Overlay */
     #riskControlBox {
       position: absolute; top: 15px; right: 15px;
@@ -181,11 +173,11 @@
               <i class="bi bi-list"></i>
             </button>
             <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark">Map Flood Watch</h5>
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-map me-2"></i>Map Flood Watch</h5>
             </div>
           </div>
           <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-            <a href="floods3.html" class="btn btn-primary"><i class="bi bi-eye me-1"></i> Flood Map</a>
+            <a href="floods3.html" class="btn btn-primary"><i class="bi bi-map me-1"></i> Flood Map</a>
             <a href="floods4.html" class="btn btn-outline-primary"> <i class="bi bi-water me-1"></i>Flood Lists</a>
           </div>
         </div>
@@ -236,7 +228,7 @@
               </div>
             </div>
             
-            <div class="card mb-1 mt-2 p-1">
+            <div class="card mb-1 mt-2 p-3">
               <p id="status" class="small text-dark mt-1 mb-0">Please select a local CSV file</p>
             </div>
           </div>
@@ -245,69 +237,15 @@
             <div class="card p-3 shadow-sm" id="detailsCard">
               <label id="details" class="form-label small text-dark mb-0">Map Pins 📍 Will be displayed if there are flood warnings in the area.</label>
             </div>
-            <div class="card p-3" hidden>
-              <h6 class="mb-1">Model Control</h6>
-              <div class="mb-2">
-                <label class="form-label small text-dark mb-1">Upload Training CSV</label>
-                <input type="file" id="csvFileInput" accept=".csv" class="form-control form-control-sm">
-                <small class="text-dark d-block mt-1" style="font-size:0.65rem;">Expected: water_level, rainfall, discharge, elevation, flood_label</small>
-              </div>
-              <button id="trainBtn" class="btn btn-primary w-100 mb-1" disabled><i class="bi bi-cpu"></i> Train Model</button>
-              <button id="saveBtn" class="btn btn-success w-100 mb-1"><i class="bi bi-save"></i> Save Model</button>
-              <button id="loadBtn" class="btn btn-secondary w-100 mb-1"><i class="bi bi-folder"></i> Load Model</button>
-              
-              <h6 class="mt-2">Manual Prediction</h6>
-              <input value="1.1" id="waterLevel" class="form-control mb-1" placeholder="Water Level">
-              <input value="0.1" id="rainfall" class="form-control mb-1" placeholder="Rainfall">
-              <input value="12" id="discharge" class="form-control mb-1" placeholder="Discharge">
-              <input value="25" id="elevation" class="form-control mb-1" placeholder="Elevation">
-              <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
-            </div>
+            
+            <!-- Hidden Input States Kept for Application Calculations -->
+            <input type="hidden" value="1.1" id="waterLevel">
+            <input type="hidden" value="0.1" id="rainfall">
+            <input type="hidden" value="12" id="discharge">
+            <input type="hidden" value="25" id="elevation">
           </div>
         </div>
       </main>
-    </div>
-  </div>
-  
-  <div class="modal fade" id="confModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Model Classification Performance</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <canvas id="confChartModal"></canvas>
-          <div class="mt-3 p-2 bg-light rounded border small">
-            <b>TP:</b> True Positives | <b>FP:</b> False Positives<br>
-            <b>TN:</b> True Negatives | <b>FN:</b> False Negatives
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="modal fade" id="rocModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">ROC Analysis & AUC Metric</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-8"><canvas id="rocChartModal"></canvas></div>
-            <div class="col-md-4">
-              <div class="p-3 bg-light rounded border">
-                <h6 class="fw-bold">Performance Summary</h6><hr>
-                <label class="small fw-bold text-dark">Area Under Curve (AUC)</label>
-                <h3 class="text-primary mb-0" id="modalAUC">0.0000</h3>
-                <p class="small text-dark mt-2">A higher AUC represents superior predictive discrimination.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   
@@ -317,11 +255,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   
   <script>
-    let model, minVals=[], maxVals=[], confChart, rocChart;
+    let model, minVals=[], maxVals=[];
     let geocoder;
-    let lastConfData = [], lastRocPoints = [], lastAUC = 0;
-    let parsedCsvFeatures = [], parsedCsvLabels = [];
-    
     let stationMarkersArray = [];
     let rivers = []; 
     
@@ -1083,21 +1018,6 @@
       document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
     }
     
-    async function saveModel() {
-      if (!model) return alert("Train first!");
-      const status = document.getElementById("status");
-      status.innerHTML = "Saving serialized data...";
-      await model.save(tf.io.withSaveHandler(async (artifacts) => {
-        const weightsBlob = new Blob([artifacts.weightData], {type: 'application/octet-stream'});
-        await storageRef.child('models/flood_weights.bin').put(weightsBlob);
-        const modelConfig = { modelTopology: artifacts.modelTopology, weightSpecs: artifacts.weightSpecs, metadata: { minVals, maxVals } };
-        const configBlob = new Blob([JSON.stringify(modelConfig)], {type: 'application/json'});
-        await storageRef.child('models/flood_model.json').put(configBlob);
-        status.innerHTML = "Saved to Cloud Storage!";
-        return { modelArtifactsInfo: { dateSaved: new Date() } };
-      }));
-    }
-    
     async function loadModel() {
       const status = document.getElementById("status");
       status.innerHTML = "Downloading Architecture Down...";
@@ -1127,10 +1047,6 @@
       }
     }
     
-    document.getElementById('trainBtn').onclick = autoTrain;
-    document.getElementById('saveBtn').onclick = saveModel;
-    document.getElementById('loadBtn').onclick = loadModel;
-    document.getElementById('predictBtn').onclick = manualPredict;
     document.getElementById('logoutLink').addEventListener('click', function (e) {
       e.preventDefault();
       
