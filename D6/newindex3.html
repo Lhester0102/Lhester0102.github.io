@@ -95,14 +95,6 @@
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
         
-        /* Submenu Mobile Responsiveness */
-        .submenu-actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
         /* Darker Yellow Custom Badge Styling */
         .bg-dark-yellow {
             background-color: #d9a000 !important;
@@ -114,24 +106,6 @@
             .app-container { height: auto; overflow: visible; }
             .sidebar { height: auto; position: relative; }
             .main-content { height: auto; overflow-y: visible; }
-            
-            .submenu-actions {
-                width: 100%;
-                margin-top: 0.5rem;
-            }
-            .submenu-actions .btn {
-                flex: 1 1 calc(50% - 0.5rem);
-                text-align: center;
-                justify-content: center;
-                font-size: 0.78rem;
-                padding: 0.375rem 0.5rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .submenu-actions .btn {
-                flex: 1 1 100%;
-            }
         }
         
         /* Map Container Height */
@@ -249,6 +223,54 @@
         .mapboxgl-ctrl-geocoder {
             z-index: 10 !important;
         }
+
+        /* Collapsible Map Overlay Styles */
+        .map-overlay-box {
+            position: absolute;
+            right: 10px;
+            z-index: 1;
+            width: 220px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            transition: width 0.3s ease, padding 0.3s ease;
+        }
+
+        .map-overlay-box.collapsed {
+            width: 44px !important;
+            padding: 6px !important;
+            overflow: hidden;
+        }
+
+        .map-overlay-box.collapsed .collapse-content {
+            display: none !important;
+        }
+
+        .map-overlay-box.collapsed .overlay-header-title {
+            display: none !important;
+        }
+
+        .map-overlay-box.collapsed .overlay-header {
+            justify-content: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        .overlay-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .overlay-toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            color: #212529;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 
@@ -298,16 +320,16 @@
             <!-- Independent Scrollable Main Workspace Content -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-2 p-2 bg-white rounded shadow-sm gap-2">
-                    <div class="d-flex flex-wrap align-items-center gap-2 w-100 flex-md-nowrap">
-                        <div class="d-flex align-items-center gap-2 me-auto">
-                            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                                <i class="bi bi-list"></i>
-                            </button>
-                            <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-map-fill"></i> Map Dashboard</h5>
-                        </div>
-                        
-                        <!-- Submenu Action Buttons Strip -->
-                        <div class="submenu-actions ms-md-auto">
+                    <div class="d-flex align-items-center gap-2 me-auto">
+                        <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-map-fill"></i> Map Dashboard</h5>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <!-- Desktop Submenu Links -->
+                        <div class="d-none d-md-flex align-items-center gap-1">
                             <a href="dash.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                                 <i class="bi bi-speedometer2"></i> Main Dashboard
                             </a>
@@ -322,8 +344,21 @@
                             </a>
                         </div>
                         
+                        <!-- Mobile Collapsible Submenu Dropdown Button -->
+                        <div class="dropdown d-md-none">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-grid-fill me-1"></i> Navigation
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                <li><a class="dropdown-item small" href="dash.html"><i class="bi bi-speedometer2 me-2 text-primary"></i>Main Dashboard</a></li>
+                                <li><a class="dropdown-item small" href="dash4.html"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Flood Warnings</a></li>
+                                <li><a class="dropdown-item small active" href="newindex3.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
+                                <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
+                            </ul>
+                        </div>
+                        
                         <!-- Username Dropdown -->
-                        <div class="dropdown ms-auto ms-md-2">
+                        <div class="dropdown">
                             <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i>
                                 <span id="emails">User Loading...</span>
@@ -338,99 +373,101 @@
                 </div>
                 
                 <div class="row g-3">
-                    <div class="col-lg-3">
-                        <div class="card p-2 shadow-sm mb-3" style="max-height: 100vh; overflow-y: auto;">
-                            <!-- SYSTEM FIELD ANALYSIS CARD -->
-                            <div class="card p-3 shadow-sm border" id="detailsCard">
-                                <h6 class="fw-bold border-bottom pb-2 mb-2" style="color:#1c96c5;">System Field Analysis</h6>
-                                <div id="details">
-                                    <span class="text-dark small">Click map or perform a search to visualize location analysis matrix.</span>
-                                </div>
-                            </div>
-                            
-                            <div class="card p-2 mt-2 border">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <h6 class="mb-0 fw-bold text-dark small">Flood Probability</h6>
-                                    <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
-                                </div>
-                                <canvas id="probChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <!-- LEFT SIDE: MAP CONTAINER & BARANGAYS -->
                     <div class="col-lg-9 d-flex flex-column">
                         <!-- MAP CONTAINER WITH OVERLAYS -->
                         <div class="card mb-2" style="height:420px; position: relative;">
                             
                             <!-- FLOOD PRONE RISKS OVERLAY -->
-                            <div id="riskControlBox" class="p-2 rounded shadow-sm border" style="position: absolute; top: 60px; right: 10px; z-index: 1; font-size: 0.88rem; width: 220px; background-color: rgba(255, 255, 255, 0.5);">
-                                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">
-                                    FLOOD PRONE RISKS
+                            <div id="riskControlBox" class="p-2 rounded shadow-sm border map-overlay-box" style="top: 60px;">
+                                <div class="overlay-header text-dark d-flex justify-content-between align-items-center" id="riskHeader" title="Toggle Flood Prone Risks">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-shield-exclamation text-danger fs-5"></i>
+                                        <span class="overlay-header-title">FLOOD PRONE RISKS</span>
+                                    </div>
+                                    <button class="overlay-toggle-btn" type="button" id="riskToggleBtn">
+                                        <i class="bi bi-chevron-right" id="riskToggleIcon"></i>
+                                    </button>
                                 </div>
-                                <div class="d-flex flex-column gap-1">
-                                    <div class="form-check m-0 d-flex align-items-center gap-1">
-                                        <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleSevere" value="severe" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
-                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
-                                            <span style="display:inline-block; width:8px; height:8px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
-                                        </label>
-                                    </div>
-                                    <div class="form-check m-0 d-flex align-items-center gap-1">
-                                        <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleHigh" value="high" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
-                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
-                                            <span style="display:inline-block; width:8px; height:8px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
-                                        </label>
-                                    </div>
-                                    <div class="form-check m-0 d-flex align-items-center gap-1">
-                                        <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleModerate" value="moderate" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
-                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
-                                            <span style="display:inline-block; width:8px; height:8px; background:#d9a000; border-radius:2px;"></span> Moderate
-                                        </label>
-                                    </div>
-                                    <div class="form-check m-0 d-flex align-items-center gap-1">
-                                        <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleLow" value="low" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
-                                        <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
-                                            <span style="display:inline-block; width:8px; height:8px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
-                                        </label>
+                                <div class="collapse-content mt-1">
+                                    <div class="d-flex flex-column gap-1 pt-1 border-top">
+                                        <div class="form-check m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleSevere" value="severe" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
+                                            <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
+                                                <span style="display:inline-block; width:8px; height:8px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
+                                            </label>
+                                        </div>
+                                        <div class="form-check m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleHigh" value="high" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
+                                            <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
+                                                <span style="display:inline-block; width:8px; height:8px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
+                                            </label>
+                                        </div>
+                                        <div class="form-check m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleModerate" value="moderate" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
+                                            <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
+                                                <span style="display:inline-block; width:8px; height:8px; background:#d9a000; border-radius:2px;"></span> Moderate
+                                            </label>
+                                        </div>
+                                        <div class="form-check m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleLow" value="low" style="width: 0.85rem; height: 0.85rem; cursor: pointer;">
+                                            <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size: 0.8rem; font-weight: 500;">
+                                                <span style="display:inline-block; width:8px; height:8px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- KPI METRICS OVERLAY -->
-                            <div id="kpiMapOverlay" class="p-2 rounded shadow-sm border" style="position: absolute; top: 215px; right: 10px; z-index: 1; width: 220px; background-color: rgba(255, 255, 255, 0.5);">
-                                <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom">
-                                    <small class="text-secondary fw-semibold" style="font-size:0.7rem;"><i class="bi bi-calendar-event me-1"></i>Date: <span id="currentDate">08-08-2026</span></small>
-                                    <small class="fw-bold text-dark" style="font-size:0.7rem;" id="currentTime">06:26 PM</small>
+                            <div id="kpiMapOverlay" class="p-2 rounded shadow-sm border map-overlay-box" style="top: 215px;">
+                                <div class="overlay-header text-dark d-flex justify-content-between align-items-center" id="kpiHeader" title="Toggle System Telemetry KPIs">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-speedometer text-primary fs-5"></i>
+                                        <span class="overlay-header-title">Sensors Values</span>
+                                    </div>
+                                    <button class="overlay-toggle-btn" type="button" id="kpiToggleBtn">
+                                        <i class="bi bi-chevron-right" id="kpiToggleIcon"></i>
+                                    </button>
                                 </div>
-                                <div class="row g-1">
-                                    <!-- Water Level -->
-                                    <div class="col-6">
-                                        <div class="embedded-kpi-card text-center">
-                                            <i class="bi bi-droplet-fill text-primary fs-6 mb-1 d-block"></i>
-                                            <h6 class="fw-bold mb-0 text-warning" style="font-size:1rem;" id="kpiWater">3.17 m</h6>
+                                <div class="collapse-content mt-1">
+                                    <div class="pt-1 border-top">
+                                        <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom">
+                                            <small class="text-secondary fw-semibold" style="font-size:0.7rem;"><i class="bi bi-calendar-event me-1"></i>Date: <span id="currentDate">08-08-2026</span></small>
+                                            <small class="fw-bold text-dark" style="font-size:0.7rem;" id="currentTime">06:26 PM</small>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Rainfall -->
-                                    <div class="col-6">
-                                        <div class="embedded-kpi-card text-center">
-                                            <i class="bi bi-cloud-rain-heavy-fill text-info fs-6 mb-1 d-block"></i>
-                                            <h6 class="fw-bold mb-0 text-success" style="font-size:1rem;" id="kpiRain">0 mm</h6>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Flow Rate -->
-                                    <div class="col-6">
-                                        <div class="embedded-kpi-card text-center">
-                                            <i class="bi bi-water text-success fs-6 mb-1 d-block"></i>
-                                            <h6 class="fw-bold mb-0 text-success" style="font-size:1rem;" id="kpiDischarge">2.53 m³/s</h6>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Risk Summary -->
-                                    <div class="col-6">
-                                        <div class="embedded-kpi-card text-center">
-                                            <i class="bi bi-shield-exclamation text-danger fs-6 mb-1 d-block"></i>
-                                            <h6 class="fw-bold mb-0 text-danger" style="font-size:1rem;" id="kpiRisk">100% - Alert</h6>
+                                        <div class="row g-1">
+                                            <!-- Water Level -->
+                                            <div class="col-6">
+                                                <div class="embedded-kpi-card text-center">
+                                                    <i class="bi bi-droplet-fill text-primary fs-6 mb-1 d-block"></i>
+                                                    <h6 class="fw-bold mb-0 text-warning" style="font-size:0.9rem;" id="kpiWater">3.17 m</h6>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Rainfall -->
+                                            <div class="col-6">
+                                                <div class="embedded-kpi-card text-center">
+                                                    <i class="bi bi-cloud-rain-heavy-fill text-info fs-6 mb-1 d-block"></i>
+                                                    <h6 class="fw-bold mb-0 text-success" style="font-size:0.9rem;" id="kpiRain">0 mm</h6>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Flow Rate -->
+                                            <div class="col-6">
+                                                <div class="embedded-kpi-card text-center">
+                                                    <i class="bi bi-water text-success fs-6 mb-1 d-block"></i>
+                                                    <h6 class="fw-bold mb-0 text-success" style="font-size:0.9rem;" id="kpiDischarge">2.53 m³/s</h6>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Risk Summary -->
+                                            <div class="col-6">
+                                                <div class="embedded-kpi-card text-center">
+                                                    <i class="bi bi-shield-exclamation text-danger fs-6 mb-1 d-block"></i>
+                                                    <h6 class="fw-bold mb-0 text-danger" style="font-size:0.9rem;" id="kpiRisk">100% - Alert</h6>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -450,6 +487,27 @@
                             </div>
                             <div id="barangayRiskContent">
                                 <p class="text-muted small mb-0">Select a municipality on the map to run real-time flood probability predictions for its barangays from database pins.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT SIDE: SYSTEM FIELD ANALYSIS & CHART -->
+                    <div class="col-lg-3">
+                        <div class="card p-2 shadow-sm mb-3" style="max-height: 100vh; overflow-y: auto;">
+                            <!-- SYSTEM FIELD ANALYSIS CARD -->
+                            <div class="card p-3 shadow-sm border" id="detailsCard">
+                                <h6 class="fw-bold border-bottom pb-2 mb-2" style="color:#1c96c5;">System Field Analysis</h6>
+                                <div id="details">
+                                    <span class="text-dark small">Click map or perform a search to visualize location analysis matrix.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="card p-2 mt-2 border">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0 fw-bold text-dark small">Flood Probability</h6>
+                                    <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
+                                </div>
+                                <canvas id="probChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -516,6 +574,32 @@
             document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
             updateKPIs();
             loadModel();
+
+            // Setup Collapsible Map Overlays with Icon Transformation
+            setupOverlayCollapsible('riskControlBox', 'riskHeader', 'riskToggleBtn', 'riskToggleIcon');
+            setupOverlayCollapsible('kpiMapOverlay', 'kpiHeader', 'kpiToggleBtn', 'kpiToggleIcon');
+        }
+
+        function setupOverlayCollapsible(boxId, headerId, btnId, iconId) {
+            const box = document.getElementById(boxId);
+            const header = document.getElementById(headerId);
+            const btn = document.getElementById(btnId);
+            const icon = document.getElementById(iconId);
+
+            const toggleAction = () => {
+                box.classList.toggle('collapsed');
+                if (box.classList.contains('collapsed')) {
+                    icon.className = "bi bi-chevron-left";
+                } else {
+                    icon.className = "bi bi-chevron-right";
+                }
+            };
+
+            if (header) header.onclick = toggleAction;
+            if (btn) btn.onclick = (e) => {
+                e.stopPropagation();
+                toggleAction();
+            };
         }
         
         function createOrMoveMarker(point) {

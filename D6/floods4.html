@@ -89,14 +89,6 @@
     }
     .mobile-brand img { width: 35px; height: 35px; }
     .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
-    
-    /* Submenu Mobile Responsiveness */
-    .submenu-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-    }
 
     /* Darker Yellow Custom Badge Styling */
     .bg-dark-yellow {
@@ -109,24 +101,6 @@
       .app-container { height: auto; overflow: visible; }
       .sidebar { height: auto; position: relative; }
       .main-content { height: auto; overflow-y: visible; }
-
-      .submenu-actions {
-        width: 100%;
-        margin-top: 0.5rem;
-      }
-      .submenu-actions .btn {
-        flex: 1 1 calc(50% - 0.5rem);
-        text-align: center;
-        justify-content: center;
-        font-size: 0.78rem;
-        padding: 0.375rem 0.5rem;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .submenu-actions .btn {
-        flex: 1 1 100%;
-      }
     }
     
     canvas { cursor: pointer; transition: transform 0.2s; }
@@ -182,16 +156,16 @@
       <!-- Scrollable Main Content Space -->
       <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
         <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 flex-md-nowrap">
-            <div class="d-flex align-items-center gap-2 me-auto">
-              <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                <i class="bi bi-list"></i>
-              </button>
-              <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-list-task me-1"></i> Flood Watch Lists</h5>
-            </div>
-            
-            <!-- Standardized Submenu Navigation Strip -->
-            <div class="submenu-actions ms-md-auto">
+          <div class="d-flex align-items-center gap-2 me-auto">
+            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+              <i class="bi bi-list"></i>
+            </button>
+            <h5 class="mb-0 fw-bold text-dark text-nowrap"><i class="bi bi-list-task me-1"></i> Flood Watch Lists</h5>
+          </div>
+          
+          <div class="d-flex align-items-center gap-2 ms-auto">
+            <!-- Desktop Submenu Links -->
+            <div class="d-none d-md-flex align-items-center gap-1">
               <a href="dash.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                 <i class="bi bi-speedometer2"></i> Main Dashboard
               </a>
@@ -205,9 +179,22 @@
                 <i class="bi bi-list text-info"></i> All Barangays
               </a>
             </div>
+
+            <!-- Mobile Collapsible Submenu Dropdown Button -->
+            <div class="dropdown d-md-none">
+              <button class="btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-grid-fill me-1"></i> Navigation
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                <li><a class="dropdown-item small" href="dash.html"><i class="bi bi-speedometer2 me-2 text-primary"></i>Main Dashboard</a></li>
+                <li><a class="dropdown-item small" href="dash4.html"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Flood Warnings</a></li>
+                <li><a class="dropdown-item small" href="newindex3.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
+                <li><a class="dropdown-item small active" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
+              </ul>
+            </div>
             
             <!-- User Account Dropdown -->
-            <div class="dropdown ms-auto ms-md-2">
+            <div class="dropdown">
               <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle fs-6"></i>
                 <span id="emails">User Loading...</span>
