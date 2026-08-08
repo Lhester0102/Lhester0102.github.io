@@ -486,6 +486,7 @@
         let pinsCache = null;
         let currentLocationName = "Selected Coordinate Point";
         let selectedActiveLngLat = null;
+        let floodDataCache = null;
         
         // Dynamic input variables
         let currentWaterVal = 0;
@@ -673,7 +674,7 @@
                 btn.className = 'mapbox-layer-toggle-btn';
                 btn.type = 'button';
                 btn.title = 'Switch Map Layer';
-                btn.innerHTML = '<i class="bi bi-map"></i>';
+                btn.innerHTML = '<i class="bi bi-map-fill"></i>';
                 
                 btn.onclick = () => {
                     if (currentMapStyle === STYLE_TERRAIN) {
@@ -685,6 +686,19 @@
                         this._map.setStyle(STYLE_TERRAIN);
                         btn.classList.remove('active');
                     }
+
+                    this._map.once('style.load', async () => {
+                        if (!map.getSource('mapbox-dem')) {
+                            map.addSource('mapbox-dem', {
+                                'type': 'raster-dem',
+                                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                                'tileSize': 512,
+                                'maxzoom': 14
+                            });
+                            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+                        }
+                        await loadFloodRiskLayers();
+                    });
                     this._map.flyTo({ zoom: 17, pitch: 55 });
                 };
                 
@@ -699,11 +713,16 @@
         }
         
         function getFloodColor(vulnerability) {
+            if (vulnerability === 'severe') return 'rgba(220, 53, 69, 1)';
+            if (vulnerability === 'high') return 'rgba(253, 126, 20, 1)';
+            if (vulnerability === 'moderate') return 'rgba(217, 160, 0, 1)';
+            if (vulnerability === 'low') return 'rgba(144, 238, 144, 0.5)';
+
             const val = parseFloat(vulnerability) || 0;
-            if (val >= 80 || vulnerability === 'severe') return 'rgba(220, 53, 69, 1)';     
-            if (val >= 50 || vulnerability === 'high') return 'rgba(253, 126, 20, 1)';    
-            if (val >= 20 || vulnerability === 'moderate') return 'rgba(217, 160, 0, 1)';     
-            return 'rgba(144, 238, 144, 0.3)';                                                   
+            if (val >= 70) return 'rgba(220, 53, 69, 1)';     
+            if (val >= 50) return 'rgba(253, 126, 20, 1)';    
+            if (val >= 20) return 'rgba(217, 160, 0, 1)';     
+            return 'rgba(144, 238, 144, 0.5)';                                                   
         }
         
         function getRiskCategory(val) {
@@ -718,6 +737,63 @@
             if (num >= 50) return 'high';
             if (num >= 20) return 'moderate';
             return 'low';
+        }
+
+        async function loadFloodRiskLayers() {
+            if (!floodDataCache) {
+                const snapshot = await db.ref('Flooded_Areas').once('value');
+                floodDataCache = snapshot.val();
+            }
+            if (!floodDataCache) return;
+
+            riskLayers = { severe: [], high: [], moderate: [], low: [] };
+
+            Object.entries(floodDataCache).forEach(([id, f], i) => {
+                if (!f.geojson) return;
+
+                const sourceId = `flood-src-${i}`;
+                const layerId = `flood-layer-${i}`;
+
+                const vulnValue = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
+                const riskCat = getRiskCategory(vulnValue);
+                riskLayers[riskCat].push(layerId);
+
+                const geojsonData = typeof f.geojson === 'string' ? JSON.parse(f.geojson) : f.geojson;
+
+                if (!map.getSource(sourceId)) {
+                    map.addSource(sourceId, { type: 'geojson', data: geojsonData });
+                }
+
+                if (!map.getLayer(layerId)) {
+                    map.addLayer({
+                        id: layerId,
+                        type: f.type === 'municipality' ? 'line' : 'fill',
+                        source: sourceId,
+                        layout: {
+                            'visibility': 'none'
+                        },
+                        paint: f.type === 'municipality' ? 
+                            { 'line-color': '#1c96c5', 'line-width': 2 } : 
+                            { 'fill-color': getFloodColor(vulnValue), 'fill-opacity': 0.5 }
+                    });
+                }
+            });
+
+            applyCheckboxVisibility();
+        }
+
+        function applyCheckboxVisibility() {
+            document.querySelectorAll('.risk-toggle').forEach(checkbox => {
+                const category = checkbox.value;
+                const visibility = checkbox.checked ? 'visible' : 'none';
+                if (riskLayers[category]) {
+                    riskLayers[category].forEach(layerId => {
+                        if (map.getLayer(layerId)) {
+                            map.setLayoutProperty(layerId, 'visibility', visibility);
+                        }
+                    });
+                }
+            });
         }
         
         map.on('style.load', () => {
@@ -775,49 +851,12 @@
                 pinsCache = snapshot.val();
             });
             
-            db.ref('Flooded_Areas').once('value').then(snapshot => {
-                const data = snapshot.val();
-                if (!data) return;
-                
-                riskLayers = { severe: [], high: [], moderate: [], low: [] };
-                
-                Object.entries(data).forEach(([id, f], i) => {
-                    if (!f.geojson) return;
-                    const sourceId = `flood-src-${i}`;
-                    const layerId = `flood-layer-${i}`;
-                    
-                    const vulnValue = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
-                    const riskCat = getRiskCategory(vulnValue);
-                    
-                    riskLayers[riskCat].push(layerId);
-                    
-                    map.addSource(sourceId, { type: 'geojson', data: f.geojson });
-                    map.addLayer({
-                        id: layerId,
-                        type: f.type === 'municipality' ? 'line' : 'fill',
-                        source: sourceId,
-                        layout: {
-                            'visibility': 'none'
-                        },
-                        paint: f.type === 'municipality' ? 
-                        { 'line-color': '#1c96c5', 'line-width': 2 } : 
-                        { 'fill-color': getFloodColor(vulnValue), 'fill-opacity': 0.5 }
-                    });
-                });
-            });
+            await loadFloodRiskLayers();
         });
         
         document.querySelectorAll('.risk-toggle').forEach(checkbox => {
             checkbox.addEventListener('change', function(e) {
-                const category = e.target.value;
-                const visibility = e.target.checked ? 'visible' : 'none';
-                if (riskLayers[category]) {
-                    riskLayers[category].forEach(layerId => {
-                        if (map.getLayer(layerId)) {
-                            map.setLayoutProperty(layerId, 'visibility', visibility);
-                        }
-                    });
-                }
+                applyCheckboxVisibility();
             });
         });
         
