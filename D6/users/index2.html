@@ -87,27 +87,43 @@
     .main-content::-webkit-scrollbar { width: 6px; }
     .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    /* Map Container */
+    /* Map Container Height adjustments for Mobile/Desktop */
     #map { width: 100%; height: 100%; border-radius: 10px; }
+    .map-col { height: 50vh; }
+    .table-col { height: 36vh; }
+
+    @media (min-width: 992px) {
+      .map-col { height: 100%; }
+      .table-col { height: 100%; }
+    }
+
     .main-content { height: 100vh; overflow-y: auto; }
     
-    /* Combined Flood Prone Risk Box */
+    /* Collapsible Flood Prone Risks Box */
     #layer-controls {
       position: absolute; top: 15px; left: 15px;
-      background: rgba(255, 255, 255, 0.7); 
-      padding: 14px 16px; 
+      background: rgba(255, 255, 255, 0.85); 
+      padding: 10px; 
       border-radius: 12px; 
       font-size: 14px; 
       box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
       z-index: 2; 
-      min-width: 190px;
       backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
     }
     
-    #map-legend2 {
-      position: absolute; top: 15px; right: 15px;
-      font-size: 12px; background: rgba(255, 255, 255, 0.6); 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 200px;
+    #layer-controls.collapsed .collapse-target {
+      display: none;
+    }
+
+    #layer-controls-toggle {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #333;
+      padding: 0;
+      line-height: 1;
     }
     
     .risk-color-box {
@@ -164,64 +180,84 @@
             </button>
             
             <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-router-fill me-1"></i>Stations on Map</h5>
+              <h5 class="mb-0 fw-bold text-dark">Stations on Map</h5>
               <span id="lastUpdated" class="text-muted small"></span>
             </div>
           </div>
         </div>
         
-        <div class="row" style="height: 88%;">
-          <div class="col-12 h-100">
+        <div class="row g-2" style="height: 88%;">
+          <!-- Map Column -->
+          <div class="col-lg-8 map-col">
             <div class="card h-100 p-1 position-relative">
               <div id="map"></div>
               
-              <!-- FLOOD PRONE RISKS with Color Box Indicators -->
+              <!-- FLOOD PRONE RISKS Collapsible Control Box -->
               <div id="layer-controls">
-                <h6 class="fw-bold mb-3 text-dark" style="font-size: 13px; letter-spacing: 0.5px;">FLOOD PRONE RISKS</h6>
-                
-                <div class="form-check mb-2 d-flex align-items-center">
-                  <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
-                  <label class="form-check-label text-dark fw-bold ms-1" for="chkSevere">
-                    <span class="risk-color-box" style="background-color: #b0101b;"></span>Severe
-                  </label>
-                </div>
-                
-                <div class="form-check mb-2 d-flex align-items-center">
-                  <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
-                  <label class="form-check-label text-dark fw-bold ms-1" for="chkHigh">
-                    <span class="risk-color-box" style="background-color: #d96100;"></span>High
-                  </label>
-                </div>
-                
-                <div class="form-check mb-2 d-flex align-items-center">
-                  <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
-                  <label class="form-check-label text-dark fw-bold ms-1" for="chkModerate">
-                    <span class="risk-color-box" style="background-color: #a87900;"></span>Moderate
-                  </label>
-                </div>
-                
-                <div class="form-check mb-1 d-flex align-items-center">
-                  <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
-                  <label class="form-check-label text-dark fw-bold ms-1" for="chkLow">
-                    <span class="risk-color-box" style="background-color: #55a855;"></span>Low / Safe
-                  </label>
-                </div>
-              </div>
-              
-              <div id="map-legend2">
-                <div class="dropdown w-100 ">
-                  <button class="btn rounded btn-sm shadow-sm w-100 d-flex align-items-center justify-content-between dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown">
-                    <div class="d-flex align-items-center text-dark">
-                      <i class="text-dark bi bi-water me-2"></i>
-                      <span>River Stations</span>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="fw-bold mb-0 text-dark collapse-target" style="font-size: 14px; letter-spacing: 0.5px;">FLOOD PRONE RISKS</h6>
+                  <button id="layer-controls-toggle" title="Toggle Risk Filters" onclick="toggleLayerControls()">
+                    <i class="bi bi-shield-fill-exclamation text-danger"></i>
                   </button>
-                  <ul class="dropdown-menu dropdown-menu-start shadow border-0 w-100" id="riverDropdownMenu" style="max-height:300px; overflow-y:auto;"></ul>
+                </div>
+                
+                <div class="collapse-target">
+                  <div class="form-check mb-2 d-flex align-items-center">
+                    <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
+                    <label class="form-check-label text-dark fw-bold ms-1" for="chkSevere">
+                      <span class="risk-color-box" style="background-color: #b0101b;"></span>Severe
+                    </label>
+                  </div>
+                  
+                  <div class="form-check mb-2 d-flex align-items-center">
+                    <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
+                    <label class="form-check-label text-dark fw-bold ms-1" for="chkHigh">
+                      <span class="risk-color-box" style="background-color: #d96100;"></span>High
+                    </label>
+                  </div>
+                  
+                  <div class="form-check mb-2 d-flex align-items-center">
+                    <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
+                    <label class="form-check-label text-dark fw-bold ms-1" for="chkModerate">
+                      <span class="risk-color-box" style="background-color: #a87900;"></span>Moderate
+                    </label>
+                  </div>
+                  
+                  <div class="form-check mb-1 d-flex align-items-center">
+                    <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
+                    <label class="form-check-label text-dark fw-bold ms-1" for="chkLow">
+                      <span class="risk-color-box" style="background-color: #55a855;"></span>Low / Safe
+                    </label>
+                  </div>
                 </div>
               </div>
               
             </div>
           </div>
+
+          <!-- Table Column Added to the Right -->
+          <div class="col-lg-4 table-col">
+            <div class="card h-100 p-3 shadow-sm d-flex flex-column">
+              <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-table me-2"></i>River Stations List</h6>
+              <div class="table-responsive flex-grow-1" style="overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Station Name</th>
+                      <th>Level</th>
+                      <th>Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stationTableBody">
+                    <tr>
+                      <td colspan="3" class="text-center text-muted">Loading station data...[cite: 1]</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>
@@ -260,6 +296,11 @@
     let model, minVals = [], maxVals = [];
     let stationMarkersArray = []; 
     let isMapFullyLoaded = false; 
+
+    function toggleLayerControls() {
+      const controlBox = document.getElementById('layer-controls');
+      controlBox.classList.toggle('collapsed');
+    }
     
     window.onload = function() {
       loadModel();
@@ -300,7 +341,7 @@
           videoElement.muted = false;
           if (unmuteBtn) {
             unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
-            unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
+            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
           }
         }
       }, { once: true });
@@ -368,8 +409,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-      center: [120.5831108, 18.1026371],
-      zoom: 10,
+      center: [120.587385, 18.187710],
+      zoom: 11,
       pitch: 55
     });
     
@@ -598,18 +639,18 @@
     });
     
     const rivers = [
-    { name: "Baldi River", lat: 18.3471177, lng: 120.630181, node: 'data' }, 
-    { name: "Padsan River", lat: 18.094349, lng: 120.7089923, node: 'data2' }, 
-    { name: "Bislak River", lat: 18.2375679, lng: 120.6748498, node: 'data3' } 
+      { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
+      { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
+      { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
     ];
     
-    const riverMenu = document.getElementById('riverDropdownMenu');
+    const stationTableBody = document.getElementById('stationTableBody');
     
     async function updateMarkers() {
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
       
-      if (riverMenu) riverMenu.innerHTML = '';
+      if (stationTableBody) stationTableBody.innerHTML = '';
       
       for (let idx = 0; idx < rivers.length; idx++) {
         const river = rivers[idx];
@@ -628,6 +669,7 @@
         }
         
         const calculatedPinColor = getMarkerColorByProb(prob);
+        const riskCategoryName = getRiskCategory(prob).toUpperCase();
         const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
         
         const popup = new mapboxgl.Popup({ 
@@ -647,15 +689,20 @@
         });
         
         stationMarkersArray.push(marker);
-        
-        if (riverMenu) {
-          const li = document.createElement('li');
-          li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${calculatedPinColor}"></i> ${river.name}</a>`;
-          li.onclick = () => {
+
+        if (stationTableBody) {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.innerHTML = `
+            <td><strong>${river.name}</strong></td>
+            <td>${cur.level}m</td>
+            <td><span class="badge" style="background-color: ${calculatedPinColor};">${riskCategoryName} (${prob}%)</span></td>
+          `;
+          tr.onclick = () => {
             map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
             if (!marker.getPopup().isOpen()) marker.togglePopup();
           };
-          riverMenu.appendChild(li);
+          stationTableBody.appendChild(tr);
         }
         
         popup.on('open', async () => {
