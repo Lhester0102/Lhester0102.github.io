@@ -611,39 +611,132 @@
             updateKPIs();
         }
         
-        function processMunicipalitySnapshot(snapshot) {
-            if (!snapshot.exists()) return;
-            snapshot.forEach(child => {
-                const v = child.val();
-                const level = v.level ?? v.water ?? v.water_level ?? null;
-                const rain = v.rain ?? v.rainfall ?? null;
-                const flow = v.flow ?? v.discharge ?? null;
-                setSensorInputs(level, rain, flow);
-            });
-            manualPredict();
+// Helper function to format any time string or Date object into 12-hour AM/PM format
+function formatTo12Hour(timeStr) {
+    if (!timeStr) return "";
+
+    // If it's already in 12-hour format (e.g., "06:26 PM" or "6:26 pm"), return formatted uppercase
+    if (/am|pm/i.test(timeStr)) {
+        return timeStr.trim().toUpperCase();
+    }
+
+    // Try parsing standard time strings like "18:26" or "18:26:00"
+    const timeParts = timeStr.split(':');
+    if (timeParts.length >= 2) {
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = timeParts[1].substring(0, 2);
+
+        if (!isNaN(hours)) {
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // convert '0' to '12'
+            const strHours = hours < 10 ? '0' + hours : hours;
+            return `${strHours}:${minutes} ${ampm}`;
         }
-        
-        function subscribeToMunicipalityData(municipality) {
-            if (!municipality) return;
-            if (currentMunicipality === municipality) return;
-            detachCurrentDataListener();
-            currentMunicipality = municipality;
-            
-            if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-                const ref = data2Ref.orderByKey().limitToLast(1);
-                currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
-            } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-                const ref = data3Ref.orderByKey().limitToLast(1);
-                currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
-            } else if (municipality === 'Pasuquin') {
-                const ref = dataRef.orderByKey().limitToLast(1);
-                currentDataListener = ref;
-                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
+    }
+
+    // Fallback: Try parsing as a full date string or ISO timestamp
+    const parsedDate = new Date(timeStr);
+    if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+    }
+
+    return timeStr; // Return raw value if no parsing rule matched
+}
+
+function processMunicipalitySnapshot(snapshot) {
+    if (!snapshot.exists()) return;
+
+    let latestVal = null;
+    let latestKey = null;
+
+    // Traverse snapshot to extract the latest record node
+    snapshot.forEach(child => {
+        latestKey = child.key;
+        latestVal = child.val();
+    });
+
+    if (!latestVal) return;
+
+    // 1. Retrieve KPI sensor values
+    const level = latestVal.level ?? latestVal.water ?? latestVal.water_level ?? null;
+    const rain = latestVal.rain ?? latestVal.rainfall ?? null;
+    const flow = latestVal.flow ?? latestVal.discharge ?? null;
+
+    setSensorInputs(level, rain, flow);
+
+    // 2. Extract Date & Time from Node Properties
+    let displayDate = latestVal.date ?? "";
+    let rawTime = latestVal.time ?? "";
+    let displayTime = "";
+
+    // Format the time property if present
+    if (rawTime) {
+        displayTime = formatTo12Hour(rawTime);
+    }
+
+    // Fallback: If date or time are missing, derive them from combined timestamp fields or node key
+    if (!displayDate || !displayTime) {
+        let rawTimestamp = latestVal.timestamp ?? latestVal.date_time ?? latestVal.created_at ?? latestKey;
+        let dateObj = new Date(rawTimestamp);
+
+        // Handle numeric epoch timestamps
+        if (isNaN(dateObj.getTime()) && !isNaN(Number(rawTimestamp))) {
+            dateObj = new Date(Number(rawTimestamp));
+        }
+
+        if (!isNaN(dateObj.getTime())) {
+            if (!displayDate) {
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                displayDate = `${month}-${day}-${year}`;
+            }
+            if (!displayTime) {
+                displayTime = dateObj.toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: true 
+                });
             }
         }
-        
+    }
+
+    // 3. Update KPI Map Overlay Elements
+    const currentDateEl = document.getElementById("currentDate");
+    const currentTimeEl = document.getElementById("currentTime");
+
+    if (currentDateEl && displayDate) currentDateEl.innerText = displayDate;
+    if (currentTimeEl && displayTime) currentTimeEl.innerText = displayTime;
+
+    manualPredict();
+}
+function subscribeToMunicipalityData(municipality) {
+    if (!municipality) return;
+    if (currentMunicipality === municipality) return;
+    detachCurrentDataListener();
+    currentMunicipality = municipality;
+
+    let targetRef = null;
+
+    // Target the corresponding DB reference and order by key to fetch the latest record
+    if (municipality === 'Laoag' || municipality === 'San Nicolas') {
+        targetRef = data2Ref.orderByKey().limitToLast(1);
+    } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
+        targetRef = data3Ref.orderByKey().limitToLast(1);
+    } else if (municipality === 'Pasuquin') {
+        targetRef = dataRef.orderByKey().limitToLast(1);
+    }
+
+    if (targetRef) {
+        currentDataListener = targetRef;
+        targetRef.on('value', snapshot => processMunicipalitySnapshot(snapshot));
+    }
+}
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
             if (typeof args[0] === 'string' && args[0].includes('events.mapbox.com')) {
