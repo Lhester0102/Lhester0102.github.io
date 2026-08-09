@@ -456,44 +456,40 @@
       return s > 0 ? `${m}m ${s}s` : `${m}m`;
     }
 
-    // Formatter returning separate formatted date (e.g. Mon, 2026-08-10) and 12-hr time (e.g. 01:31:50 PM)
-    function formatTimestampParts(ts) {
-      let d;
-      if (ts) {
-        d = new Date(ts);
-        if (isNaN(d.getTime())) {
-          d = new Date();
-        }
-      } else {
-        d = new Date();
-      }
-      
-      const pad = (n) => String(n).padStart(2, '0');
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      
-      const dayName = days[d.getDay()];
+    // Helper to format Date from Firebase to MM-DD-YYYY
+    function formatDateToMMDDYYYY(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr; 
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
       const year = d.getFullYear();
-      const month = pad(d.getMonth() + 1);
-      const day = pad(d.getDate());
-      
-      let rawHours = d.getHours();
-      const ampm = rawHours >= 12 ? 'PM' : 'AM';
-      rawHours = rawHours % 12;
-      rawHours = rawHours ? rawHours : 12;
-      const hours = pad(rawHours);
-      
-      const minutes = pad(d.getMinutes());
-      const seconds = pad(d.getSeconds());
+      return `${month}-${day}-${year}`;
+    }
 
-      return {
-        dateStr: `${dayName}, ${year}-${month}-${day}`,
-        timeStr: `${hours}:${minutes}:${seconds} ${ampm}`
-      };
+    // Helper to format Time from Firebase to 12-hour format with AM/PM
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr || timeStr === 'N/A') return '';
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr; 
+      let hours = parseInt(parts[0], 10);
+      const minutes = parts[1].substring(0, 2); 
+      if (isNaN(hours)) return timeStr;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      const formattedHours = String(hours).padStart(2, '0');
+      return `${formattedHours}:${minutes} ${ampm}`;
+    }
+
+    function formatField(f) {
+      return (f === undefined || f === null || f === 'N/A') ? '' : f;
     }
     
     const stationsRef = db.ref('stations');
     const rowLimitSelect = document.getElementById('filterRowLimit');
     
+    // Listen to data nodes to retrieve the latest stored entry for timestamps, water level, flow, and rain
     ['data', 'data2', 'data3'].forEach(nodeKey => {
       db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
         if (!snapshot.exists()) return;
@@ -503,16 +499,13 @@
             level: parseFloat(val.water ?? val.level ?? 0),
             flow: parseFloat(val.flow ?? val.discharge ?? 0),
             rain: parseFloat(val.rain ?? val.rainfall ?? 0),
-            timestamp: val.timestamp ?? val.time ?? val.datetime ?? val.date ?? null
+            date: val.date ?? val.timestamp ?? val.time ?? null,
+            time: val.time ?? val.timestamp ?? null
           };
         });
         renderTable();
       });
     });
-
-    function formatField(f) {
-      return (f === undefined || f === null || f === 'N/A') ? '' : f;
-    }
     
     function updateStationFilter() {
       const stationSelect = document.getElementById('filterStation');
@@ -568,8 +561,9 @@
           : `<i class="bi bi-toggle-off text-secondary fs-3" title="Power: OFF"></i>`;
         
         const telemetryNode = item.node || 'data';
-        const sensor = liveTelemetry[telemetryNode] || { level: 0, flow: 0, rain: 0, timestamp: null };
-        const { dateStr, timeStr } = formatTimestampParts(sensor.timestamp);
+        const sensor = liveTelemetry[telemetryNode] || { level: 0, flow: 0, rain: 0, date: null, time: null };
+        const dateStr = formatDateToMMDDYYYY(formatField(sensor.date));
+        const timeStr = formatTimeTo12Hour(formatField(sensor.time));
 
         // Calculate thresholds background classes
         const thresholdRowClass = getThresholdRowClass(sensor.level, item);
@@ -770,7 +764,7 @@
           __source: 'stations'
         }));
       } else {
-        allReports = [];
+        allReports = []
       }
 
       updateStationFilter();
