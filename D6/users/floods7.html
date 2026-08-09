@@ -309,7 +309,7 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: SYSTEM FIELD ANALYSIS & FLOOD PROBABILITY TREND -->
+                    <!-- RIGHT COLUMN: SYSTEM FIELD ANALYSIS -->
                     <div class="col-lg-6">
                         <div class="card p-3 shadow-sm analysis-scroll-panel" id="detailsCard">
                             <h6 class="fw-bold border-bottom pb-2 mb-3" style="color:#1c96c5;">System Field Analysis</h6>
@@ -317,19 +317,6 @@
                             <!-- System Field Analysis Section -->
                             <div id="details" class="mb-3">
                                 <span class="text-dark small">Perform an address search to visualize location analysis matrix.</span>
-                            </div>
-
-                            <hr class="my-3">
-
-                            <!-- Flood Probability Trend Chart Section -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">
-                                        <i class="bi bi-graph-up-arrow text-primary me-1"></i> Flood Probability Trend
-                                    </h6>
-                                    <span class="badge bg-dark" style="font-size: 0.6rem;">Expand</span>
-                                </div>
-                                <canvas id="probChart" style="max-height: 180px;"></canvas>
                             </div>
                         </div>
                     </div>
@@ -368,7 +355,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
-    let model, minVals=[], maxVals=[], probChart;
+    let model, minVals=[], maxVals=[];
     let lastProbData = [];
     let forecastWater = [];
     let forecastRain = [];
@@ -382,7 +369,7 @@
     let pinsCache = null;
     let currentLocationName = "Selected Coordinate Point";
     let selectedActiveLngLat = null;
-    let thresholdData = { warning: 2.5, alarm: 4.0, critical: 5.0, rain_warning: 30, rain_critical: 60, flow_warning: 100, flow_alarm: 250, flow_critical: 400 };
+    let thresholdData = { level: 2.5, level_high: 4, rain: 40, rain_high: 80, flow: 60, flow_high: 125 };
     
     const initialCenter = [120.5927871, 18.1959782];
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
@@ -470,13 +457,31 @@
     }
     
     function updateKPIs() {
-        const wVal = document.getElementById("waterLevel").value;
-        const rVal = document.getElementById("rainfall").value;
-        const dVal = document.getElementById("discharge").value;
+        const wVal = parseFloat(document.getElementById("waterLevel").value) || 0;
+        const rVal = parseFloat(document.getElementById("rainfall").value) || 0;
+        const dVal = parseFloat(document.getElementById("discharge").value) || 0;
 
-        document.getElementById("kpiWater").innerHTML = wVal !== "" ? `${wVal} m` : "0 m";
-        document.getElementById("kpiRain").innerHTML = rVal !== "" ? `${rVal} mm` : "0 mm";
-        document.getElementById("kpiDischarge").innerHTML = dVal !== "" ? `${dVal} m³/s` : "0 m³/s";
+        const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
+        const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
+        let waterColor = "#198754";
+        if (wVal >= levelCritical) waterColor = "#dc3545";
+        else if (wVal >= levelWarning) waterColor = "#d9a000";
+
+        const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
+        const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
+        let rainColor = "#0dcaf0";
+        if (rVal >= rainCritical) rainColor = "#dc3545";
+        else if (rVal >= rainWarning) rainColor = "#d9a000";
+
+        const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
+        const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
+        let flowColor = "#198754";
+        if (dVal >= flowCritical) flowColor = "#dc3545";
+        else if (dVal >= flowWarning) flowColor = "#d9a000";
+
+        document.getElementById("kpiWater").innerHTML = `<span style="color: ${waterColor}">${wVal} m</span>`;
+        document.getElementById("kpiRain").innerHTML = `<span style="color: ${rainColor}">${rVal} mm</span>`;
+        document.getElementById("kpiDischarge").innerHTML = `<span style="color: ${flowColor}">${dVal} m³/s</span>`;
     }
     
     const firebaseConfig = {
@@ -499,14 +504,10 @@
     let currentDataListener = null;
 
     function listenToThresholds() {
-        db.ref('thresholds').on('value', snapshot => {
-            if (snapshot.exists()) {
-                thresholdData = { ...thresholdData, ...snapshot.val() };
-            }
-        });
         db.ref('threshold').on('value', snapshot => {
             if (snapshot.exists()) {
                 thresholdData = { ...thresholdData, ...snapshot.val() };
+                updateKPIs();
             }
         });
     }
@@ -526,16 +527,14 @@
     function setSensorInputs(level, rain, flow) {
         if (level !== undefined && level !== null) {
             document.getElementById("waterLevel").value = level;
-            document.getElementById("kpiWater").innerHTML = `${level} m`;
         }
         if (rain !== undefined && rain !== null) {
             document.getElementById("rainfall").value = rain;
-            document.getElementById("kpiRain").innerHTML = `${rain} mm`;
         }
         if (flow !== undefined && flow !== null) {
             document.getElementById("discharge").value = flow;
-            document.getElementById("kpiDischarge").innerHTML = `${flow} m³/s`;
         }
+        updateKPIs();
     }
 
     function getPastTenDaysLabels() {
@@ -990,9 +989,10 @@
         }
         lastProbData = predictions;
         const v = Math.round(predictions[0]);
-        const r = v < 20 ? ["Safe","green"] : v < 50 ? ["Yellow Alert","#d9a000"] : v < 70 ? ["Orange Alert","orange"] : ["Red Alert","red"];
         
-        document.getElementById("kpiRisk").innerHTML = `<b style="color:${r[1]}">${v}%</b>`;
+        const riskColor = v < 20 ? "#198754" : v < 50 ? "#d9a000" : v < 70 ? "#fd7e14" : "#dc3545";
+        
+        document.getElementById("kpiRisk").innerHTML = `<b style="color:${riskColor}">${v}%</b>`;
         
         updateDashboardViews(v);
 
@@ -1000,18 +1000,6 @@
             updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
         }
 
-        if(probChart) probChart.destroy();
-        const pCtx = document.getElementById("probChart");
-        probChart = new Chart(pCtx, {
-            type:'line',
-            data: { labels: horizons.map(h => h + 'h'), datasets:[{ label:'%', data: predictions, borderColor:'red', fill:true }] },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero:true, max:100 } } }
-        });
-        
-        pCtx.onclick = () => {
-            openKpiModal('risk');
-        };
-        
         return v; 
     }
 
@@ -1022,9 +1010,14 @@
         let lineBorderColor = "#1c96c5";
         let annotations = {};
 
-        const warningLevel = thresholdData.warning || thresholdData.water_warning || 2.5;
-        const alarmLevel = thresholdData.alarm || thresholdData.water_alarm || 4.0;
-        const criticalLevel = thresholdData.critical || thresholdData.water_critical || 5.0;
+        const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
+        const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
+
+        const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
+        const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
+
+        const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
+        const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
 
         const forecastLabels = ['+1h', '+3h', '+12h', '+24h'];
         const baseLabels = historyLabels.length ? historyLabels : getPastTenDaysLabels();
@@ -1040,9 +1033,8 @@
             document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
             
             annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: warningLevel, yMax: warningLevel, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Warning (${warningLevel}m)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: alarmLevel, yMax: alarmLevel, borderColor: '#fd7e14', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Alarm (${alarmLevel}m)` } },
-                line3: { type: 'line', yScaleID: 'y', yMin: criticalLevel, yMax: criticalLevel, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Critical (${criticalLevel}m)` } }
+                line1: { type: 'line', yScaleID: 'y', yMin: levelWarning, yMax: levelWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Warning (${levelWarning}m)` } },
+                line2: { type: 'line', yScaleID: 'y', yMin: levelCritical, yMax: levelCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Critical (${levelCritical}m)` } }
             };
         } else if (kpiType === 'rain') {
             labelName = "Rainfall (mm)";
@@ -1054,11 +1046,9 @@
             lineBorderColor = "#0dcaf0";
             document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
             
-            const rWarn = thresholdData.rain_warning || 30;
-            const rCrit = thresholdData.rain_critical || 60;
             annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: rWarn, yMax: rWarn, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Alert (${rWarn}mm)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: rCrit, yMax: rCrit, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Heavy Rain (${rCrit}mm)` } }
+                line1: { type: 'line', yScaleID: 'y', yMin: rainWarning, yMax: rainWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Warning (${rainWarning}mm)` } },
+                line2: { type: 'line', yScaleID: 'y', yMin: rainCritical, yMax: rainCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Critical (${rainCritical}mm)` } }
             };
         } else if (kpiType === 'flow') {
             labelName = "Flow Rate (m³/s)";
@@ -1070,14 +1060,9 @@
             lineBorderColor = "#198754";
             document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
             
-            const fWarn = thresholdData.flow_warning || thresholdData.discharge_warning || 100;
-            const fAlarm = thresholdData.flow_alarm || thresholdData.discharge_alarm || 250;
-            const fCrit = thresholdData.flow_critical || thresholdData.discharge_critical || 400;
-
             annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: fWarn, yMax: fWarn, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${fWarn}m³/s)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: fAlarm, yMax: fAlarm, borderColor: '#fd7e14', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Alarm (${fAlarm}m³/s)` } },
-                line3: { type: 'line', yScaleID: 'y', yMin: fCrit, yMax: fCrit, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Critical (${fCrit}m³/s)` } }
+                line1: { type: 'line', yScaleID: 'y', yMin: flowWarning, yMax: flowWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${flowWarning}m³/s)` } },
+                line2: { type: 'line', yScaleID: 'y', yMin: flowCritical, yMax: flowCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Critical (${flowCritical}m³/s)` } }
             };
         } else {
             labelName = "Flood Probability (%)";

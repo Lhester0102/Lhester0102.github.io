@@ -107,12 +107,12 @@
       font-size: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
       z-index: 2; 
-      width: 160px;
+      width: 200px;
     }
 
     @media (max-width: 576px) {
       #riskControlBox {
-        top: 8px;
+        top: 15px;
         right: 8px;
         width: 140px;
         padding: 6px 8px;
@@ -269,31 +269,31 @@
               
               <!-- DISPLAY RISKS Dynamic Floating Control Overlay -->
               <div id="riskControlBox" class="border">
-                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 1rem; letter-spacing: 0.5px;">
                   FLOOD PRONE RISKS
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleSevere" value="severe" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size:0.7rem;">
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleSevere" style="cursor: pointer; font-size:1rem;">
                       <span style="display:inline-block; width:8px; height:8px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleHigh" value="high" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size:0.7rem;">
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleHigh" style="cursor: pointer; font-size:1rem;">
                       <span style="display:inline-block; width:8px; height:8px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleModerate" value="moderate" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size:0.7rem;">
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleModerate" style="cursor: pointer; font-size:1rem;">
                       <span style="display:inline-block; width:8px; height:8px; background:rgba(255,193,7,1); border-radius:2px;"></span> Moderate
                     </label>
                   </div>
                   <div class="form-check m-0 d-flex align-items-center gap-1">
                     <input class="form-check-input risk-toggle" type="checkbox" id="toggleLow" value="low" style="cursor: pointer;">
-                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size:0.7rem;">
+                    <label class="form-check-label d-flex align-items-center gap-1 text-dark" for="toggleLow" style="cursor: pointer; font-size:1rem;">
                       <span style="display:inline-block; width:8px; height:8px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
                     </label>
                   </div>
@@ -411,7 +411,7 @@
       await populateRiverData();
     }
     
-    function updateKPIs() {
+function updateKPIs() {
       const waterInput = document.getElementById("waterLevel");
       const rainInput = document.getElementById("rainfall");
       const dischargeInput = document.getElementById("discharge");
@@ -421,8 +421,13 @@
       }
       if (rainInput) document.getElementById("kpiRain").innerHTML = `${parseFloat(rainInput.value || 0).toFixed(2)} mm`;
       if (dischargeInput) document.getElementById("kpiDischarge").innerHTML = `${parseFloat(dischargeInput.value || 0).toFixed(2)} m³/s`;
-    }
-    
+
+      // Reload triggerAnalysis using activeMarker coordinates when KPI values change
+      if (activeMarker) {
+        const currentLngLat = activeMarker.getLngLat();
+        triggerAnalysis(currentLngLat);
+      }
+    }  
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
       authDomain: "flooded-95eeb.firebaseapp.com",
@@ -538,7 +543,7 @@
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
       center: initialCenter,
       zoom: 11,
-      pitch: 60
+      pitch: 65
     });
     
     function setLocationAndFly(lng, lat) {
@@ -548,7 +553,7 @@
       } else {
         activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
       }
-      map.flyTo({ center: point, zoom: 16, pitch: 45 });
+      map.flyTo({ center: point, zoom: 16, pitch: 65 });
       triggerAnalysis(point);
       if (locationModal) locationModal.hide();
     }
@@ -564,6 +569,7 @@
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setLocationAndFly(pos.coords.longitude, pos.coords.latitude);
+
         },
         (err) => {
           errEl.innerText = "Unable to retrieve your location. Please type an address instead.";
@@ -742,7 +748,7 @@
         } else {
           activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
         }
-        map.flyTo({ center: point, zoom: 17, pitch: 45});
+        map.flyTo({ center: point, zoom: 17, pitch: 65});
         await triggerAnalysis(point);
       });
       
@@ -912,7 +918,7 @@
             center: [river.lng, river.lat],
             zoom: 17,
             essential: true,
-            pitch: 45
+            pitch: 65
           });
           
           document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
@@ -951,7 +957,7 @@
           const li = document.createElement('li');
           li.innerHTML = `<a class="dropdown-item small" href="#"><i class="bi bi-geo-alt" style="color: ${dynamicPinColor}"></i> ${river.name}</a>`;
           li.onclick = async () => {
-            map.flyTo({ center: [river.lng, river.lat], zoom: 17, pitch: 45});
+            map.flyTo({ center: [river.lng, river.lat], zoom: 17, pitch: 65});
             
             const mapboxCoords = new mapboxgl.LngLat(river.lng, river.lat);
             await triggerAnalysis(mapboxCoords, telemetry);
