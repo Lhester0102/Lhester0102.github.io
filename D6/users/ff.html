@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GDSS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="icon" href="GDSS.png">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    body { background: #f4f6f9; overflow-x: hidden; }
+    .sidebar { background-color: #1c96c5; transition: all 0.3s ease-in-out; z-index: 1050; overflow-y: auto; }
+    @media (max-width: 767.98px) {
+      .sidebar { position: fixed; top: 0; bottom: 0; left: 0; width: 280px; height: 100vh; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
+    }
+    .nav-link { color: rgba(255, 255, 255, 0.9); transition: 0.2s; border-radius: 5px; margin-bottom: 2px; }
+    .nav-link:hover, .nav-link.active { background-color: #212529 !important; color: #fff !important; }
+    .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    @media (min-width: 768px) {
+      .sidebar { min-height: 100vh; height: 100vh; }
+      .main-content { height: 100vh; overflow-y: auto; }
+    }
+    .mobile-brand { display: flex; align-items: center; gap: 10px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
+    .mobile-brand img { width: 35px; height: 35px; }
+    .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    #map { width: 100%; height: 100%; min-height: 380px; border-radius: 10px; }
+    .main-content { min-height: 100vh; }
+    canvas { cursor: pointer; transition: transform 0.2s; }
+    canvas:hover { transform: scale(1.02); }
+    
+    #floodHubLegend {
+      position: absolute; bottom: 20px; right: 20px;
+      background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(6px);
+      padding: 12px 16px; border-radius: 12px; font-size: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 2; width: 220px;
+    }
+    @media (max-width: 576px) {
+      #floodHubLegend { bottom: 15px; right: 10px; width: 170px; padding: 8px 12px; font-size: 11px; }
+    }
+    @media (max-width: 767.98px) {
+      .mobile-floating-submenu {
+        position: fixed !important; bottom: 20px; right: 20px; z-index: 1040;
+        background: transparent !important; backdrop-filter: none; padding: 0 !important;
+        box-shadow: none !important; flex-direction: column !important; gap: 8px !important; width: auto !important;
+      }
+      .mobile-floating-submenu .btn {
+        width: 48px !important; height: 48px !important; border-radius: 50% !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        padding: 0 !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      }
+      .mobile-floating-submenu .btn span { display: none !important; }
+      .mobile-floating-submenu .btn i { margin: 0 !important; font-size: 1.25rem !important; }
+    }
+    .suggestions-list { max-height: 200px; overflow-y: auto; z-index: 1060; border-radius: 0 0 8px 8px; }
+    .suggestion-item { cursor: pointer; font-size: 0.85rem; }
+    .suggestion-item:hover { background-color: #f1f3f5; }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
+        <div class="d-md-none mobile-brand">
+          <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+          <div><h6 class="text-white">Geospatial DSS</h6></div>
+          <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close menu">
+            <i class="bi bi-x-lg fs-5"></i>
+          </button>
+        </div>
+        <div class="text-center mb-4 d-none d-md-block">
+          <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+          <h6 class="fw-bold mb-0">Geospatial DSS</h6>
+        </div>
+        <ul class="nav flex-column">
+          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
+          <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
+        </ul>
+      </nav>
+      
+      <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center my-2 p-2 bg-white rounded shadow-sm gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle Navigation">
+              <i class="bi bi-list fs-5"></i>
+            </button>
+            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-map me-1"></i>Map Flood Watch</h5>
+          </div>
+          <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end mobile-floating-submenu shadow-sm p-2 bg-white rounded">
+            <a href="floods3.html" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="Flood Map"><i class="bi bi-map"></i> <span>Flood Map</span></a>
+            <a href="floods7.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="Location"><i class="bi bi-geo-alt-fill me-1"></i> <span>Location</span></a>
+            <a href="floods4.html" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0 btn-sm fs-6" title="By Municipality"><i class="bi bi-houses-fill"></i> <span>By Municipality</span></a>
+          </div>
+        </div>
+        
+        <div class="row g-2 g-md-3 mb-2">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-water text-primary fs-5"></i><h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Water Level</h6></div>
+              <h4 id="kpiWater" class="mb-0 fs-5 fs-md-4">0.0 m</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-cloud-rain text-info fs-5"></i><h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Rainfall</h6></div>
+              <h4 id="kpiRain" class="mb-0 fs-5 fs-md-4">0.0 mm</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-water text-primary fs-5"></i><h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Discharge</h6></div>
+              <h4 id="kpiDischarge" class="mb-0 fs-5 fs-md-4">0.0 m³/s</h4>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 p-md-3">
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-exclamation-triangle text-warning fs-5"></i><h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Flood Risk Status</h6></div>
+              <h4 id="kpiRisk" class="mb-0 fs-5 fs-md-4">--</h4>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-lg-9 d-flex flex-column">
+            <div class="card mb-2" style="height: 480px; position: relative;">
+              <div class="card-body p-1 h-100">
+                <div id="map"></div>
+              </div>
+              <div id="floodHubLegend">
+                <div class="fw-bold text-dark border-bottom pb-1 mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.9rem;">
+                  <span><i class="bi bi-shield-shaded text-primary me-1"></i> Flood Risk Forecast</span>
+                </div>
+                <div class="d-flex flex-column gap-1.5" style="font-size: 0.8rem;">
+                  <div class="d-flex align-items-center gap-2"><span style="display:inline-block; width:12px; height:12px; background:rgba(40,167,69,0.2); border-radius:3px;"></span><span class="text-dark fw-semibold">Low / Safe (&lt; 20%)</span></div>
+                  <div class="d-flex align-items-center gap-2"><span style="display:inline-block; width:12px; height:12px; background:rgba(255,193,7,0.8); border-radius:3px;"></span><span class="text-dark fw-semibold">Moderate (20% - 49%)</span></div>
+                  <div class="d-flex align-items-center gap-2"><span style="display:inline-block; width:12px; height:12px; background:rgba(253,126,20,0.8); border-radius:3px;"></span><span class="text-dark fw-semibold">High (50% - 69%)</span></div>
+                  <div class="d-flex align-items-center gap-2"><span style="display:inline-block; width:12px; height:12px; background:rgba(220,53,69,0.8); border-radius:3px;"></span><span class="text-dark fw-semibold">Severe (&ge; 70%)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-3">
+            <div class="card p-3 mb-3">
+              <label id="details" class="form-label small text-dark mb-0">Select a location on the map to view detailed risk diagnostics.</label>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="initialLocationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow border-0">
+        <div class="modal-header text-white d-flex align-items-center justify-content-between" style="background-color: #1c96c5;">
+          <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Select Initial Location</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="modalCloseBtn"></button>
+        </div>
+        <div class="modal-body p-3 p-md-4 text-center">
+          <p class="text-secondary mb-4">Choose how you would like to set your map starting position:</p>
+          <button id="useCurrentLocationBtn" class="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center gap-2 fs-6 fs-md-5">
+            <i class="bi bi-crosshair fs-5"></i> Use My Current Location
+          </button>
+          <div class="d-flex align-items-center my-3"><hr class="flex-grow-1"><span class="px-2 text-muted small fw-bold">OR SEARCH ADDRESS</span><hr class="flex-grow-1"></div>
+          <div class="position-relative text-start mb-3">
+            <div class="input-group">
+              <input type="text" id="initialAddressInput" class="form-control form-control-lg fs-6" placeholder="e.g. Laoag City, Ilocos Norte" autocomplete="off">
+              <button id="searchAddressBtn" class="btn btn-outline-primary px-3 px-md-4"><i class="bi bi-search"></i> Search</button>
+            </div>
+            <div id="addressSuggestions" class="suggestions-list list-group position-absolute w-100 shadow mt-1" style="display:none;"></div>
+          </div>
+          <small id="locationErrorText" class="text-danger d-block text-start" style="display:none;"></small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    let model, minVals = [], maxVals = [];
+    let locationModal, selectedCoords = null, searchDebounceTimeout = null;
+    let loadedFloodAreasMap = {}, stationMarkersArray = [], rivers = [];
+    let liveDataStore = { data: { level: 0, flow: 0, rain: 0 }, data2: { level: 0, flow: 0, rain: 0 }, data3: { level: 0, flow: 0, rain: 0 } };
+    let currentDataListener = null, currentMunicipality = null;
+
+    window.onload = async function() {
+      const modalElement = document.getElementById('initialLocationModal');
+      locationModal = new bootstrap.Modal(modalElement);
+      locationModal.show();
+      
+      modalElement.addEventListener('shown.bs.modal', () => document.getElementById('initialAddressInput')?.focus());
+      document.getElementById('modalCloseBtn')?.addEventListener('click', () => document.getElementById('initialAddressInput')?.focus());
+      
+      await loadModel(); 
+      await populateRiverData();
+      initLiveSensorsAndEvaluation();
+    };
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    mapboxgl.telemetry = false;
+
+    const initialCenter = [120.5927871, 18.1959782];
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+      center: initialCenter,
+      zoom: 11,
+      pitch: 65
+    });
+
+    let activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(initialCenter).addTo(map);
+
+    function setLocationAndFly(lng, lat) {
+      const point = new mapboxgl.LngLat(lng, lat);
+      activeMarker.setLngLat(point);
+      map.flyTo({ center: point, zoom: 16, pitch: 65 });
+      triggerAnalysis(point);
+      locationModal.hide();
+    }
+
+    document.getElementById('useCurrentLocationBtn').addEventListener('click', () => {
+      const errEl = document.getElementById('locationErrorText');
+      errEl.style.display = 'none';
+      if (!navigator.geolocation) {
+        errEl.innerText = "Geolocation is not supported by your browser.";
+        errEl.style.display = 'block';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => setLocationAndFly(pos.coords.longitude, pos.coords.latitude),
+        () => {
+          errEl.innerText = "Unable to retrieve your location. Please type an address instead.";
+          errEl.style.display = 'block';
+        }
+      );
+    });
+
+    const addressInput = document.getElementById('initialAddressInput');
+    const suggestionsBox = document.getElementById('addressSuggestions');
+
+    addressInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      selectedCoords = null;
+      if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+      
+      if (query.length < 3) {
+        suggestionsBox.style.display = 'none';
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+
+      searchDebounceTimeout = setTimeout(async () => {
+        try {
+          const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&proximity=${initialCenter[0]},${initialCenter[1]}&limit=5`);
+          const data = await resp.json();
+          if (data.features?.length > 0) {
+            suggestionsBox.innerHTML = '';
+            data.features.forEach(feature => {
+              const item = document.createElement('button');
+              item.type = 'button';
+              item.className = 'list-group-item list-group-item-action suggestion-item py-2 px-3';
+              item.innerHTML = `<i class="bi bi-geo-alt text-primary me-2"></i>${feature.place_name}`;
+              item.addEventListener('click', () => {
+                addressInput.value = feature.place_name;
+                selectedCoords = feature.center;
+                suggestionsBox.style.display = 'none';
+              });
+              suggestionsBox.appendChild(item);
+            });
+            suggestionsBox.style.display = 'block';
+          } else {
+            suggestionsBox.style.display = 'none';
+          }
+        } catch (e) {
+          console.error("Geocoding error:", e);
+        }
+      }, 300);
+    });
+
+    document.getElementById('searchAddressBtn').addEventListener('click', async () => {
+      const query = addressInput.value.trim();
+      const errEl = document.getElementById('locationErrorText');
+      errEl.style.display = 'none';
+      
+      if (selectedCoords) {
+        setLocationAndFly(selectedCoords[0], selectedCoords[1]);
+        return;
+      }
+      if (!query) {
+        errEl.innerText = "Please enter an address or location.";
+        errEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&limit=1`);
+        const data = await resp.json();
+        if (data.features?.length > 0) {
+          const [lng, lat] = data.features[0].center;
+          setLocationAndFly(lng, lat);
+        } else {
+          errEl.innerText = "Location not found. Please try another address.";
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.innerText = "Geocoding error. Please check your network.";
+        errEl.style.display = 'block';
+      }
+    });
+
+    function getFloodColor(vulnerability) {
+      const val = parseFloat(vulnerability) || 0;
+      if (val >= 70) return 'rgba(220, 53, 69, 0.8)';
+      if (val >= 50) return 'rgba(253, 126, 20, 0.8)';
+      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';
+      return 'rgba(40, 167, 69, 0.2)';
+    }
+
+    function getMarkerColor(vulnerability) {
+      const val = parseFloat(vulnerability) || 0;
+      if (val >= 70) return '#dc3545';
+      if (val >= 50) return '#fd7e14';
+      if (val >= 20) return '#ffc107';
+      return null;
+    }
+
+    async function getElevationFromCoords(lng, lat) {
+      const zoom = 15;
+      const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
+      const latRad = lat * Math.PI / 180;
+      const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
+      const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngraw?access_token=${mapboxgl.accessToken}`;
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error();
+        const blob = await response.blob();
+        const bitmap = await createImageBitmap(blob);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 256; canvas.height = 256;
+        ctx.drawImage(bitmap, 0, 0);
+        
+        const pixelX = Math.floor(((lng + 180) / 360 * Math.pow(2, zoom) - x) * 256);
+        const latMerc = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
+        const pixelY = Math.floor(((1 - (latMerc / Math.PI)) / 2 * Math.pow(2, zoom) - y) * 256);
+        const p = ctx.getImageData(pixelX, pixelY, 1, 1).data;
+        return -10000 + ((p[0] * 65536 + p[1] * 256 + p[2]) * 0.1);
+      } catch {
+        return map.queryTerrainElevation([lng, lat]) || 25.0;
+      }
+    }
+
+    map.on('style.load', () => {
+      if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', { type: 'raster-dem', url: 'mapbox://mapbox.mapbox-terrain-dem-v1', tileSize: 512, maxzoom: 17 });
+      }
+    });
+
+    map.on('load', async () => {
+      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      
+      const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false,
+        placeholder: 'Search location',
+        proximity: initialCenter,
+        types: 'country,region,place,locality,neighborhood,address'
+      });
+      map.addControl(geocoder, 'top-left');
+      
+      geocoder.on('result', async (event) => {
+        const [lng, lat] = event.result.center;
+        const point = new mapboxgl.LngLat(lng, lat);
+        activeMarker.setLngLat(point);
+        map.flyTo({ center: point, zoom: 17, pitch: 65 });
+        await triggerAnalysis(point);
+      });
+      
+      db.ref('Flooded_Areas').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        loadedFloodAreasMap = {};
+        Object.entries(data).forEach(([id, f], i) => {
+          if (!f.geojson) return;
+          const sourceId = `flood-src-${i}`;
+          const layerId = `flood-layer-${i}`;
+          
+          let elevationMean = 25.0;
+          if (f.geojson.features && Array.isArray(f.geojson.features)) {
+            for (const feature of f.geojson.features) {
+              if (feature.properties?.elevation_mean !== undefined) {
+                elevationMean = parseFloat(feature.properties.elevation_mean) || elevationMean;
+                break;
+              }
+            }
+          }
+          
+          loadedFloodAreasMap[id] = {
+            layerId: layerId,
+            municipalityNote: f.note ? f.note.trim().toLowerCase() : "",
+            elevationMean: elevationMean,
+            type: f.type
+          };
+          
+          const vulnVal = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
+          map.addSource(sourceId, { type: 'geojson', data: f.geojson });
+          map.addLayer({
+            id: layerId,
+            type: f.type === 'municipality' ? 'line' : 'fill',
+            source: sourceId,
+            layout: { 'visibility': 'visible' },
+            paint: f.type === 'municipality' ? { 'line-color': '#1c96c5', 'line-width': 2 } : { 'fill-color': getFloodColor(vulnVal), 'fill-opacity': 0.65 }
+          });
+        });
+
+        updateMapColorCodesBasedOnPredictions();
+      });
+    });
+
+    map.on('click', async (e) => {
+      activeMarker.setLngLat(e.lngLat);
+      document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+      await triggerAnalysis(e.lngLat);
+    });
+
+    async function populateRiverData() {
+      try {
+        const snapshot = await db.ref('pins').once('value');
+        if (snapshot.exists()) {
+          const loadedRivers = [];
+          snapshot.forEach(childSnapshot => {
+            const pinConfig = childSnapshot.val();
+            if (pinConfig.node) {
+              loadedRivers.push({
+                brgyId: childSnapshot.key, 
+                name: pinConfig.name || pinConfig.barangayName || "Unknown Station",
+                lat: parseFloat(pinConfig.lat ?? pinConfig.latitude ?? 18.1959782),
+                lng: parseFloat(pinConfig.lng ?? pinConfig.longitude ?? 120.5927871),
+                node: pinConfig.node 
+              });
+            }
+          });
+          rivers = loadedRivers;
+          await updateStationPinsIndividually();
+        }
+      } catch (error) {
+        console.error("Error populating rivers:", error);
+      }
+    }
+
+    function initLiveSensorsAndEvaluation() {
+      ['data', 'data2', 'data3'].forEach(nodeKey => {
+        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', async (snapshot) => {
+          if (!snapshot.exists()) return;
+          snapshot.forEach(child => {
+            const latest = child.val();
+            liveDataStore[nodeKey] = {
+              level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
+              flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
+            };
+          });
+          await updateMapColorCodesBasedOnPredictions();
+          await updateStationPinsIndividually();
+        });
+      });
+    }
+
+    function getNodeKeyForMunicipality(municipalityName) {
+      if (!municipalityName) return 'data2';
+      const m = municipalityName.toLowerCase();
+      if (m.includes('laoag') || m.includes('san nicolas')) return 'data2';
+      if (m.includes('pasuquin')) return 'data';
+      if (m.includes('bacarra') || m.includes('vintar')) return 'data3';
+      return 'data2';
+    }
+
+    function subscribeToMunicipalityData(municipality) {
+      if (!municipality) return;
+      if (currentMunicipality === municipality) return;
+      if (currentDataListener) currentDataListener.off('value');
+      currentMunicipality = municipality;
+
+      const nodeKey = getNodeKeyForMunicipality(municipality);
+      currentDataListener = db.ref(nodeKey).orderByKey().limitToLast(1);
+      currentDataListener.on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        snapshot.forEach(child => {
+          const v = child.val();
+          liveDataStore[nodeKey] = {
+            level: parseFloat(v.level ?? v.water ?? v.water_level ?? 0),
+            flow: parseFloat(v.flow ?? v.discharge ?? 0),
+            rain: parseFloat(v.rain ?? v.rainfall ?? 0)
+          };
+        });
+      });
+    }
+
+    async function updateStationPinsIndividually() {
+      stationMarkersArray.forEach(m => m.remove());
+      stationMarkersArray = [];
+
+      for (const river of rivers) {
+        const telemetry = liveDataStore[river.node] || { level: 0, flow: 0, rain: 0 };
+        const elevation = await getElevationFromCoords(river.lng, river.lat);
+
+        let riskScore = 0;
+        if (model && minVals.length > 0 && maxVals.length > 0) {
+          try {
+            const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
+            const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+            const predictionResult = await predictionTensor.data();
+            riskScore = Math.round(predictionResult[0] * 100);
+          } catch (err) {
+            console.error("TensorFlow evaluation error:", err);
+          }
+        }
+
+        const pinColor = getMarkerColor(riskScore);
+        if (!pinColor) continue;
+
+        const indexPosition = rivers.indexOf(river);
+        const probChartId = `riverProb-${indexPosition}`;
+        const popup = new mapboxgl.Popup({ offset: 25 });
+
+        const markerInstance = new mapboxgl.Marker({ color: pinColor })
+          .setLngLat([river.lng, river.lat])
+          .setPopup(popup)
+          .addTo(map);
+
+        markerInstance.getElement().addEventListener('click', async (e) => {
+          e.stopPropagation();
+          map.flyTo({ center: [river.lng, river.lat], zoom: 17, essential: true, pitch: 65 });
+          document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+          await triggerAnalysis(new mapboxgl.LngLat(river.lng, river.lat), telemetry);
+
+          popup.setHTML(`
+            <div class="popup-chart-container" style="min-width: 180px; font-family: system-ui, sans-serif;">
+                <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
+                <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2" style="font-size: 0.75rem;">
+                    <div><small class="text-dark d-block" style="font-size: 0.55rem;">LEVEL</small><strong>${telemetry.level.toFixed(2)}m</strong></div>
+                    <div><small class="text-dark d-block" style="font-size: 0.55rem;">FLOW</small><strong>${telemetry.flow.toFixed(1)}</strong></div>
+                    <div><small class="text-dark d-block" style="font-size: 0.55rem;">RAIN</small><strong>${telemetry.rain.toFixed(1)}</strong></div>
+                    <div><small class="text-dark d-block" style="font-size: 0.55rem;">RISK</small><strong style="color: ${pinColor}">${riskScore}%</strong></div>
+                </div>
+                <div class="mt-2 pt-1">
+                    <span style="font-size: 0.65rem; font-weight: bold; color: #555;">24h Forecast Probability Trend</span>
+                    <div style="height: 70px; width: 100%;"><canvas id="${probChartId}"></canvas></div>
+                </div>
+            </div>
+          `);
+          markerInstance.togglePopup();
+        });
+
+        stationMarkersArray.push(markerInstance);
+
+        popup.on('open', async () => {
+          const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
+          setTimeout(() => {
+            const pCtx = document.getElementById(probChartId);
+            if (!pCtx) return;
+            const existingChart = Chart.getChart(pCtx);
+            if (existingChart) existingChart.destroy();
+            new Chart(pCtx, {
+              type: 'line',
+              data: {
+                labels: ["Now", "+3h", "+12h", "+24h"],
+                datasets: [{ label: 'Prob %', data: forecastData, borderColor: pinColor, backgroundColor: 'rgba(0, 0, 0, 0.05)', fill: true, tension: 0.4, pointRadius: 2 }]
+              },
+              options: {
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false,
+                scales: {
+                  x: { grid: { display: false }, ticks: { font: { size: 7 } } },
+                  y: { beginAtZero: true, max: 100, ticks: { font: { size: 7 } } }
+                }
+              }
+            });
+          }, 50);
+        });
+      }
+    }
+
+    async function getForecast(currentInput) {
+      const horizons = [1, 3, 12, 24];
+      let last = [...currentInput];
+      const predictions = [];
+      if (!model) return [0, 0, 0, 0];
+      for (const h of horizons) {
+        const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
+        predictions.push(pred[0] * 100);
+        last[0] += 0.05; 
+      }
+      return predictions;
+    }
+
+    async function updateMapColorCodesBasedOnPredictions() {
+      if (!model || minVals.length === 0 || maxVals.length === 0) return;
+
+      for (const [id, areaObj] of Object.entries(loadedFloodAreasMap)) {
+        if (!map.getLayer(areaObj.layerId)) continue;
+
+        const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
+        const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
+        let riskScore = 0;
+        try {
+          const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
+          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+          const predictionResult = await predictionTensor.data();
+          riskScore = Math.round(predictionResult[0] * 100);
+        } catch (err) {
+          console.error("Evaluation error:", err);
+        }
+
+        const newColor = getFloodColor(riskScore);
+        if (areaObj.type === 'municipality') {
+          let lineColor = 'rgba(40, 167, 69, 0.8)';
+          if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
+          else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
+          else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.8)';
+          map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
+        } else {
+          map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
+        }
+      }
+    }
+    
+    async function triggerAnalysis(lngLat, forcedTelemetry = null) {
+      const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
+      
+      let municipality = null;
+      try {
+        const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`);
+        const data = await resp.json();
+        if (data.features?.length > 0) {
+          const f = data.features[0];
+          const placeName = f.place_name.toLowerCase();
+          if (/laoag/i.test(placeName)) municipality = 'Laoag';
+          else if (/san nicolas/i.test(placeName)) municipality = 'San Nicolas';
+          else if (/pasuquin/i.test(placeName)) municipality = 'Pasuquin';
+          else if (/bacarra/i.test(placeName)) municipality = 'Bacarra';
+          else if (/vintar/i.test(placeName)) municipality = 'Vintar';
+          else if (f.context) {
+            f.context.forEach(ctx => {
+              if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
+              else if (/san nicolas/i.test(ctx.text)) municipality = 'San Nicolas';
+              else if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+              else if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
+              else if (/vintar/i.test(ctx.text)) municipality = 'Vintar';
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Geocode error:", err);
+      }
+
+      if (municipality) {
+        subscribeToMunicipalityData(municipality);
+      }
+
+      const nodeKey = getNodeKeyForMunicipality(municipality);
+      const activeTelemetry = forcedTelemetry || liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
+      
+      let currentWater = parseFloat(activeTelemetry.level) || 0;
+      let currentRain = parseFloat(activeTelemetry.rain) || 0;
+      let currentDischarge = parseFloat(activeTelemetry.flow) || 0;
+      
+      document.getElementById('kpiWater').innerHTML = `${currentWater.toFixed(2)} m`;
+      document.getElementById('kpiRain').innerHTML = `${currentRain.toFixed(2)} mm`;
+      document.getElementById('kpiDischarge').innerHTML = `${currentDischarge.toFixed(2)} m³/s`;
+      
+      let finalRisk = 0;
+      if (model && minVals.length > 0 && maxVals.length > 0) {
+        try {
+          const normFeatures = normalize([currentWater, currentRain, currentDischarge, elevation]);
+          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+          const predictionResult = await predictionTensor.data();
+          finalRisk = Math.round(predictionResult[0] * 100);
+        } catch (err) {
+          console.error("Runtime processing error:", err);
+        }
+      }
+      
+      const kpiRiskEl = document.getElementById("kpiRisk");
+      let riskLabel = "Low", riskColor = "rgba(40, 167, 69, 1)";
+      if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
+      else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
+      else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
+
+      if (kpiRiskEl) kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
+      
+      let interpretText = "Low Risk Scenario", interpretColor = "rgba(40, 167, 69, 1)";
+      let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
+      
+      if (finalRisk >= 70) {
+        interpretText = "Severe Flood Risk";
+        interpretColor = "rgba(220, 53, 69, 1)";
+        recommendation = "CRITICAL: High threat detected! Prepare immediate high-ground evacuation protocols.";
+      } else if (finalRisk >= 50) {
+        interpretText = "High Flood Risk";
+        interpretColor = "rgba(253, 126, 20, 1)";
+        recommendation = "WARNING: Elevated threat parameters detected. Monitor local water bounds closely.";
+      } else if (finalRisk >= 20) {
+        interpretText = "Moderate Flood Risk";
+        interpretColor = "rgba(255, 193, 7, 1)";
+        recommendation = "CAUTION: Elevating indices monitored. Secure low-lying equipment and proactive measures.";
+      }
+      
+      const infoPanel = document.getElementById('details'); 
+      if (infoPanel) {
+        infoPanel.innerHTML = `
+          <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
+              <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis (${municipality || 'General'})</h6>
+              <div class="d-flex justify-content-between mt-1"><span class="text-dark">Target Elevation:</span><span class="fw-semibold">${elevation.toFixed(1)}m</span></div>
+              <div class="d-flex justify-content-between mt-1"><span class="text-dark">Current Water Level:</span><span class="fw-semibold">${currentWater.toFixed(2)}m</span></div>
+              <div class="mt-2 pt-2 border-top">
+                  <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
+                  <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.92rem;">${interpretText}</span>
+              </div>
+              <div class="mt-2">
+                  <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
+                  <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px;">${recommendation}</p>
+              </div>
+          </div>
+        `;
+      }
+    }
+    
+    function normalize(row) {
+      return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
+    }
+    
+    async function loadModel() {
+      try {
+        const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+        const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+        
+        const config = await (await fetch(jsonUrl)).json();
+        const weights = await (await fetch(weightsUrl)).arrayBuffer();
+        
+        minVals = config.metadata.minVals;
+        maxVals = config.metadata.maxVals;
+        
+        model = await tf.loadLayersModel(tf.io.fromMemory(config.modelTopology, config.weightSpecs, weights));
+        await updateMapColorCodesBasedOnPredictions();
+        await updateStationPinsIndividually();
+      } catch (err) {
+        console.error("Model load error:", err);
+      }
+    }
+  </script>
+</body>
+</html>
