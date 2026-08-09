@@ -34,7 +34,7 @@
       display: flex;
       overflow: hidden;
     }
-
+    
     /* Fixed Sidebar Styles */
     .sidebar { 
       background-color: #1c96c5; 
@@ -70,7 +70,7 @@
       overflow-x: hidden;
       padding-bottom: 2rem;
     }
-
+    
     .main-content::-webkit-scrollbar { width: 6px; }
     .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
@@ -108,27 +108,27 @@
       backdrop-filter: blur(4px);
       transition: width 0.3s ease, padding 0.3s ease;
     }
-
+    
     #riskControlBox.collapsed {
       width: 44px !important;
       padding: 6px !important;
       overflow: hidden;
     }
-
+    
     #riskControlBox.collapsed .collapse-content {
       display: none !important;
     }
-
+    
     #riskControlBox.collapsed .overlay-header-title {
       display: none !important;
     }
-
+    
     #riskControlBox.collapsed .overlay-header {
       justify-content: center !important;
       margin: 0 !important;
       padding: 0 !important;
     }
-
+    
     .overlay-header {
       font-size: 0.85rem;
       font-weight: 700;
@@ -136,7 +136,7 @@
       cursor: pointer;
       user-select: none;
     }
-
+    
     .overlay-toggle-btn {
       background: transparent;
       border: none;
@@ -144,13 +144,13 @@
       color: #212529;
       font-size: 0.95rem;
     }
-
+    
     /* Darker Yellow Custom Badge Styling */
     .bg-dark-yellow {
       background-color: #d9a000 !important;
       color: #ffffff !important;
     }
-
+    
     @media (max-width: 767.98px) {
       html, body { overflow: auto; }
       .app-container { height: auto; overflow: visible; }
@@ -218,14 +218,14 @@
           <div class="d-flex align-items-center gap-2 ms-auto">
             <!-- Desktop Submenu Links -->
             <div class="d-none d-md-flex align-items-center gap-1">
-              <a href="floods3.html" class="btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                <i class="bi bi-map-fill text-info"></i> Flood Map
+              <a href="floodsmap.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-map-fill text-info"></i> By Map
               </a>
-              <a href="floods4.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                <i class="bi bi-list text-info"></i> All Barangays
+              <a href="floods3.html" class="btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-geo-alt-fill"></i> By Pins
               </a>
             </div>
-
+            
             <!-- Mobile Collapsible Submenu Dropdown Button -->
             <div class="dropdown d-md-none">
               <button class="btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
@@ -236,7 +236,7 @@
                 <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
               </ul>
             </div>
-
+            
             <!-- Username Dropdown -->
             <div class="dropdown">
               <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
@@ -352,17 +352,17 @@
         window.location.href = 'log.html';
       }
       document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "User";
-
+      
       updateKPIs();
       await loadModel(); 
       await populateRiverData();
-
+      
       // Setup Collapsible Risk Box with Icon Transformation
       const box = document.getElementById('riskControlBox');
       const header = document.getElementById('riskHeader');
       const btn = document.getElementById('riskToggleBtn');
       const icon = document.getElementById('riskToggleIcon');
-
+      
       const toggleAction = () => {
         box.classList.toggle('collapsed');
         if (box.classList.contains('collapsed')) {
@@ -371,7 +371,7 @@
           icon.className = "bi bi-chevron-right";
         }
       };
-
+      
       if (header) header.onclick = toggleAction;
       if (btn) btn.onclick = (e) => {
         e.stopPropagation();
