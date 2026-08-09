@@ -193,8 +193,8 @@
         </div>
         
         <ul class="nav flex-column">
-          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
         </ul>
       </nav>
@@ -346,6 +346,30 @@
     </div>
   </div>
 
+  <!-- Video Popup Modal -->
+  <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h5 class="modal-title" id="videoModalLabel">System Overview Video</h5>
+          <div class="d-flex align-items-center gap-2">
+            <!-- Unmute/Mute Toggle Control -->
+            <button id="unmuteBtn" class="btn btn-sm btn-warning">
+              <i class="bi bi-volume-mute-fill"></i> Unmute Audio
+            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body p-0">
+          <video id="popupVideo" class="w-100" controls autoplay muted playsinline style="border-bottom-left-radius: .3rem; border-bottom-right-radius: .3rem;">
+            <source src="users.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -380,6 +404,50 @@
           if (addressInputEl) addressInputEl.focus();
         });
       }
+
+      // Setup Video Modal
+      const videoModalElement = document.getElementById('videoModal');
+      const videoElement = document.getElementById('popupVideo');
+      const unmuteBtn = document.getElementById('unmuteBtn');
+      const videoModal = new bootstrap.Modal(videoModalElement);
+      
+      // Display Video Modal on load after initial location modal or alongside it
+      videoModal.show();
+      
+      if (videoElement) {
+        videoElement.muted = true;
+        videoElement.play().catch(err => console.log("Autoplay handled:", err));
+      }
+      
+      if (unmuteBtn && videoElement) {
+        unmuteBtn.addEventListener('click', function() {
+          if (videoElement.muted) {
+            videoElement.muted = false;
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
+            unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
+          } else {
+            videoElement.muted = true;
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Unmute Audio';
+            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
+          }
+        });
+      }
+      
+      document.addEventListener('click', function enableAudioOnFirstClick() {
+        if (videoElement && videoElement.muted) {
+          videoElement.muted = false;
+          if (unmuteBtn) {
+            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
+            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
+          }
+        }
+      }, { once: true });
+      
+      videoModalElement.addEventListener('hidden.bs.modal', function () {
+        if (videoElement) {
+          videoElement.pause();
+        }
+      });
       
       updateKPIs();
       await loadModel(); 
@@ -608,13 +676,12 @@
       }
     });
 
-    // Green (< 20%) set strictly to 20% opacity (alpha 0.2)
     function getFloodColor(vulnerability) {
       const val = parseFloat(vulnerability) || 0;
-      if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     // Severe Risk (Red)
-      if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    // High Risk (Orange)
-      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     // Moderate Risk (Yellow)
-      return 'rgba(40, 167, 69, 0.2)';                    // Low / Safe Risk (Green with 20% opacity)
+      if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
+      if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
+      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
+      return 'rgba(40, 167, 69, 0.2)';                    
     }
     
     let activeMarker = null;

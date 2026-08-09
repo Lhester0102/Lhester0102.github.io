@@ -35,7 +35,7 @@
             display: flex;
             overflow: hidden;
         }
-
+        
         /* Responsive Navigation Sidebar */
         .sidebar { 
             background-color: #1c96c5; 
@@ -43,7 +43,7 @@
             z-index: 1050;
             overflow-y: auto;
         }
-
+        
         /* Mobile Sidebar Off-canvas Overlay */
         @media (max-width: 767.98px) {
             .sidebar {
@@ -68,7 +68,7 @@
                 top: 0;
             }
         }
-
+        
         .nav-link { 
             color: rgba(255, 255, 255, 0.9); 
             transition: 0.2s; 
@@ -93,7 +93,7 @@
             overflow-x: hidden;
             padding-bottom: 2rem;
         }
-
+        
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         
@@ -123,7 +123,7 @@
             background-color: #d9a000 !important;
             color: #ffffff !important;
         }
-
+        
         /* Geocoder Search Bar Container */
         #geocoderContainer {
             width: 100%;
@@ -135,7 +135,7 @@
             border: 1px solid #ced4da;
             border-radius: 8px;
         }
-
+        
         /* KPI Cards Grid */
         .kpi-card {
             background-color: #f8f9fa;
@@ -168,7 +168,7 @@
             color: #198754;
             line-height: 1.1;
         }
-
+        
         /* Scrollable Right Panel Viewport */
         .analysis-scroll-panel {
             max-height: 100vh;
@@ -176,7 +176,7 @@
         }
         .analysis-scroll-panel::-webkit-scrollbar { width: 5px; }
         .analysis-scroll-panel::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
-
+        
         @media (max-width: 767.98px) {
             html, body { overflow: auto; }
             .analysis-scroll-panel { max-height: none; }
@@ -188,7 +188,7 @@
         
         /* Instruction Modal Text Alignment */
         .swal2-html-container ul { text-align: left !important; }
-
+        
         /* Barangay Below Search Styling */
         .brgy-badge {
             font-size: 0.75rem;
@@ -224,8 +224,8 @@
                     <h6 class="fw-bold mb-0">Geospatial DSS</h6>
                 </div>
                 <ul class="nav flex-column">
-                    <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
                     <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-map me-2"></i> Flood Watch</a></li>
+                    <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
                 </ul>
             </nav>
@@ -261,7 +261,7 @@
                             </label>
                             <div id="geocoderContainer"></div>
                         </div>
-
+                        
                         <!-- KPI METRICS SUMMARY GRID -->
                         <div class="row g-2">
                             <div class="col-6 col-sm-3 col-lg-3">
@@ -293,7 +293,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        
                         <!-- BARANGAY FLOOD PROBABILITY LIST CONTAINER -->
                         <div class="card p-3 shadow-sm" id="barangayRiskCard">
                             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-bottom pb-2 mb-2 gap-1">
@@ -308,7 +308,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- RIGHT COLUMN: SYSTEM FIELD ANALYSIS -->
                     <div class="col-lg-6">
                         <div class="card p-3 shadow-sm analysis-scroll-panel" id="detailsCard">
@@ -321,7 +321,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Hidden Input Backstore for Sensor Processing -->
                 <div class="d-none">
                     <input value="0" id="waterLevel">
@@ -332,397 +332,397 @@
             </main>
         </div>
     </div>
-
-<!-- Detailed Forecast Modal -->
-<div class="modal fade" id="probModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="kpiModalTitle">10-Day Historical Reference & Forecast</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <canvas id="probChartModal"></canvas>
-                <p class="small text-dark mt-2" id="kpiModalSubtext">Graph displays 10-day historical reference calculated backwards from today leading seamlessly through current value into +1h, +3h, +12h, and +24h predictions.</p>
+    
+    <!-- Detailed Forecast Modal -->
+    <div class="modal fade" id="probModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kpiModalTitle">10-Day Historical Reference & Forecast</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <canvas id="probChartModal"></canvas>
+                    <p class="small text-dark mt-2" id="kpiModalSubtext">Graph displays 10-day historical reference calculated backwards from today leading seamlessly through current value into +1h, +3h, +12h, and +24h predictions.</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
-<script>
-    let model, minVals=[], maxVals=[];
-    let lastProbData = [];
-    let forecastWater = [];
-    let forecastRain = [];
-    let forecastFlow = [];
     
-    let historyWater = [];
-    let historyRain = [];
-    let historyFlow = [];
-    let historyLabels = [];
-
-    let pinsCache = null;
-    let currentLocationName = "Selected Coordinate Point";
-    let selectedActiveLngLat = null;
-    let thresholdData = { level: 2.5, level_high: 4, rain: 40, rain_high: 80, flow: 60, flow_high: 125 };
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     
-    const initialCenter = [120.5927871, 18.1959782];
-    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-
-    window.onload = function() {
-        updateKPIs();
-        loadModel();
-        initGeocoder();
-        listenToThresholds();
-
-        ['waterLevel', 'rainfall', 'discharge', 'elevation'].forEach(id => {
-            const inputEl = document.getElementById(id);
-            if (inputEl) {
-                inputEl.addEventListener('input', () => {
-                    if (currentMunicipality) {
-                        updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
-                    }
-                });
-            }
-        });
-    }
-
-    function initGeocoder() {
-        const geocoder = new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            mapboxgl: mapboxgl,
-            marker: false,
-            placeholder: 'Search address or location...',
-            proximity: { longitude: initialCenter[0], latitude: initialCenter[1] },
-            types: 'country,region,place,locality,neighborhood,address'
-        });
-
-        geocoder.addTo('#geocoderContainer');
-
-        geocoder.on('result', async (event) => {
-            const [lng, lat] = event.result.center;
-            const point = { lng, lat };
-            selectedActiveLngLat = point;
-            await triggerAnalysis(point);
-        });
-
-        promptLocationChoice();
-    }
-
-    function promptLocationChoice() {
-        Swal.fire({
-            title: 'Location Selection',
-            text: 'How would you like to set your location for diagnostic simulation?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Use Current Location',
-            cancelButtonText: 'Search Input',
-            confirmButtonColor: '#1c96c5',
-            cancelButtonColor: '#212529',
-            allowOutsideClick: false
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async (position) => {
-                        const point = {
-                            lng: position.coords.longitude,
-                            lat: position.coords.latitude
-                        };
-                        selectedActiveLngLat = point;
-                        await triggerAnalysis(point);
-                    }, (error) => {
-                        Swal.fire('Geolocation Error', 'Unable to retrieve location. Please use the search input.', 'warning');
-                        focusGeocoderInput();
+    <script>
+        let model, minVals=[], maxVals=[];
+        let lastProbData = [];
+        let forecastWater = [];
+        let forecastRain = [];
+        let forecastFlow = [];
+        
+        let historyWater = [];
+        let historyRain = [];
+        let historyFlow = [];
+        let historyLabels = [];
+        
+        let pinsCache = null;
+        let currentLocationName = "Selected Coordinate Point";
+        let selectedActiveLngLat = null;
+        let thresholdData = { level: 2.5, level_high: 4, rain: 40, rain_high: 80, flow: 60, flow_high: 125 };
+        
+        const initialCenter = [120.5927871, 18.1959782];
+        mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+        
+        window.onload = function() {
+            updateKPIs();
+            loadModel();
+            initGeocoder();
+            listenToThresholds();
+            
+            ['waterLevel', 'rainfall', 'discharge', 'elevation'].forEach(id => {
+                const inputEl = document.getElementById(id);
+                if (inputEl) {
+                    inputEl.addEventListener('input', () => {
+                        if (currentMunicipality) {
+                            updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
+                        }
                     });
+                }
+            });
+        }
+        
+        function initGeocoder() {
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                marker: false,
+                placeholder: 'Search address or location...',
+                proximity: { longitude: initialCenter[0], latitude: initialCenter[1] },
+                types: 'country,region,place,locality,neighborhood,address'
+            });
+            
+            geocoder.addTo('#geocoderContainer');
+            
+            geocoder.on('result', async (event) => {
+                const [lng, lat] = event.result.center;
+                const point = { lng, lat };
+                selectedActiveLngLat = point;
+                await triggerAnalysis(point);
+            });
+            
+            promptLocationChoice();
+        }
+        
+        function promptLocationChoice() {
+            Swal.fire({
+                title: 'Location Selection',
+                text: 'How would you like to set your location for diagnostic simulation?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Use Current Location',
+                cancelButtonText: 'Search Input',
+                confirmButtonColor: '#1c96c5',
+                cancelButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(async (position) => {
+                            const point = {
+                                lng: position.coords.longitude,
+                                lat: position.coords.latitude
+                            };
+                            selectedActiveLngLat = point;
+                            await triggerAnalysis(point);
+                        }, (error) => {
+                            Swal.fire('Geolocation Error', 'Unable to retrieve location. Please use the search input.', 'warning');
+                            focusGeocoderInput();
+                        });
+                    } else {
+                        Swal.fire('Not Supported', 'Geolocation is not supported by your browser.', 'warning');
+                        focusGeocoderInput();
+                    }
                 } else {
-                    Swal.fire('Not Supported', 'Geolocation is not supported by your browser.', 'warning');
                     focusGeocoderInput();
                 }
-            } else {
-                focusGeocoderInput();
-            }
-        });
-    }
-    
-    function focusGeocoderInput() {
-        setTimeout(() => {
-            const input = document.querySelector('#geocoderContainer .mapboxgl-ctrl-geocoder--input');
-            if (input) input.focus();
-        }, 300);
-    }
-    
-    function updateKPIs() {
-        const wVal = parseFloat(document.getElementById("waterLevel").value) || 0;
-        const rVal = parseFloat(document.getElementById("rainfall").value) || 0;
-        const dVal = parseFloat(document.getElementById("discharge").value) || 0;
-
-        const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
-        const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
-        let waterColor = "#198754";
-        if (wVal >= levelCritical) waterColor = "#dc3545";
-        else if (wVal >= levelWarning) waterColor = "#d9a000";
-
-        const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
-        const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
-        let rainColor = "#0dcaf0";
-        if (rVal >= rainCritical) rainColor = "#dc3545";
-        else if (rVal >= rainWarning) rainColor = "#d9a000";
-
-        const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
-        const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
-        let flowColor = "#198754";
-        if (dVal >= flowCritical) flowColor = "#dc3545";
-        else if (dVal >= flowWarning) flowColor = "#d9a000";
-
-        document.getElementById("kpiWater").innerHTML = `<span style="color: ${waterColor}">${wVal} m</span>`;
-        document.getElementById("kpiRain").innerHTML = `<span style="color: ${rainColor}">${rVal} mm</span>`;
-        document.getElementById("kpiDischarge").innerHTML = `<span style="color: ${flowColor}">${dVal} m³/s</span>`;
-    }
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-        authDomain: "flooded-95eeb.firebaseapp.com",
-        projectId: "flooded-95eeb",
-        storageBucket: "flooded-95eeb.firebasestorage.app",
-        messagingSenderId: "142547476223",
-        appId: "1:142547476223:web:70de7014c664e26d0636ca"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storageRef = firebase.storage().ref();
-    const dataRef = db.ref('data');
-    const data2Ref = db.ref('data2');
-    const data3Ref = db.ref('data3');
-    const pinsRef = db.ref('pins');
-    
-    let currentMunicipality = null;
-    let currentDataListener = null;
-
-    function listenToThresholds() {
-        db.ref('threshold').on('value', snapshot => {
-            if (snapshot.exists()) {
-                thresholdData = { ...thresholdData, ...snapshot.val() };
-                updateKPIs();
-            }
-        });
-    }
-    
-    pinsRef.once('value').then(snapshot => {
-        pinsCache = snapshot.val();
-    });
-
-    function detachCurrentDataListener() {
-        if (currentDataListener && currentDataListener.off) {
-            currentDataListener.off('value');
+            });
         }
-        currentDataListener = null;
-        currentMunicipality = null;
-    }
-    
-    function setSensorInputs(level, rain, flow) {
-        if (level !== undefined && level !== null) {
-            document.getElementById("waterLevel").value = level;
-        }
-        if (rain !== undefined && rain !== null) {
-            document.getElementById("rainfall").value = rain;
-        }
-        if (flow !== undefined && flow !== null) {
-            document.getElementById("discharge").value = flow;
-        }
-        updateKPIs();
-    }
-
-    function getPastTenDaysLabels() {
-        const labels = [];
-        const today = new Date();
-        for (let i = 10; i >= 1; i--) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - i);
-            labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        }
-        return labels;
-    }
-    
-    function processMunicipalitySnapshot(snapshot) {
-        if (!snapshot.exists()) return;
         
-        const rawWater = [];
-        const rawRain = [];
-        const rawFlow = [];
-        let lastLevel, lastRain, lastFlow;
-
-        snapshot.forEach(child => {
-            const v = child.val();
-            const level = parseFloat(v.level ?? v.water ?? v.water_level ?? 0);
-            const rain = parseFloat(v.rain ?? v.rainfall ?? 0);
-            const flow = parseFloat(v.flow ?? v.discharge ?? v.discharge_rate ?? v.flow_rate ?? 0);
-
-            rawWater.push(level);
-            rawRain.push(rain);
-            rawFlow.push(flow);
-
-            lastLevel = level;
-            lastRain = rain;
-            lastFlow = flow;
-        });
-
-        historyLabels = getPastTenDaysLabels();
-        historyWater = [];
-        historyRain = [];
-        historyFlow = [];
-
-        const totalRaw = rawWater.length;
-        const chunkSize = Math.max(1, Math.floor(totalRaw / 10));
-
-        for (let i = 0; i < 10; i++) {
-            const start = i * chunkSize;
-            const end = (i === 9) ? totalRaw : start + chunkSize;
+        function focusGeocoderInput() {
+            setTimeout(() => {
+                const input = document.querySelector('#geocoderContainer .mapboxgl-ctrl-geocoder--input');
+                if (input) input.focus();
+            }, 300);
+        }
+        
+        function updateKPIs() {
+            const wVal = parseFloat(document.getElementById("waterLevel").value) || 0;
+            const rVal = parseFloat(document.getElementById("rainfall").value) || 0;
+            const dVal = parseFloat(document.getElementById("discharge").value) || 0;
             
-            const wChunk = rawWater.slice(start, end);
-            const rChunk = rawRain.slice(start, end);
-            const fChunk = rawFlow.slice(start, end);
-
-            const wAvg = wChunk.length ? wChunk.reduce((a, b) => a + b, 0) / wChunk.length : lastLevel;
-            const rAvg = rChunk.length ? rChunk.reduce((a, b) => a + b, 0) / rChunk.length : lastRain;
-            const fAvg = fChunk.length ? fChunk.reduce((a, b) => a + b, 0) / fChunk.length : lastFlow;
-
-            historyWater.push(Number(wAvg.toFixed(2)));
-            historyRain.push(Number(rAvg.toFixed(1)));
-            historyFlow.push(Number(fAvg.toFixed(1)));
+            const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
+            const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
+            let waterColor = "#198754";
+            if (wVal >= levelCritical) waterColor = "#dc3545";
+            else if (wVal >= levelWarning) waterColor = "#d9a000";
+            
+            const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
+            const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
+            let rainColor = "#0dcaf0";
+            if (rVal >= rainCritical) rainColor = "#dc3545";
+            else if (rVal >= rainWarning) rainColor = "#d9a000";
+            
+            const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
+            const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
+            let flowColor = "#198754";
+            if (dVal >= flowCritical) flowColor = "#dc3545";
+            else if (dVal >= flowWarning) flowColor = "#d9a000";
+            
+            document.getElementById("kpiWater").innerHTML = `<span style="color: ${waterColor}">${wVal} m</span>`;
+            document.getElementById("kpiRain").innerHTML = `<span style="color: ${rainColor}">${rVal} mm</span>`;
+            document.getElementById("kpiDischarge").innerHTML = `<span style="color: ${flowColor}">${dVal} m³/s</span>`;
         }
-
-        setSensorInputs(lastLevel, lastRain, lastFlow);
-        manualPredict();
-    }
-    
-    function subscribeToMunicipalityData(municipality) {
-        if (!municipality) return;
-        if (currentMunicipality === municipality) return;
-        detachCurrentDataListener();
-        currentMunicipality = municipality;
         
-        if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-            const ref = data2Ref.orderByKey().limitToLast(100);
-            currentDataListener = ref;
-            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
-        } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-            const ref = data3Ref.orderByKey().limitToLast(100);
-            currentDataListener = ref;
-            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
-        } else if (municipality === 'Pasuquin') {
-            const ref = dataRef.orderByKey().limitToLast(100);
-            currentDataListener = ref;
-            ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+            authDomain: "flooded-95eeb.firebaseapp.com",
+            projectId: "flooded-95eeb",
+            storageBucket: "flooded-95eeb.firebasestorage.app",
+            messagingSenderId: "142547476223",
+            appId: "1:142547476223:web:70de7014c664e26d0636ca"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const storageRef = firebase.storage().ref();
+        const dataRef = db.ref('data');
+        const data2Ref = db.ref('data2');
+        const data3Ref = db.ref('data3');
+        const pinsRef = db.ref('pins');
+        
+        let currentMunicipality = null;
+        let currentDataListener = null;
+        
+        function listenToThresholds() {
+            db.ref('threshold').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    thresholdData = { ...thresholdData, ...snapshot.val() };
+                    updateKPIs();
+                }
+            });
         }
-    }
-    
-    function getRiskCategory(val) {
-        if (typeof val === 'string') {
-            const strVal = val.toLowerCase().trim();
-            if (strVal === 'severe' || strVal === 'high' || strVal === 'moderate' || strVal === 'low') {
-                return strVal;
+        
+        pinsRef.once('value').then(snapshot => {
+            pinsCache = snapshot.val();
+        });
+        
+        function detachCurrentDataListener() {
+            if (currentDataListener && currentDataListener.off) {
+                currentDataListener.off('value');
+            }
+            currentDataListener = null;
+            currentMunicipality = null;
+        }
+        
+        function setSensorInputs(level, rain, flow) {
+            if (level !== undefined && level !== null) {
+                document.getElementById("waterLevel").value = level;
+            }
+            if (rain !== undefined && rain !== null) {
+                document.getElementById("rainfall").value = rain;
+            }
+            if (flow !== undefined && flow !== null) {
+                document.getElementById("discharge").value = flow;
+            }
+            updateKPIs();
+        }
+        
+        function getPastTenDaysLabels() {
+            const labels = [];
+            const today = new Date();
+            for (let i = 10; i >= 1; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            }
+            return labels;
+        }
+        
+        function processMunicipalitySnapshot(snapshot) {
+            if (!snapshot.exists()) return;
+            
+            const rawWater = [];
+            const rawRain = [];
+            const rawFlow = [];
+            let lastLevel, lastRain, lastFlow;
+            
+            snapshot.forEach(child => {
+                const v = child.val();
+                const level = parseFloat(v.level ?? v.water ?? v.water_level ?? 0);
+                const rain = parseFloat(v.rain ?? v.rainfall ?? 0);
+                const flow = parseFloat(v.flow ?? v.discharge ?? v.discharge_rate ?? v.flow_rate ?? 0);
+                
+                rawWater.push(level);
+                rawRain.push(rain);
+                rawFlow.push(flow);
+                
+                lastLevel = level;
+                lastRain = rain;
+                lastFlow = flow;
+            });
+            
+            historyLabels = getPastTenDaysLabels();
+            historyWater = [];
+            historyRain = [];
+            historyFlow = [];
+            
+            const totalRaw = rawWater.length;
+            const chunkSize = Math.max(1, Math.floor(totalRaw / 10));
+            
+            for (let i = 0; i < 10; i++) {
+                const start = i * chunkSize;
+                const end = (i === 9) ? totalRaw : start + chunkSize;
+                
+                const wChunk = rawWater.slice(start, end);
+                const rChunk = rawRain.slice(start, end);
+                const fChunk = rawFlow.slice(start, end);
+                
+                const wAvg = wChunk.length ? wChunk.reduce((a, b) => a + b, 0) / wChunk.length : lastLevel;
+                const rAvg = rChunk.length ? rChunk.reduce((a, b) => a + b, 0) / rChunk.length : lastRain;
+                const fAvg = fChunk.length ? fChunk.reduce((a, b) => a + b, 0) / fChunk.length : lastFlow;
+                
+                historyWater.push(Number(wAvg.toFixed(2)));
+                historyRain.push(Number(rAvg.toFixed(1)));
+                historyFlow.push(Number(fAvg.toFixed(1)));
+            }
+            
+            setSensorInputs(lastLevel, lastRain, lastFlow);
+            manualPredict();
+        }
+        
+        function subscribeToMunicipalityData(municipality) {
+            if (!municipality) return;
+            if (currentMunicipality === municipality) return;
+            detachCurrentDataListener();
+            currentMunicipality = municipality;
+            
+            if (municipality === 'Laoag' || municipality === 'San Nicolas') {
+                const ref = data2Ref.orderByKey().limitToLast(100);
+                currentDataListener = ref;
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
+            } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
+                const ref = data3Ref.orderByKey().limitToLast(100);
+                currentDataListener = ref;
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
+            } else if (municipality === 'Pasuquin') {
+                const ref = dataRef.orderByKey().limitToLast(100);
+                currentDataListener = ref;
+                ref.on('value', snapshot => processMunicipalitySnapshot(snapshot));
             }
         }
-        const num = parseFloat(val) || 0;
-        if (num >= 70) return 'severe';
-        if (num >= 50) return 'high';
-        if (num >= 20) return 'moderate';
-        return 'low';
-    }
-
-    async function triggerAnalysis(lngLat) {
-        selectedActiveLngLat = lngLat;
-        let elevation = 0;
-
-        try {
-            const elevQuery = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lngLat.lng},${lngLat.lat}.json?layers=contour&access_token=${mapboxgl.accessToken}`;
-            const elevResp = await fetch(elevQuery);
-            const elevData = await elevResp.json();
-            if (elevData.features?.length > 0) {
-                const maxEle = Math.max(...elevData.features.map(f => f.properties.ele || 0));
-                elevation = maxEle > 0 ? maxEle : 0;
-            }
-        } catch(err) {
-            console.warn("Terrain elevation lookup fallback active:", err);
-        }
-
-        const elevInput = document.getElementById('elevation');
-        if (elevInput) {
-            elevInput.value = Math.round(elevation);
-        }
-
-        const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality,place`;
-        currentLocationName = "Selected Coordinate Point";
-        let municipality = null;
         
-        try {
-            const resp = await fetch(geoQuery);
-            const data = await resp.json();
-            if (data.features?.length > 0) {
-                const f = data.features[0];
-                currentLocationName = f.place_name.split(',')[0];
-
-                if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
-                if (/san nicolas/i.test(f.place_name)) municipality = 'San Nicolas';
-                if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
-                if (/bacarra/i.test(f.place_name)) municipality = 'Bacarra';
-                if (/vintar/i.test(f.place_name)) municipality = 'Vintar';
-                if (!municipality && f.context) {
-                    f.context.forEach(ctx => {
-                        if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
-                        if (/san nicolas/i.test(ctx.text)) municipality = 'San Nicolas';
-                        if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
-                        if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
-                        if (/vintar/i.test(ctx.text)) municipality = 'Vintar';
-                    });
+        function getRiskCategory(val) {
+            if (typeof val === 'string') {
+                const strVal = val.toLowerCase().trim();
+                if (strVal === 'severe' || strVal === 'high' || strVal === 'moderate' || strVal === 'low') {
+                    return strVal;
                 }
             }
-        } catch (err) { 
-            console.error("Geocode error lookup details:", err); 
+            const num = parseFloat(val) || 0;
+            if (num >= 70) return 'severe';
+            if (num >= 50) return 'high';
+            if (num >= 20) return 'moderate';
+            return 'low';
         }
         
-        if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-            subscribeToMunicipalityData(municipality);
-        } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-            subscribeToMunicipalityData(municipality);
-        } else if (municipality === 'Pasuquin') {
-            subscribeToMunicipalityData('Pasuquin');
-        } else {
-            detachCurrentDataListener();
+        async function triggerAnalysis(lngLat) {
+            selectedActiveLngLat = lngLat;
+            let elevation = 0;
+            
+            try {
+                const elevQuery = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lngLat.lng},${lngLat.lat}.json?layers=contour&access_token=${mapboxgl.accessToken}`;
+                const elevResp = await fetch(elevQuery);
+                const elevData = await elevResp.json();
+                if (elevData.features?.length > 0) {
+                    const maxEle = Math.max(...elevData.features.map(f => f.properties.ele || 0));
+                    elevation = maxEle > 0 ? maxEle : 0;
+                }
+            } catch(err) {
+                console.warn("Terrain elevation lookup fallback active:", err);
+            }
+            
+            const elevInput = document.getElementById('elevation');
+            if (elevInput) {
+                elevInput.value = Math.round(elevation);
+            }
+            
+            const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality,place`;
+            currentLocationName = "Selected Coordinate Point";
+            let municipality = null;
+            
+            try {
+                const resp = await fetch(geoQuery);
+                const data = await resp.json();
+                if (data.features?.length > 0) {
+                    const f = data.features[0];
+                    currentLocationName = f.place_name.split(',')[0];
+                    
+                    if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
+                    if (/san nicolas/i.test(f.place_name)) municipality = 'San Nicolas';
+                    if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
+                    if (/bacarra/i.test(f.place_name)) municipality = 'Bacarra';
+                    if (/vintar/i.test(f.place_name)) municipality = 'Vintar';
+                    if (!municipality && f.context) {
+                        f.context.forEach(ctx => {
+                            if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
+                            if (/san nicolas/i.test(ctx.text)) municipality = 'San Nicolas';
+                            if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
+                            if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
+                            if (/vintar/i.test(ctx.text)) municipality = 'Vintar';
+                        });
+                    }
+                }
+            } catch (err) { 
+                console.error("Geocode error lookup details:", err); 
+            }
+            
+            if (municipality === 'Laoag' || municipality === 'San Nicolas') {
+                subscribeToMunicipalityData(municipality);
+            } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
+                subscribeToMunicipalityData(municipality);
+            } else if (municipality === 'Pasuquin') {
+                subscribeToMunicipalityData('Pasuquin');
+            } else {
+                detachCurrentDataListener();
+            }
+            
+            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
+            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
+            const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
+            
+            if (model) {
+                const input = [currentWater, currentRain, currentDischarge, elevation];
+                updateKPIs();
+                await generateForecastChart(input); 
+            }
+            
+            await updateBarangayRiskSection(municipality, lngLat);
         }
-
-        const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-        const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-        const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
         
-        if (model) {
-            const input = [currentWater, currentRain, currentDischarge, elevation];
-            updateKPIs();
-            await generateForecastChart(input); 
-        }
-
-        await updateBarangayRiskSection(municipality, lngLat);
-    }
-
-    function updateDashboardViews(finalRisk) {
-        const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-        const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-        const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
-        const elevation = parseFloat(document.getElementById('elevation').value) || 0;
-
-        let interpretText = "Low / Safe Scenario";
-        let interpretColor = "#198754";
-        let recommendation = "";
-        
-        if (finalRisk >= 70) {
-            interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
-            interpretColor = "#dc3545"; 
-            recommendation = `
+        function updateDashboardViews(finalRisk) {
+            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
+            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
+            const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
+            const elevation = parseFloat(document.getElementById('elevation').value) || 0;
+            
+            let interpretText = "Low / Safe Scenario";
+            let interpretColor = "#198754";
+            let recommendation = "";
+            
+            if (finalRisk >= 70) {
+                interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
+                interpretColor = "#dc3545"; 
+                recommendation = `
               <div class="alert alert-danger d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #dc3545;">
                 <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i>
                 <div>
@@ -734,10 +734,10 @@
                   </ul>
                 </div>
               </div>`;
-        } else if (finalRisk >= 50) {
-            interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
-            interpretColor = "#fd7e14"; 
-            recommendation = `
+            } else if (finalRisk >= 50) {
+                interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
+                interpretColor = "#fd7e14"; 
+                recommendation = `
               <div class="alert alert-warning text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #fd7e14; background-color: #fff3cd;">
                 <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i>
                 <div>
@@ -750,10 +750,10 @@
                   </ul>
                 </div>
               </div>`;
-        } else if (finalRisk >= 20) {
-            interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
-            interpretColor = "#d9a000"; 
-            recommendation = `
+            } else if (finalRisk >= 20) {
+                interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
+                interpretColor = "#d9a000"; 
+                recommendation = `
               <div class="alert alert-info text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #d9a000; background-color: #fff8e1;">
                 <i class="bi bi-info-circle-fill fs-4 flex-shrink-0" style="color: #d9a000;"></i>
                 <div>
@@ -766,8 +766,8 @@
                   </ul>
                 </div>
               </div>`;
-        } else {
-            recommendation = `
+            } else {
+                recommendation = `
               <div class="alert alert-success text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #198754; background-color: #e8f5e9;">
                 <i class="bi bi-shield-check text-success fs-4 flex-shrink-0"></i>
                 <div>
@@ -775,11 +775,11 @@
                   <p class="mb-0 small">Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.</p>
                 </div>
               </div>`;
-        }
-
-        const displayMunicipality = currentMunicipality ? currentMunicipality : "--";
-
-        const analysisContent = `
+            }
+            
+            const displayMunicipality = currentMunicipality ? currentMunicipality : "--";
+            
+            const analysisContent = `
             <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold text-dark small">${currentLocationName}</span>
@@ -806,96 +806,96 @@
                 </div>
             </div>
         `;
-        
-        const infoPanel = document.getElementById('details'); 
-        if (infoPanel) {
-            infoPanel.innerHTML = analysisContent;
-        }
-    }
-    
-    async function updateBarangayRiskSection(municipality, targetLngLat = null) {
-        const titleEl = document.getElementById("selectedMunicipalityTitle");
-        const countBadgeEl = document.getElementById("totalBrgyCount");
-        const contentEl = document.getElementById("barangayRiskContent");
-
-        if (!municipality) {
-            titleEl.innerText = "";
-            countBadgeEl.innerText = "No Municipality Selected";
-            contentEl.innerHTML = `<p class="text-muted small mb-0">Search a location within a recognized municipality to filter barangay flood risk predictions.</p>`;
-            return;
-        }
-
-        titleEl.innerText = `— (${municipality})`;
-
-        let barangayRiskData = { severe: [], high: [], moderate: [] };
-
-        const processPinNode = async (pinData) => {
-            if (!pinData) return;
-            const fallbackMunRegex = new RegExp(municipality.trim(), 'i');
-
-            const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
-            const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
-            const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
-
-            for (const [id, p] of Object.entries(pinData)) {
-                const pinMun = p.municipality || p.city || p.town || "";
-                
-                const matchesMunicipality = pinMun ? fallbackMunRegex.test(pinMun) : false;
-
-                if (matchesMunicipality) {
-                    const brgyName = p.barangay || p.name || p.title || "Barangay Pin";
-
-                    let pinElev = parseFloat(p.elevation ?? p.elev ?? p.alt);
-                    if (isNaN(pinElev)) pinElev = parseFloat(document.getElementById('elevation').value) || 0;
-
-                    const pinWater = parseFloat(p.water_level ?? p.water ?? p.level) || currentWater;
-                    const pinRain = parseFloat(p.rainfall ?? p.rain) || currentRain;
-                    const pinFlow = parseFloat(p.discharge ?? p.flow) || currentDischarge;
-
-                    let predictedProbability = 0;
-
-                    if (model) {
-                        const feat = [pinWater, pinRain, pinFlow, pinElev];
-                        const norm = normalize(feat);
-                        const predTensor = model.predict(tf.tensor2d([norm]));
-                        const predData = await predTensor.data();
-                        predictedProbability = Math.round(predData[0] * 100);
-                        predTensor.dispose();
-                    }
-
-                    const category = getRiskCategory(predictedProbability);
-
-                    if (category === 'severe') barangayRiskData.severe.push({ name: brgyName, val: predictedProbability });
-                    else if (category === 'high') barangayRiskData.high.push({ name: brgyName, val: predictedProbability });
-                    else if (category === 'moderate') barangayRiskData.moderate.push({ name: brgyName, val: predictedProbability });
-                }
+            
+            const infoPanel = document.getElementById('details'); 
+            if (infoPanel) {
+                infoPanel.innerHTML = analysisContent;
             }
-        };
-
-        if (pinsCache) {
-            await processPinNode(pinsCache);
-        } else {
-            const snapshot = await pinsRef.once('value');
-            pinsCache = snapshot.val();
-            await processPinNode(pinsCache);
         }
-
-        renderBarangayRiskUI(barangayRiskData, titleEl, countBadgeEl, contentEl);
-    }
-
-    function renderBarangayRiskUI(barangayRiskData, titleEl, countBadgeEl, contentEl) {
-        const totalCount = barangayRiskData.severe.length + barangayRiskData.high.length + barangayRiskData.moderate.length;
-        countBadgeEl.innerText = `${totalCount} Barangays Found`;
-
-        if (totalCount === 0) {
-            contentEl.innerHTML = `<p class="text-muted small mb-0">No moderate, high, or severe risk barangays predicted for this selected municipality under current parameters.</p>`;
-            return;
+        
+        async function updateBarangayRiskSection(municipality, targetLngLat = null) {
+            const titleEl = document.getElementById("selectedMunicipalityTitle");
+            const countBadgeEl = document.getElementById("totalBrgyCount");
+            const contentEl = document.getElementById("barangayRiskContent");
+            
+            if (!municipality) {
+                titleEl.innerText = "";
+                countBadgeEl.innerText = "No Municipality Selected";
+                contentEl.innerHTML = `<p class="text-muted small mb-0">Search a location within a recognized municipality to filter barangay flood risk predictions.</p>`;
+                return;
+            }
+            
+            titleEl.innerText = `— (${municipality})`;
+            
+            let barangayRiskData = { severe: [], high: [], moderate: [] };
+            
+            const processPinNode = async (pinData) => {
+                if (!pinData) return;
+                const fallbackMunRegex = new RegExp(municipality.trim(), 'i');
+                
+                const currentWater = parseFloat(document.getElementById('waterLevel').value) || 0;
+                const currentRain = parseFloat(document.getElementById('rainfall').value) || 0;
+                const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
+                
+                for (const [id, p] of Object.entries(pinData)) {
+                    const pinMun = p.municipality || p.city || p.town || "";
+                    
+                    const matchesMunicipality = pinMun ? fallbackMunRegex.test(pinMun) : false;
+                    
+                    if (matchesMunicipality) {
+                        const brgyName = p.barangay || p.name || p.title || "Barangay Pin";
+                        
+                        let pinElev = parseFloat(p.elevation ?? p.elev ?? p.alt);
+                        if (isNaN(pinElev)) pinElev = parseFloat(document.getElementById('elevation').value) || 0;
+                        
+                        const pinWater = parseFloat(p.water_level ?? p.water ?? p.level) || currentWater;
+                        const pinRain = parseFloat(p.rainfall ?? p.rain) || currentRain;
+                        const pinFlow = parseFloat(p.discharge ?? p.flow) || currentDischarge;
+                        
+                        let predictedProbability = 0;
+                        
+                        if (model) {
+                            const feat = [pinWater, pinRain, pinFlow, pinElev];
+                            const norm = normalize(feat);
+                            const predTensor = model.predict(tf.tensor2d([norm]));
+                            const predData = await predTensor.data();
+                            predictedProbability = Math.round(predData[0] * 100);
+                            predTensor.dispose();
+                        }
+                        
+                        const category = getRiskCategory(predictedProbability);
+                        
+                        if (category === 'severe') barangayRiskData.severe.push({ name: brgyName, val: predictedProbability });
+                        else if (category === 'high') barangayRiskData.high.push({ name: brgyName, val: predictedProbability });
+                        else if (category === 'moderate') barangayRiskData.moderate.push({ name: brgyName, val: predictedProbability });
+                    }
+                }
+            };
+            
+            if (pinsCache) {
+                await processPinNode(pinsCache);
+            } else {
+                const snapshot = await pinsRef.once('value');
+                pinsCache = snapshot.val();
+                await processPinNode(pinsCache);
+            }
+            
+            renderBarangayRiskUI(barangayRiskData, titleEl, countBadgeEl, contentEl);
         }
-
-        let html = `<div class="row g-2 g-md-3">`;
-
-        // Severe Section
-        html += `
+        
+        function renderBarangayRiskUI(barangayRiskData, titleEl, countBadgeEl, contentEl) {
+            const totalCount = barangayRiskData.severe.length + barangayRiskData.high.length + barangayRiskData.moderate.length;
+            countBadgeEl.innerText = `${totalCount} Barangays Found`;
+            
+            if (totalCount === 0) {
+                contentEl.innerHTML = `<p class="text-muted small mb-0">No moderate, high, or severe risk barangays predicted for this selected municipality under current parameters.</p>`;
+                return;
+            }
+            
+            let html = `<div class="row g-2 g-md-3">`;
+                
+                // Severe Section
+                html += `
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-danger">
@@ -912,9 +912,9 @@
                     </div>
                 </div>
             </div>`;
-
-        // High Section
-        html += `
+                
+                // High Section
+                html += `
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
@@ -931,9 +931,9 @@
                     </div>
                 </div>
             </div>`;
-
-        // Moderate Section
-        html += `
+                
+                // Moderate Section
+                html += `
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
@@ -950,198 +950,198 @@
                     </div>
                 </div>
             </div>`;
-
-        html += `</div>`;
-        contentEl.innerHTML = html;
-    }
-
-    function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
-    
-    async function manualPredict(){
-        if(!model) return;
-        const input = [
-            parseFloat(document.getElementById('waterLevel').value) || 0, 
-            parseFloat(document.getElementById('rainfall').value) || 0, 
-            parseFloat(document.getElementById('discharge').value) || 0, 
-            parseFloat(document.getElementById('elevation').value) || 0
-        ];
-        updateKPIs();
-        return await generateForecastChart(input);
-    }
-    
-    async function generateForecastChart(current){
-        const horizons = [1, 3, 12, 24];
-        let last = [...current];
-        const predictions = [];
-        forecastWater = [];
-        forecastRain = [];
-        forecastFlow = [];
-
-        for(const h of horizons){
-            const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
-            predictions.push(pred[0] * 100);
-            
-            forecastWater.push(Number((last[0] + h * 0.05).toFixed(2)));
-            forecastRain.push(Number((last[1] + h * 1.2).toFixed(1)));
-            forecastFlow.push(Number((last[2] + h * 0.8).toFixed(1)));
-
-            last[0] += 0.05; 
-        }
-        lastProbData = predictions;
-        const v = Math.round(predictions[0]);
-        
-        const riskColor = v < 20 ? "#198754" : v < 50 ? "#d9a000" : v < 70 ? "#fd7e14" : "#dc3545";
-        
-        document.getElementById("kpiRisk").innerHTML = `<b style="color:${riskColor}">${v}%</b>`;
-        
-        updateDashboardViews(v);
-
-        if (currentMunicipality) {
-            updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
-        }
-
-        return v; 
-    }
-
-    function openKpiModal(kpiType) {
-        let labels = [];
-        let chartData = [];
-        let labelName = "";
-        let lineBorderColor = "#1c96c5";
-        let annotations = {};
-
-        const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
-        const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
-
-        const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
-        const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
-
-        const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
-        const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
-
-        const forecastLabels = ['+1h', '+3h', '+12h', '+24h'];
-        const baseLabels = historyLabels.length ? historyLabels : getPastTenDaysLabels();
-
-        if (kpiType === 'water') {
-            labelName = "Water Level (m)";
-            const baseHist = historyWater.length ? historyWater : Array(10).fill(parseFloat(document.getElementById('waterLevel').value) || 0);
-            const currentWVal = parseFloat(document.getElementById('waterLevel').value) || 0;
-
-            labels = [...baseLabels, 'Current', ...forecastLabels];
-            chartData = [...baseHist, currentWVal, ...forecastWater];
-            lineBorderColor = "#0d6efd";
-            document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
-            
-            annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: levelWarning, yMax: levelWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Warning (${levelWarning}m)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: levelCritical, yMax: levelCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Critical (${levelCritical}m)` } }
-            };
-        } else if (kpiType === 'rain') {
-            labelName = "Rainfall (mm)";
-            const baseHist = historyRain.length ? historyRain : Array(10).fill(parseFloat(document.getElementById('rainfall').value) || 0);
-            const currentRVal = parseFloat(document.getElementById('rainfall').value) || 0;
-
-            labels = [...baseLabels, 'Current', ...forecastLabels];
-            chartData = [...baseHist, currentRVal, ...forecastRain];
-            lineBorderColor = "#0dcaf0";
-            document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
-            
-            annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: rainWarning, yMax: rainWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Warning (${rainWarning}mm)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: rainCritical, yMax: rainCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Critical (${rainCritical}mm)` } }
-            };
-        } else if (kpiType === 'flow') {
-            labelName = "Flow Rate (m³/s)";
-            const baseHist = historyFlow.length ? historyFlow : Array(10).fill(parseFloat(document.getElementById('discharge').value) || 0);
-            const currentDVal = parseFloat(document.getElementById('discharge').value) || 0;
-
-            labels = [...baseLabels, 'Current', ...forecastLabels];
-            chartData = [...baseHist, currentDVal, ...forecastFlow];
-            lineBorderColor = "#198754";
-            document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
-            
-            annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: flowWarning, yMax: flowWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${flowWarning}m³/s)` } },
-                line2: { type: 'line', yScaleID: 'y', yMin: flowCritical, yMax: flowCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Critical (${flowCritical}m³/s)` } }
-            };
-        } else {
-            labelName = "Flood Probability (%)";
-            labels = forecastLabels;
-            chartData = lastProbData.length ? lastProbData : [0, 0, 0, 0];
-            lineBorderColor = "#dc3545";
-            document.getElementById("kpiModalTitle").innerText = "Flood Risk Probability Forecast (+1h, +3h, +12h, +24h)";
-            
-            annotations = {
-                line1: { type: 'line', yScaleID: 'y', yMin: 20, yMax: 20, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Yellow (20%)' } },
-                line2: { type: 'line', yScaleID: 'y', yMin: 50, yMax: 50, borderColor: '#fd7e14', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Orange (50%)' } },
-                line3: { type: 'line', yScaleID: 'y', yMin: 70, yMax: 70, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Red (70%)' } }
-            };
-        }
-
-        const currentPointIndex = baseLabels.length;
-
-        new bootstrap.Modal(document.getElementById('probModal')).show();
-        
-        setTimeout(() => {
-            if (window.mProb) window.mProb.destroy();
-            window.mProb = new Chart(document.getElementById("probChartModal"), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: labelName,
-                        data: chartData,
-                        borderColor: lineBorderColor,
-                        backgroundColor: 'rgba(28, 150, 197, 0.15)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 5,
-                        segment: {
-                            borderDash: ctx => (ctx.p0DataIndex >= currentPointIndex ? [6, 6] : undefined)
-                        }
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        annotation: { annotations: annotations }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }, 300);
-    }
-    
-    async function loadModel() {
-        try {
-            const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-            const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-            
-            const config = await (await fetch(jsonUrl)).json();
-            const weights = await (await fetch(weightsUrl)).arrayBuffer();
-            
-            minVals = config.metadata.minVals;
-            maxVals = config.metadata.maxVals;
-            
-            model = await tf.loadLayersModel(tf.io.fromMemory({
-                modelTopology: config.modelTopology,
-                weightSpecs: config.weightSpecs,
-                weightData: weights
-            }));
-            
-            if (selectedActiveLngLat) {
-                await triggerAnalysis(selectedActiveLngLat);
-            } else {
-                await manualPredict();
+                
+                html += `</div>`;
+                contentEl.innerHTML = html;
             }
-            return model;
-        } catch (err) {
-            console.error("Load Error: Check CORS configurations.", err);
-        }
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</body>
-</html>
+            
+            function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
+            
+            async function manualPredict(){
+                if(!model) return;
+                const input = [
+                parseFloat(document.getElementById('waterLevel').value) || 0, 
+                parseFloat(document.getElementById('rainfall').value) || 0, 
+                parseFloat(document.getElementById('discharge').value) || 0, 
+                parseFloat(document.getElementById('elevation').value) || 0
+                ];
+                updateKPIs();
+                return await generateForecastChart(input);
+            }
+            
+            async function generateForecastChart(current){
+                const horizons = [1, 3, 12, 24];
+                let last = [...current];
+                const predictions = [];
+                forecastWater = [];
+                forecastRain = [];
+                forecastFlow = [];
+                
+                for(const h of horizons){
+                    const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
+                    predictions.push(pred[0] * 100);
+                    
+                    forecastWater.push(Number((last[0] + h * 0.05).toFixed(2)));
+                    forecastRain.push(Number((last[1] + h * 1.2).toFixed(1)));
+                    forecastFlow.push(Number((last[2] + h * 0.8).toFixed(1)));
+                    
+                    last[0] += 0.05; 
+                }
+                lastProbData = predictions;
+                const v = Math.round(predictions[0]);
+                
+                const riskColor = v < 20 ? "#198754" : v < 50 ? "#d9a000" : v < 70 ? "#fd7e14" : "#dc3545";
+                
+                document.getElementById("kpiRisk").innerHTML = `<b style="color:${riskColor}">${v}%</b>`;
+                
+                updateDashboardViews(v);
+                
+                if (currentMunicipality) {
+                    updateBarangayRiskSection(currentMunicipality, selectedActiveLngLat);
+                }
+                
+                return v; 
+            }
+            
+            function openKpiModal(kpiType) {
+                let labels = [];
+                let chartData = [];
+                let labelName = "";
+                let lineBorderColor = "#1c96c5";
+                let annotations = {};
+                
+                const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
+                const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
+                
+                const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
+                const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
+                
+                const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
+                const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
+                
+                const forecastLabels = ['+1h', '+3h', '+12h', '+24h'];
+                const baseLabels = historyLabels.length ? historyLabels : getPastTenDaysLabels();
+                
+                if (kpiType === 'water') {
+                    labelName = "Water Level (m)";
+                    const baseHist = historyWater.length ? historyWater : Array(10).fill(parseFloat(document.getElementById('waterLevel').value) || 0);
+                    const currentWVal = parseFloat(document.getElementById('waterLevel').value) || 0;
+                    
+                    labels = [...baseLabels, 'Current', ...forecastLabels];
+                    chartData = [...baseHist, currentWVal, ...forecastWater];
+                    lineBorderColor = "#0d6efd";
+                    document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
+                    
+                    annotations = {
+                        line1: { type: 'line', yScaleID: 'y', yMin: levelWarning, yMax: levelWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Warning (${levelWarning}m)` } },
+                        line2: { type: 'line', yScaleID: 'y', yMin: levelCritical, yMax: levelCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Critical (${levelCritical}m)` } }
+                    };
+                } else if (kpiType === 'rain') {
+                    labelName = "Rainfall (mm)";
+                    const baseHist = historyRain.length ? historyRain : Array(10).fill(parseFloat(document.getElementById('rainfall').value) || 0);
+                    const currentRVal = parseFloat(document.getElementById('rainfall').value) || 0;
+                    
+                    labels = [...baseLabels, 'Current', ...forecastLabels];
+                    chartData = [...baseHist, currentRVal, ...forecastRain];
+                    lineBorderColor = "#0dcaf0";
+                    document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
+                    
+                    annotations = {
+                        line1: { type: 'line', yScaleID: 'y', yMin: rainWarning, yMax: rainWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Warning (${rainWarning}mm)` } },
+                        line2: { type: 'line', yScaleID: 'y', yMin: rainCritical, yMax: rainCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Critical (${rainCritical}mm)` } }
+                    };
+                } else if (kpiType === 'flow') {
+                    labelName = "Flow Rate (m³/s)";
+                    const baseHist = historyFlow.length ? historyFlow : Array(10).fill(parseFloat(document.getElementById('discharge').value) || 0);
+                    const currentDVal = parseFloat(document.getElementById('discharge').value) || 0;
+                    
+                    labels = [...baseLabels, 'Current', ...forecastLabels];
+                    chartData = [...baseHist, currentDVal, ...forecastFlow];
+                    lineBorderColor = "#198754";
+                    document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
+                    
+                    annotations = {
+                        line1: { type: 'line', yScaleID: 'y', yMin: flowWarning, yMax: flowWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${flowWarning}m³/s)` } },
+                        line2: { type: 'line', yScaleID: 'y', yMin: flowCritical, yMax: flowCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Critical (${flowCritical}m³/s)` } }
+                    };
+                } else {
+                    labelName = "Flood Probability (%)";
+                    labels = forecastLabels;
+                    chartData = lastProbData.length ? lastProbData : [0, 0, 0, 0];
+                    lineBorderColor = "#dc3545";
+                    document.getElementById("kpiModalTitle").innerText = "Flood Risk Probability Forecast (+1h, +3h, +12h, +24h)";
+                    
+                    annotations = {
+                        line1: { type: 'line', yScaleID: 'y', yMin: 20, yMax: 20, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Yellow (20%)' } },
+                        line2: { type: 'line', yScaleID: 'y', yMin: 50, yMax: 50, borderColor: '#fd7e14', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Orange (50%)' } },
+                        line3: { type: 'line', yScaleID: 'y', yMin: 70, yMax: 70, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Red (70%)' } }
+                    };
+                }
+                
+                const currentPointIndex = baseLabels.length;
+                
+                new bootstrap.Modal(document.getElementById('probModal')).show();
+                
+                setTimeout(() => {
+                    if (window.mProb) window.mProb.destroy();
+                    window.mProb = new Chart(document.getElementById("probChartModal"), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: labelName,
+                                data: chartData,
+                                borderColor: lineBorderColor,
+                                backgroundColor: 'rgba(28, 150, 197, 0.15)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5,
+                                segment: {
+                                    borderDash: ctx => (ctx.p0DataIndex >= currentPointIndex ? [6, 6] : undefined)
+                                }
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                annotation: { annotations: annotations }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }, 300);
+            }
+            
+            async function loadModel() {
+                try {
+                    const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+                    const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+                    
+                    const config = await (await fetch(jsonUrl)).json();
+                    const weights = await (await fetch(weightsUrl)).arrayBuffer();
+                    
+                    minVals = config.metadata.minVals;
+                    maxVals = config.metadata.maxVals;
+                    
+                    model = await tf.loadLayersModel(tf.io.fromMemory({
+                        modelTopology: config.modelTopology,
+                        weightSpecs: config.weightSpecs,
+                        weightData: weights
+                    }));
+                    
+                    if (selectedActiveLngLat) {
+                        await triggerAnalysis(selectedActiveLngLat);
+                    } else {
+                        await manualPredict();
+                    }
+                    return model;
+                } catch (err) {
+                    console.error("Load Error: Check CORS configurations.", err);
+                }
+            }
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </body>
+    </html>

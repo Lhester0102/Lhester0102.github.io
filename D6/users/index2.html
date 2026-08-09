@@ -91,12 +91,12 @@
     #map { width: 100%; height: 100%; border-radius: 10px; }
     .map-col { height: 50vh; }
     .table-col { height: 36vh; }
-
+    
     @media (min-width: 992px) {
       .map-col { height: 100%; }
       .table-col { height: 100%; }
     }
-
+    
     .main-content { height: 100vh; overflow-y: auto; }
     
     /* Collapsible Flood Prone Risks Box */
@@ -115,7 +115,7 @@
     #layer-controls.collapsed .collapse-target {
       display: none;
     }
-
+    
     #layer-controls-toggle {
       background: none;
       border: none;
@@ -165,8 +165,8 @@
         </div>
         
         <ul class="nav flex-column">
-          <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white " href="floods3.html"><i class="bi bi-tsunami me-2"></i>Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white active" href="index2.html"><i class="bi bi-moisture me-2"></i>Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
         </ul>
       </nav>
@@ -234,7 +234,7 @@
               
             </div>
           </div>
-
+          
           <!-- Table Column Added to the Right -->
           <div class="col-lg-4 table-col">
             <div class="card h-100 p-3 shadow-sm d-flex flex-column">
@@ -257,33 +257,9 @@
               </div>
             </div>
           </div>
-
+          
         </div>
       </main>
-    </div>
-  </div>
-  
-  <!-- Video Popup Modal -->
-  <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header d-flex justify-content-between align-items-center">
-          <h5 class="modal-title" id="videoModalLabel">System Overview Video</h5>
-          <div class="d-flex align-items-center gap-2">
-            <!-- Unmute/Mute Toggle Control -->
-            <button id="unmuteBtn" class="btn btn-sm btn-warning">
-              <i class="bi bi-volume-mute-fill"></i> Unmute Audio
-            </button>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-        </div>
-        <div class="modal-body p-0">
-          <video id="popupVideo" class="w-100" controls autoplay muted playsinline style="border-bottom-left-radius: .3rem; border-bottom-right-radius: .3rem;">
-            <source src="users.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      </div>
     </div>
   </div>
   
@@ -296,7 +272,7 @@
     let model, minVals = [], maxVals = [];
     let stationMarkersArray = []; 
     let isMapFullyLoaded = false; 
-
+    
     function toggleLayerControls() {
       const controlBox = document.getElementById('layer-controls');
       controlBox.classList.toggle('collapsed');
@@ -304,54 +280,6 @@
     
     window.onload = function() {
       loadModel();
-      
-      // Setup Video Modal
-      const videoModalElement = document.getElementById('videoModal');
-      const videoElement = document.getElementById('popupVideo');
-      const unmuteBtn = document.getElementById('unmuteBtn');
-      const videoModal = new bootstrap.Modal(videoModalElement);
-      
-      // Display Modal on load
-      videoModal.show();
-      
-      // Ensure video starts playing muted (bypasses browser autoplay blocks)
-      if (videoElement) {
-        videoElement.muted = true;
-        videoElement.play().catch(err => console.log("Autoplay handled:", err));
-      }
-      
-      // Toggle Audio on Click
-      if (unmuteBtn && videoElement) {
-        unmuteBtn.addEventListener('click', function() {
-          if (videoElement.muted) {
-            videoElement.muted = false;
-            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
-            unmuteBtn.classList.replace('btn-warning', 'btn-secondary');
-          } else {
-            videoElement.muted = true;
-            unmuteBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Unmute Audio';
-            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
-          }
-        });
-      }
-      
-      // Unmute automatically on first global page interaction
-      document.addEventListener('click', function enableAudioOnFirstClick() {
-        if (videoElement && videoElement.muted) {
-          videoElement.muted = false;
-          if (unmuteBtn) {
-            unmuteBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Mute Audio';
-            unmuteBtn.classList.replace('btn-secondary', 'btn-warning');
-          }
-        }
-      }, { once: true });
-      
-      // Stop playback upon closing the modal
-      videoModalElement.addEventListener('hidden.bs.modal', function () {
-        if (videoElement) {
-          videoElement.pause();
-        }
-      });
     };
     
     const firebaseConfig = {
@@ -639,9 +567,9 @@
     });
     
     const rivers = [
-      { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-      { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-      { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
+    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
+    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
+    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
     ];
     
     const stationTableBody = document.getElementById('stationTableBody');
@@ -689,7 +617,7 @@
         });
         
         stationMarkersArray.push(marker);
-
+        
         if (stationTableBody) {
           const tr = document.createElement('tr');
           tr.style.cursor = 'pointer';
