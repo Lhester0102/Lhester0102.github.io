@@ -322,11 +322,10 @@
                 <input type="number" step="any" class="form-control form-control-sm" id="newStationLng" placeholder="e.g., 120.587385" required>
               </div>
             </div>
-            <div class="mb-3">
-              <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
-              <select class="form-select form-select-sm" id="newStationNode" required>
-                <option value="">Select Node Name</option>
-              </select>
+            
+            <!-- Dynamic Node Field Container -->
+            <div class="mb-3" id="nodeFieldContainer">
+              <!-- Dynamically rendered as <input> for Add or <select> for Edit/Update -->
             </div>
           </div>
           <div class="modal-footer bg-light py-2">
@@ -363,7 +362,6 @@
         window.location.href = 'log.html';
       }
       document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin Operator";
-      loadNodesDropdownOptions();
       listenToGlobalThresholds();
     };
     
@@ -392,10 +390,32 @@
       });
     }
 
+    // Dynamic UI Node Field Rendering
+    function renderNodeInput(value = '') {
+      const container = document.getElementById('nodeFieldContainer');
+      container.innerHTML = `
+        <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
+        <input type="text" class="form-control form-control-sm" id="newStationNode" placeholder="e.g., data4" value="${value}" required>
+      `;
+    }
+
+    function renderNodeDropdown(selectedVal = '') {
+      const container = document.getElementById('nodeFieldContainer');
+      container.innerHTML = `
+        <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
+        <select class="form-select form-select-sm" id="newStationNode" required>
+          <option value="">Select Node Name</option>
+        </select>
+      `;
+      loadNodesDropdownOptions(selectedVal);
+    }
+
     // Fetch node names dynamically from nodes->id->name
     function loadNodesDropdownOptions(selectedVal = '') {
       db.ref('nodes').on('value', snapshot => {
         const nodeSelect = document.getElementById('newStationNode');
+        if (!nodeSelect || nodeSelect.tagName !== 'SELECT') return;
+
         nodeSelect.innerHTML = '<option value="">Select Node Name</option>';
         availableNodesList = [];
 
@@ -862,7 +882,10 @@
       document.getElementById('editStationKey').value = '';
       document.getElementById('stationModalTitleText').innerText = 'Add New River Station';
       document.getElementById('saveStationBtnText').innerText = 'Save Station';
-      loadNodesDropdownOptions();
+      
+      // Render text input for Node when Adding
+      renderNodeInput();
+
       const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
       myModal.show();
     }
@@ -877,7 +900,8 @@
       document.getElementById('newStationLat').value = station.lat || station.latitude || '';
       document.getElementById('newStationLng').value = station.lng || station.longitude || '';
       
-      loadNodesDropdownOptions(station.node || '');
+      // Render dropdown for Node when Editing
+      renderNodeDropdown(station.node || '');
 
       document.getElementById('stationModalTitleText').innerText = 'Edit River Station';
       document.getElementById('saveStationBtnText').innerText = 'Update Station';
@@ -895,7 +919,7 @@
       const interval = parseInt(document.getElementById('newStationInterval').value, 10) || 15;
       const latitude = parseFloat(document.getElementById('newStationLat').value);
       const longitude = parseFloat(document.getElementById('newStationLng').value);
-      const nodeName = document.getElementById('newStationNode').value;
+      const nodeName = document.getElementById('newStationNode').value.trim();
 
       const now = new Date();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
