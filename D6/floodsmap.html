@@ -447,6 +447,7 @@
   });
 
   window.onload = async function() {
+    document.getElementById("emails").innerText = sessionStorage.getItem("userEmail") || "Guest";
     const modalElement = document.getElementById('initialLocationModal');
     locationModal = new bootstrap.Modal(modalElement);
     locationModal.show();
@@ -473,7 +474,7 @@
     if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
     if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
     if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
-    return 'rgba(40, 167, 69, 0.2)';                    
+    return 'rgba(40, 167, 69, 0.0)';                    
   }
 
   function getNodeKeyForMunicipality(name) {
@@ -521,7 +522,7 @@
           let lineColor = 'rgba(40, 167, 69, 0.8)';
           if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
           else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
-          else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.8)';
+          else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.0)';
           map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
         } else {
           map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
@@ -824,6 +825,21 @@
 
   document.getElementById('trainBtn').onclick = autoTrain;
   document.getElementById('predictBtn').onclick = manualPredict;
+
+    document.getElementById('logoutLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Logout?', text: 'Are you sure you want to log out?', icon: 'question',
+        showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout', cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          sessionStorage.clear();
+          Swal.fire({ title: 'Logged Out', text: 'You have been logged out successfully.', icon: 'success', timer: 1500, showConfirmButton: false })
+            .then(() => { window.location.href = 'log.html'; });
+        }
+      });
+    });
 </script>
     <script src="menu.js"></script>
 </body>
