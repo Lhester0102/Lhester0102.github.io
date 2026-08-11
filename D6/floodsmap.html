@@ -29,7 +29,7 @@
       z-index: 1050;
       overflow-y: auto;
     }
-
+    
     /* Mobile Sidebar Off-canvas Drawer Styling */
     @media (max-width: 767.98px) {
       .sidebar {
@@ -109,7 +109,7 @@
       z-index: 2; 
       width: 220px;
     }
-
+    
     @media (max-width: 576px) {
       #floodHubLegend {
         bottom: 15px;
@@ -119,7 +119,7 @@
         font-size: 11px;
       }
     }
-
+    
     /* Floating Icon-Only Submenu for Mobile Devices */
     @media (max-width: 767.98px) {
       .mobile-floating-submenu {
@@ -153,7 +153,7 @@
         font-size: 1.25rem !important;
       }
     }
-
+    
     /* Address Suggestion List */
     .suggestions-list {
       max-height: 200px;
@@ -230,12 +230,13 @@
           <div class="d-flex align-items-center gap-2 ms-auto">
             <!-- Desktop Submenu Links -->
             <div class="d-none d-md-flex align-items-center gap-1">
-              <a href="floods4.html" class="btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                <i class="bi bi-map-fill text-info"></i> By Map
-              </a>
               <a href="floods3.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                 <i class="bi bi-geo-alt-fill"></i> By Pins
               </a>
+              <a href="floods4.html" class="btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-map-fill text-info"></i> By Map
+              </a>
+              
             </div>
             
             <!-- Mobile Collapsible Submenu Dropdown Button -->
@@ -366,7 +367,7 @@
       </main>
     </div>
   </div>
-
+  
   <!-- Initial Location Selection Modal -->
   <div class="modal fade" id="initialLocationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -390,274 +391,274 @@
       </div>
     </div>
   </div>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-<script>
-  // Unified State & Mappings
-  let model, minVals = [], maxVals = [];
-  let geocoder, locationModal, activeMarker = null;
-  let selectedCoords = null, searchDebounceTimeout = null;
-  let parsedCsvFeatures = [], parsedCsvLabels = [];
-  let loadedFloodAreasMap = {};
-  let currentMunicipality = null, currentDataListener = null;
-
-  const MUNICIPALITY_NODES = {
-    'laoag': 'data2',
-    'san nicolas': 'data2',
-    'pasuquin': 'data',
-    'bacarra': 'data3',
-    'vintar': 'data3'
-  };
-
-  const liveDataStore = {
-    data: { level: 0, flow: 0, rain: 0 },
-    data2: { level: 0, flow: 0, rain: 0 },
-    data3: { level: 0, flow: 0, rain: 0 }
-  };
-
-  // Firebase Setup
-  const firebaseConfig = {
-    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-    authDomain: "flooded-95eeb.firebaseapp.com",
-    projectId: "flooded-95eeb",
-    storageBucket: "flooded-95eeb.firebasestorage.app",
-    messagingSenderId: "142547476223",
-    appId: "1:142547476223:web:70de7014c664e26d0636ca"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storageRef = firebase.storage().ref();
-
-  // Map Initialization
-  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-  if ('telemetry' in mapboxgl) mapboxgl.telemetry = false;
-  
-  const initialCenter = [120.5927871, 18.1959782];
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-    center: initialCenter,
-    zoom: 11,
-    pitch: 65
-  });
-
-  window.onload = async function() {
-    document.getElementById("emails").innerText = sessionStorage.getItem("userEmail") || "Guest";
-    const modalElement = document.getElementById('initialLocationModal');
-    locationModal = new bootstrap.Modal(modalElement);
-    locationModal.show();
+  <script>
+    // Unified State & Mappings
+    let model, minVals = [], maxVals = [];
+    let geocoder, locationModal, activeMarker = null;
+    let selectedCoords = null, searchDebounceTimeout = null;
+    let parsedCsvFeatures = [], parsedCsvLabels = [];
+    let loadedFloodAreasMap = {};
+    let currentMunicipality = null, currentDataListener = null;
     
-    modalElement.addEventListener('shown.bs.modal', () => {
-      document.getElementById('initialAddressInput')?.focus();
+    const MUNICIPALITY_NODES = {
+      'laoag': 'data2',
+      'san nicolas': 'data2',
+      'pasuquin': 'data',
+      'bacarra': 'data3',
+      'vintar': 'data3'
+    };
+    
+    const liveDataStore = {
+      data: { level: 0, flow: 0, rain: 0 },
+      data2: { level: 0, flow: 0, rain: 0 },
+      data3: { level: 0, flow: 0, rain: 0 }
+    };
+    
+    // Firebase Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
+    
+    // Map Initialization
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    if ('telemetry' in mapboxgl) mapboxgl.telemetry = false;
+    
+    const initialCenter = [120.5927871, 18.1959782];
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+      center: initialCenter,
+      zoom: 11,
+      pitch: 65
     });
-
-    updateKPIs();
-    await loadModel(); 
-    initLiveSensorsAndEvaluation();
-  };
-
-  // Tensor Normalization with Memory Protection
-  function normalize(row) {
-    return row.map((v, i) => {
-      const denom = maxVals[i] - minVals[i];
-      return denom === 0 ? 0 : (v - minVals[i]) / denom;
-    });
-  }
-
-  function getFloodColor(vulnerability) {
-    const val = parseFloat(vulnerability) || 0;
-    if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
-    if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
-    if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
-    return 'rgba(40, 167, 69, 0.0)';                    
-  }
-
-  function getNodeKeyForMunicipality(name) {
-    if (!name) return 'data2';
-    const lower = name.toLowerCase();
-    for (const [key, node] of Object.entries(MUNICIPALITY_NODES)) {
-      if (lower.includes(key)) return node;
-    }
-    return 'data2';
-  }
-
-  function updateKPIs() {
-    const water = parseFloat(document.getElementById("waterLevel")?.value || 0);
-    const rain = parseFloat(document.getElementById("rainfall")?.value || 0);
-    const discharge = parseFloat(document.getElementById("discharge")?.value || 0);
-
-    document.getElementById("kpiWater").innerHTML = `${water.toFixed(2)} m`;
-    document.getElementById("kpiRain").innerHTML = `${rain.toFixed(2)} mm`;
-    document.getElementById("kpiDischarge").innerHTML = `${discharge.toFixed(2)} m³/s`;
-
-    if (activeMarker) {
-      triggerAnalysis(activeMarker.getLngLat());
-    }
-  }
-
-  // Real-time Batch Map Updates
-  async function updateMapColorCodesBasedOnPredictions() {
-    if (!model || minVals.length === 0 || maxVals.length === 0) return;
-
-    // Batch prediction tensors inside memory-managed block
-    tf.tidy(() => {
-      Object.entries(loadedFloodAreasMap).forEach(async ([id, areaObj]) => {
-        if (!map.getLayer(areaObj.layerId)) return;
-
-        const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
-        const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
-        const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
-        
-        const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-        const scoreArr = predictionTensor.dataSync(); // Synchronous tensor read for UI iteration
-        const riskScore = Math.round(scoreArr[0] * 100);
-
-        const newColor = getFloodColor(riskScore);
-        if (areaObj.type === 'municipality') {
-          let lineColor = 'rgba(40, 167, 69, 0.8)';
-          if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
-          else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
-          else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.0)';
-          map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
-        } else {
-          map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
-        }
+    
+    window.onload = async function() {
+      document.getElementById("emails").innerText = sessionStorage.getItem("userEmail") || "Guest";
+      const modalElement = document.getElementById('initialLocationModal');
+      locationModal = new bootstrap.Modal(modalElement);
+      locationModal.show();
+      
+      modalElement.addEventListener('shown.bs.modal', () => {
+        document.getElementById('initialAddressInput')?.focus();
       });
-    });
-  }
-
-  function setSensorInputs(level, rain, flow) {
-    if (level != null) document.getElementById('waterLevel').value = level;
-    if (rain != null) document.getElementById('rainfall').value = rain;
-    if (flow != null) document.getElementById('discharge').value = flow;
-    updateKPIs();
-  }
-
-  function detachCurrentDataListener() {
-    if (currentDataListener?.off) {
-      currentDataListener.off('value');
+      
+      updateKPIs();
+      await loadModel(); 
+      initLiveSensorsAndEvaluation();
+    };
+    
+    // Tensor Normalization with Memory Protection
+    function normalize(row) {
+      return row.map((v, i) => {
+        const denom = maxVals[i] - minVals[i];
+        return denom === 0 ? 0 : (v - minVals[i]) / denom;
+      });
     }
-    currentDataListener = null;
-  }
-
-  function subscribeToMunicipalityData(municipality) {
-    if (!municipality || currentMunicipality === municipality) return;
-    detachCurrentDataListener();
-    currentMunicipality = municipality;
     
-    const nodeKey = getNodeKeyForMunicipality(municipality);
-    const ref = db.ref(nodeKey).orderByKey().limitToLast(1);
-    currentDataListener = ref;
+    function getFloodColor(vulnerability) {
+      const val = parseFloat(vulnerability) || 0;
+      if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
+      if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
+      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
+      return 'rgba(40, 167, 69, 0.0)';                    
+    }
     
-    ref.on('value', snapshot => {
-      if (!snapshot.exists()) return;
-      snapshot.forEach(child => {
-        const v = child.val();
-        setSensorInputs(
+    function getNodeKeyForMunicipality(name) {
+      if (!name) return 'data2';
+      const lower = name.toLowerCase();
+      for (const [key, node] of Object.entries(MUNICIPALITY_NODES)) {
+        if (lower.includes(key)) return node;
+      }
+      return 'data2';
+    }
+    
+    function updateKPIs() {
+      const water = parseFloat(document.getElementById("waterLevel")?.value || 0);
+      const rain = parseFloat(document.getElementById("rainfall")?.value || 0);
+      const discharge = parseFloat(document.getElementById("discharge")?.value || 0);
+      
+      document.getElementById("kpiWater").innerHTML = `${water.toFixed(2)} m`;
+      document.getElementById("kpiRain").innerHTML = `${rain.toFixed(2)} mm`;
+      document.getElementById("kpiDischarge").innerHTML = `${discharge.toFixed(2)} m³/s`;
+      
+      if (activeMarker) {
+        triggerAnalysis(activeMarker.getLngLat());
+      }
+    }
+    
+    // Real-time Batch Map Updates
+    async function updateMapColorCodesBasedOnPredictions() {
+      if (!model || minVals.length === 0 || maxVals.length === 0) return;
+      
+      // Batch prediction tensors inside memory-managed block
+      tf.tidy(() => {
+        Object.entries(loadedFloodAreasMap).forEach(async ([id, areaObj]) => {
+          if (!map.getLayer(areaObj.layerId)) return;
+          
+          const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
+          const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
+          const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
+          
+          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+          const scoreArr = predictionTensor.dataSync(); // Synchronous tensor read for UI iteration
+          const riskScore = Math.round(scoreArr[0] * 100);
+          
+          const newColor = getFloodColor(riskScore);
+          if (areaObj.type === 'municipality') {
+            let lineColor = 'rgba(40, 167, 69, 0.8)';
+            if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
+            else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
+            else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.0)';
+            map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
+          } else {
+            map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
+          }
+        });
+      });
+    }
+    
+    function setSensorInputs(level, rain, flow) {
+      if (level != null) document.getElementById('waterLevel').value = level;
+      if (rain != null) document.getElementById('rainfall').value = rain;
+      if (flow != null) document.getElementById('discharge').value = flow;
+      updateKPIs();
+    }
+    
+    function detachCurrentDataListener() {
+      if (currentDataListener?.off) {
+        currentDataListener.off('value');
+      }
+      currentDataListener = null;
+    }
+    
+    function subscribeToMunicipalityData(municipality) {
+      if (!municipality || currentMunicipality === municipality) return;
+      detachCurrentDataListener();
+      currentMunicipality = municipality;
+      
+      const nodeKey = getNodeKeyForMunicipality(municipality);
+      const ref = db.ref(nodeKey).orderByKey().limitToLast(1);
+      currentDataListener = ref;
+      
+      ref.on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        snapshot.forEach(child => {
+          const v = child.val();
+          setSensorInputs(
           v.level ?? v.water ?? v.water_level,
           v.rain ?? v.rainfall,
           v.flow ?? v.discharge
-        );
-      });
-      manualPredict();
-    });
-  }
-
-  function initLiveSensorsAndEvaluation() {
-    ['data', 'data2', 'data3'].forEach(nodeKey => {
-      db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
-        if (!snapshot.exists()) return;
-        snapshot.forEach(child => {
-          const latest = child.val();
-          liveDataStore[nodeKey] = {
-            level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
-            flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
-            rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
-          };
+          );
         });
-        updateMapColorCodesBasedOnPredictions();
+        manualPredict();
       });
-    });
-  }
-
-  async function getElevationFromCoords(lng, lat) {
-    // Primary: Direct Mapbox GL query
-    const elev = map.queryTerrainElevation([lng, lat]);
-    if (elev !== null && elev !== undefined) return elev;
+    }
     
-    // Fallback: Default average elevation
-    return 25.0; 
-  }
-
-  async function triggerAnalysis(lngLat, forcedTelemetry = null) {
-    const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
-    const elevInput = document.getElementById('elevation');
-    if (elevInput) elevInput.value = Math.round(elevation);
-
-    let currentWater = parseFloat(document.getElementById('waterLevel')?.value || 0);
-    let currentRain = parseFloat(document.getElementById('rainfall')?.value || 0);
-    let currentDischarge = parseFloat(document.getElementById('discharge')?.value || 0);
-
-    if (forcedTelemetry) {
-      currentWater = parseFloat(forcedTelemetry.level) || 0;
-      currentRain = parseFloat(forcedTelemetry.rain) || 0;
-      currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
-      setSensorInputs(currentWater, currentRain, currentDischarge);
-    }
-
-    let finalRisk = 0;
-    if (model && minVals.length > 0 && maxVals.length > 0) {
-      tf.tidy(() => {
-        const normFeatures = normalize([currentWater, currentRain, currentDischarge, elevation]);
-        const pred = model.predict(tf.tensor2d([normFeatures]));
-        finalRisk = Math.round(pred.dataSync()[0] * 100);
+    function initLiveSensorsAndEvaluation() {
+      ['data', 'data2', 'data3'].forEach(nodeKey => {
+        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
+          if (!snapshot.exists()) return;
+          snapshot.forEach(child => {
+            const latest = child.val();
+            liveDataStore[nodeKey] = {
+              level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
+              flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
+            };
+          });
+          updateMapColorCodesBasedOnPredictions();
+        });
       });
     }
-
-    // Risk Display Update
-    const kpiRiskEl = document.getElementById("kpiRisk");
-    let riskLabel = "Low", riskColor = "rgba(40, 167, 69, 1)";
-    if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
-    else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
-    else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
-
-    if (kpiRiskEl) kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
-
-    // Perform Geocoding Lookup
-    try {
-      const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
-      const resp = await fetch(geoQuery);
-      const data = await resp.json();
+    
+    async function getElevationFromCoords(lng, lat) {
+      // Primary: Direct Mapbox GL query
+      const elev = map.queryTerrainElevation([lng, lat]);
+      if (elev !== null && elev !== undefined) return elev;
       
-      let locName = "Selected Coordinate Point";
-      let matchedMunicipality = null;
-
-      if (data.features?.length > 0) {
-        const placeName = data.features[0].place_name;
-        locName = placeName.split(',')[0];
+      // Fallback: Default average elevation
+      return 25.0; 
+    }
+    
+    async function triggerAnalysis(lngLat, forcedTelemetry = null) {
+      const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
+      const elevInput = document.getElementById('elevation');
+      if (elevInput) elevInput.value = Math.round(elevation);
+      
+      let currentWater = parseFloat(document.getElementById('waterLevel')?.value || 0);
+      let currentRain = parseFloat(document.getElementById('rainfall')?.value || 0);
+      let currentDischarge = parseFloat(document.getElementById('discharge')?.value || 0);
+      
+      if (forcedTelemetry) {
+        currentWater = parseFloat(forcedTelemetry.level) || 0;
+        currentRain = parseFloat(forcedTelemetry.rain) || 0;
+        currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
+        setSensorInputs(currentWater, currentRain, currentDischarge);
+      }
+      
+      let finalRisk = 0;
+      if (model && minVals.length > 0 && maxVals.length > 0) {
+        tf.tidy(() => {
+          const normFeatures = normalize([currentWater, currentRain, currentDischarge, elevation]);
+          const pred = model.predict(tf.tensor2d([normFeatures]));
+          finalRisk = Math.round(pred.dataSync()[0] * 100);
+        });
+      }
+      
+      // Risk Display Update
+      const kpiRiskEl = document.getElementById("kpiRisk");
+      let riskLabel = "Low", riskColor = "rgba(40, 167, 69, 1)";
+      if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
+      else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
+      else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
+      
+      if (kpiRiskEl) kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
+      
+      // Perform Geocoding Lookup
+      try {
+        const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
+        const resp = await fetch(geoQuery);
+        const data = await resp.json();
         
-        for (const mName of Object.keys(MUNICIPALITY_NODES)) {
-          if (new RegExp(mName, 'i').test(placeName)) {
-            matchedMunicipality = mName;
-            break;
+        let locName = "Selected Coordinate Point";
+        let matchedMunicipality = null;
+        
+        if (data.features?.length > 0) {
+          const placeName = data.features[0].place_name;
+          locName = placeName.split(',')[0];
+          
+          for (const mName of Object.keys(MUNICIPALITY_NODES)) {
+            if (new RegExp(mName, 'i').test(placeName)) {
+              matchedMunicipality = mName;
+              break;
+            }
           }
         }
-      }
-
-      if (matchedMunicipality) {
-        subscribeToMunicipalityData(matchedMunicipality);
-      } else {
-        detachCurrentDataListener();
-      }
-
-      const infoPanel = document.getElementById('details'); 
-      if (infoPanel) {
-        infoPanel.innerHTML = `
+        
+        if (matchedMunicipality) {
+          subscribeToMunicipalityData(matchedMunicipality);
+        } else {
+          detachCurrentDataListener();
+        }
+        
+        const infoPanel = document.getElementById('details'); 
+        if (infoPanel) {
+          infoPanel.innerHTML = `
           <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
             <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
             <small class="d-block mb-2 text-dark" style="font-size: 0.75rem;">${locName}</small>
@@ -668,164 +669,164 @@
               <span class="fw-bold d-block" style="color: ${riskColor}; font-size: 0.92rem;">${finalRisk}% - ${riskLabel}</span>
             </div>
           </div>`;
+        }
+      } catch (err) {
+        console.error("Analysis resolution error:", err);
       }
-    } catch (err) {
-      console.error("Analysis resolution error:", err);
     }
-  }
-
-  // Model Persistence & Handlers
-  async function autoTrain() {
-    if (parsedCsvFeatures.length === 0) return alert("Please select a valid CSV dataset first.");
-
-    const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
-    let trainX = parsedCsvFeatures.slice(0, splitIndex);
-    let testX  = parsedCsvFeatures.slice(splitIndex);
-    let trainY = parsedCsvLabels.slice(0, splitIndex);
-    let testY  = parsedCsvLabels.slice(splitIndex);
-
-    tf.tidy(() => {
-      minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
-      maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
-    });
-
-    trainX = trainX.map(normalize);
-    testX  = testX.map(normalize);
-
-    const xsTrain = tf.tensor2d(trainX);
-    const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
-    const xsTest = tf.tensor2d(testX);
-    const ysTest = tf.tensor2d(testY, [testY.length, 1]);
-
-    model = tf.sequential();
-    model.add(tf.layers.dense({ inputShape: [4], units: 128, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
-    model.compile({ optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy'] });
-
-    await model.fit(xsTrain, ysTrain, {
-      epochs: 150,
-      batchSize: 16,
-      shuffle: true,
-      validationData: [xsTest, ysTest]
-    });
-
-    // Clean up training tensors
-    xsTrain.dispose(); ysTrain.dispose();
-    xsTest.dispose(); ysTest.dispose();
-
-    manualPredict();
-  }
-
-  async function manualPredict() {
-    if (!model) return;
-    updateKPIs();
-  }
-
-  async function loadModel() {
-    try {
-      const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-      const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-
-      const config = await (await fetch(jsonUrl)).json();
-      const weights = await (await fetch(weightsUrl)).arrayBuffer();
-
-      minVals = config.metadata.minVals;
-      maxVals = config.metadata.maxVals;
-
-      model = await tf.loadLayersModel(tf.io.fromMemory(
+    
+    // Model Persistence & Handlers
+    async function autoTrain() {
+      if (parsedCsvFeatures.length === 0) return alert("Please select a valid CSV dataset first.");
+      
+      const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
+      let trainX = parsedCsvFeatures.slice(0, splitIndex);
+      let testX  = parsedCsvFeatures.slice(splitIndex);
+      let trainY = parsedCsvLabels.slice(0, splitIndex);
+      let testY  = parsedCsvLabels.slice(splitIndex);
+      
+      tf.tidy(() => {
+        minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
+        maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
+      });
+      
+      trainX = trainX.map(normalize);
+      testX  = testX.map(normalize);
+      
+      const xsTrain = tf.tensor2d(trainX);
+      const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
+      const xsTest = tf.tensor2d(testX);
+      const ysTest = tf.tensor2d(testY, [testY.length, 1]);
+      
+      model = tf.sequential();
+      model.add(tf.layers.dense({ inputShape: [4], units: 128, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+      model.compile({ optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy'] });
+      
+      await model.fit(xsTrain, ysTrain, {
+        epochs: 150,
+        batchSize: 16,
+        shuffle: true,
+        validationData: [xsTest, ysTest]
+      });
+      
+      // Clean up training tensors
+      xsTrain.dispose(); ysTrain.dispose();
+      xsTest.dispose(); ysTest.dispose();
+      
+      manualPredict();
+    }
+    
+    async function manualPredict() {
+      if (!model) return;
+      updateKPIs();
+    }
+    
+    async function loadModel() {
+      try {
+        const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+        const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+        
+        const config = await (await fetch(jsonUrl)).json();
+        const weights = await (await fetch(weightsUrl)).arrayBuffer();
+        
+        minVals = config.metadata.minVals;
+        maxVals = config.metadata.maxVals;
+        
+        model = await tf.loadLayersModel(tf.io.fromMemory(
         config.modelTopology,
         config.weightSpecs,
         weights
-      ));
-
-      await updateMapColorCodesBasedOnPredictions();
-    } catch (err) {
-      console.warn("Pre-trained model initialization skipped or unavailable:", err);
+        ));
+        
+        await updateMapColorCodesBasedOnPredictions();
+      } catch (err) {
+        console.warn("Pre-trained model initialization skipped or unavailable:", err);
+      }
     }
-  }
-
-  // Event Listeners
-  map.on('load', () => {
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
-    geocoder = new MapboxGeocoder({
-      accessToken: mapboxgl.accessToken,
-      mapboxgl: mapboxgl,
-      marker: false,
-      placeholder: 'Search location',
-      proximity: initialCenter
-    });
-    map.addControl(geocoder, 'top-left');
-
-    geocoder.on('result', async (e) => {
-      const [lng, lat] = e.result.center;
-      const point = new mapboxgl.LngLat(lng, lat);
+    // Event Listeners
+    map.on('load', () => {
+      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
-      if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
-      activeMarker.setLngLat(point);
+      geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false,
+        placeholder: 'Search location',
+        proximity: initialCenter
+      });
+      map.addControl(geocoder, 'top-left');
       
-      map.flyTo({ center: point, zoom: 17, pitch: 65 });
-      await triggerAnalysis(point);
-    });
-
-    db.ref('Flooded_Areas').once('value').then(snapshot => {
-      const data = snapshot.val();
-      if (!data) return;
-
-      loadedFloodAreasMap = {};
-      Object.entries(data).forEach(([id, f], i) => {
-        if (!f.geojson) return;
-        const sourceId = `flood-src-${i}`;
-        const layerId = `flood-layer-${i}`;
-
-        let elevationMean = 25.0;
-        if (f.geojson.features && Array.isArray(f.geojson.features)) {
-          for (const feature of f.geojson.features) {
-            if (feature.properties?.elevation_mean !== undefined) {
-              elevationMean = parseFloat(feature.properties.elevation_mean) || elevationMean;
-              break;
+      geocoder.on('result', async (e) => {
+        const [lng, lat] = e.result.center;
+        const point = new mapboxgl.LngLat(lng, lat);
+        
+        if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
+        activeMarker.setLngLat(point);
+        
+        map.flyTo({ center: point, zoom: 17, pitch: 65 });
+        await triggerAnalysis(point);
+      });
+      
+      db.ref('Flooded_Areas').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        loadedFloodAreasMap = {};
+        Object.entries(data).forEach(([id, f], i) => {
+          if (!f.geojson) return;
+          const sourceId = `flood-src-${i}`;
+          const layerId = `flood-layer-${i}`;
+          
+          let elevationMean = 25.0;
+          if (f.geojson.features && Array.isArray(f.geojson.features)) {
+            for (const feature of f.geojson.features) {
+              if (feature.properties?.elevation_mean !== undefined) {
+                elevationMean = parseFloat(feature.properties.elevation_mean) || elevationMean;
+                break;
+              }
             }
           }
-        }
-
-        loadedFloodAreasMap[id] = {
-          layerId: layerId,
-          municipalityNote: f.note ? f.note.trim().toLowerCase() : "",
-          elevationMean: elevationMean,
-          type: f.type
-        };
-
-        map.addSource(sourceId, { type: 'geojson', data: f.geojson });
-        map.addLayer({
-          id: layerId,
-          type: f.type === 'municipality' ? 'line' : 'fill',
-          source: sourceId,
-          paint: f.type === 'municipality' 
+          
+          loadedFloodAreasMap[id] = {
+            layerId: layerId,
+            municipalityNote: f.note ? f.note.trim().toLowerCase() : "",
+            elevationMean: elevationMean,
+            type: f.type
+          };
+          
+          map.addSource(sourceId, { type: 'geojson', data: f.geojson });
+          map.addLayer({
+            id: layerId,
+            type: f.type === 'municipality' ? 'line' : 'fill',
+            source: sourceId,
+            paint: f.type === 'municipality' 
             ? { 'line-color': '#1c96c5', 'line-width': 2 } 
             : { 'fill-color': getFloodColor(f.vulnerability ?? f.risk_level ?? f.risk ?? 0), 'fill-opacity': 0.65 }
+          });
         });
+        
+        updateMapColorCodesBasedOnPredictions();
       });
-
-      updateMapColorCodesBasedOnPredictions();
+      
+      const startPoint = mapboxgl.LngLat.convert(initialCenter);
+      activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(startPoint).addTo(map);
     });
-
-    const startPoint = mapboxgl.LngLat.convert(initialCenter);
-    activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(startPoint).addTo(map);
-  });
-
-  map.on('click', async (e) => {
-    if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
-    activeMarker.setLngLat(e.lngLat);
-    document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-    await triggerAnalysis(e.lngLat);
-  });
-
-  document.getElementById('trainBtn').onclick = autoTrain;
-  document.getElementById('predictBtn').onclick = manualPredict;
-
+    
+    map.on('click', async (e) => {
+      if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
+      activeMarker.setLngLat(e.lngLat);
+      document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+      await triggerAnalysis(e.lngLat);
+    });
+    
+    document.getElementById('trainBtn').onclick = autoTrain;
+    document.getElementById('predictBtn').onclick = manualPredict;
+    
     document.getElementById('logoutLink').addEventListener('click', (e) => {
       e.preventDefault();
       Swal.fire({
@@ -836,11 +837,11 @@
         if (result.isConfirmed) {
           sessionStorage.clear();
           Swal.fire({ title: 'Logged Out', text: 'You have been logged out successfully.', icon: 'success', timer: 1500, showConfirmButton: false })
-            .then(() => { window.location.href = 'log.html'; });
+          .then(() => { window.location.href = 'log.html'; });
         }
       });
     });
-</script>
-    <script src="menu.js"></script>
+  </script>
+  <script src="menu.js"></script>
 </body>
 </html>

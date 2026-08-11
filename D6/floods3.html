@@ -124,8 +124,8 @@
           
           <div class="d-flex align-items-center gap-2 ms-auto">
             <div class="d-none d-md-flex align-items-center gap-1">
-              <a href="floodsmap.html" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm"><i class="bi bi-map-fill text-info me-1"></i> By Map</a>
               <a href="floods3.html" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm"><i class="bi bi-geo-alt-fill me-1"></i> By Pins</a>
+              <a href="floodsmap.html" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm"><i class="bi bi-map-fill text-info me-1"></i> By Map</a>
             </div>
             
             <div class="dropdown">
@@ -214,13 +214,13 @@
       </main>
     </div>
   </div>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+  
   <script>
     // Cached DOM References
     const DOM = {
@@ -236,7 +236,7 @@
       details: document.getElementById("details"),
       emails: document.getElementById("emails")
     };
-
+    
     let model, minVals = [], maxVals = [];
     let geocoder, activeMarker = null;
     let stationMarkersArray = [];
@@ -244,7 +244,7 @@
     const elevationCache = new Map();
     let riskLayers = { severe: [], high: [], moderate: [], low: [] };
     let currentFirebaseTimestamp = "";
-
+    
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
       authDomain: "flooded-95eeb.firebaseapp.com",
@@ -256,10 +256,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
-
+    
     let currentMunicipality = null;
     let currentDataListener = null;
-
+    
     window.onload = async function() {
       if (sessionStorage.getItem('loggedIn') !== 'true') {
         window.location.href = 'log.html';
@@ -283,12 +283,12 @@
       if (header) header.onclick = toggleAction;
       if (btn) btn.onclick = (e) => { e.stopPropagation(); toggleAction(); };
     };
-
+    
     // Optimization: Standard vector normalization
     function normalize(row) {
       return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
     }
-
+    
     // Optimization: Memory-safe Tensorflow Predict Function
     function predictRisk(rawFeatures) {
       if (!model || !minVals.length || !maxVals.length) return 0;
@@ -299,7 +299,7 @@
         return Math.round(val * 100);
       });
     }
-
+    
     function updateKPIs() {
       if (DOM.waterLevel) {
         DOM.kpiWater.innerHTML = `
@@ -310,14 +310,14 @@
       if (DOM.rainfall) DOM.kpiRain.innerText = parseFloat(DOM.rainfall.value).toFixed(2);
       if (DOM.discharge) DOM.kpiDischarge.innerText = parseFloat(DOM.discharge.value).toFixed(2);
     }
-
+    
     function detachCurrentDataListener() {
       if (currentDataListener && currentDataListener.off) {
         currentDataListener.off('value');
       }
       currentDataListener = null;
     }
-
+    
     function processMunicipalitySnapshot(snapshot, sourceName) {
       if (!snapshot.exists()) {
         if (sourceName === 'data2') loadData2JsonFallback();
@@ -338,7 +338,7 @@
       DOM.status.innerText = `${sourceName} updated — auto refreshed.`;
       manualPredict();
     }
-
+    
     async function loadData2JsonFallback() {
       try {
         const url = await storageRef.child('data2.json').getDownloadURL();
@@ -349,7 +349,7 @@
         let flow = payload.flow ?? payload.discharge ?? null;
         let dbDate = payload.dt ?? payload.date ?? "";
         let dbTime = payload.t ?? payload.time ?? "";
-
+        
         if ((level === null && rain === null && flow === null) && payload.features?.[0]?.properties) {
           const p = payload.features[0].properties;
           level = level ?? p.level ?? p.water ?? p.water_level ?? null;
@@ -358,7 +358,7 @@
           dbDate = dbDate ?? p.dt ?? p.date ?? "";
           dbTime = dbTime ?? p.t ?? p.time ?? "";
         }
-
+        
         currentFirebaseTimestamp = (dbDate && dbTime) ? `${dbDate} | ${dbTime}` : (dbDate || dbTime || "");
         setSensorInputs(level, rain, flow);
         DOM.status.innerText = 'data2.json fallback loaded.';
@@ -367,7 +367,7 @@
         console.error('Failed to load data2.json fallback:', err);
       }
     }
-
+    
     function subscribeToMunicipalityData(municipality) {
       if (!municipality || currentMunicipality === municipality) return;
       detachCurrentDataListener();
@@ -387,17 +387,17 @@
         DOM.status.innerText = `Subscribed to latest ${municipality} data updates.`;
       }
     }
-
+    
     function setSensorInputs(level, rain, flow) {
       if (level != null && DOM.waterLevel) DOM.waterLevel.value = level;
       if (rain != null && DOM.rainfall) DOM.rainfall.value = rain;
       if (flow != null && DOM.discharge) DOM.discharge.value = flow;
       updateKPIs();
     }
-
+    
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
     if ('telemetry' in mapboxgl) mapboxgl.telemetry = false;
-
+    
     const initialCenter = [120.5927871, 18.1959782];
     const map = new mapboxgl.Map({
       container: 'map',
@@ -406,14 +406,14 @@
       zoom: 11,
       pitch: 60
     });
-
+    
     function getFloodMarkerColor(val) {
       if (val >= 70) return '#dc3545';
       if (val >= 50) return '#fd7e14';
       if (val >= 20) return '#d9a000';
       return '#198754';
     }
-
+    
     function getFloodColor(v) {
       const val = parseFloat(v) || 0;
       if (val >= 70 || v === 'severe') return 'rgba(220, 53, 69, 1)';
@@ -421,7 +421,7 @@
       if (val >= 20 || v === 'moderate') return 'rgba(217, 160, 0, 1)';
       return 'rgba(144, 238, 144, 0.3)';
     }
-
+    
     function getRiskCategory(val) {
       if (typeof val === 'string') {
         const str = val.toLowerCase().trim();
@@ -433,19 +433,19 @@
       if (num >= 20) return 'moderate';
       return 'low';
     }
-
+    
     // Optimization: Caching elevation requests
     async function getElevationFromCoords(lng, lat) {
       const key = `${lng.toFixed(5)},${lat.toFixed(5)}`;
       if (elevationCache.has(key)) return elevationCache.get(key);
-
+      
       const token = mapboxgl.accessToken;
       const zoom = 15;
       const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
       const latRad = lat * Math.PI / 180;
       const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
       const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngraw?access_token=${token}`;
-
+      
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("Terrain tile error");
@@ -456,12 +456,12 @@
         canvas.width = canvas.height = 256;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(bitmap, 0, 0);
-
+        
         const pixelX = Math.floor(((lng + 180) / 360 * Math.pow(2, zoom) - x) * 256);
         const latMerc = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
         const pixelY = Math.floor(((1 - (latMerc / Math.PI)) / 2 * Math.pow(2, zoom) - y) * 256);
         const p = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-
+        
         const elevation = -10000 + ((p[0] * 65536 + p[1] * 256 + p[2]) * 0.1);
         elevationCache.set(key, elevation);
         return elevation;
@@ -471,7 +471,7 @@
         return fallback;
       }
     }
-
+    
     map.on('style.load', () => {
       if (!map.getSource('mapbox-dem')) {
         map.addSource('mapbox-dem', {
@@ -480,7 +480,7 @@
         });
       }
     });
-
+    
     map.on('load', async () => {
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
@@ -490,7 +490,7 @@
         types: 'country,region,place,locality,neighborhood,address'
       });
       map.addControl(geocoder, 'top-left');
-
+      
       geocoder.on('result', async (e) => {
         const [lng, lat] = e.result.center;
         const point = new mapboxgl.LngLat(lng, lat);
@@ -499,12 +499,12 @@
         map.flyTo({ center: point, zoom: 17, pitch: 45 });
         await triggerAnalysis(point);
       });
-
+      
       db.ref('Flooded_Areas').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) return;
         riskLayers = { severe: [], high: [], moderate: [], low: [] };
-
+        
         Object.entries(data).forEach(([id, f], i) => {
           if (!f.geojson) return;
           const sourceId = `flood-src-${i}`;
@@ -519,19 +519,19 @@
             source: sourceId,
             layout: { 'visibility': 'none' },
             paint: f.type === 'municipality' ? 
-              { 'line-color': '#1c96c5', 'line-width': 2 } : 
-              { 'fill-color': getFloodColor(vulnVal), 'fill-opacity': 0.5 }
+            { 'line-color': '#1c96c5', 'line-width': 2 } : 
+            { 'fill-color': getFloodColor(vulnVal), 'fill-opacity': 0.5 }
           });
         });
       });
-
+      
       activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
-        .setLngLat(mapboxgl.LngLat.convert(initialCenter))
-        .addTo(map);
-
+      .setLngLat(mapboxgl.LngLat.convert(initialCenter))
+      .addTo(map);
+      
       setupRiverStations();
     });
-
+    
     document.querySelectorAll('.risk-toggle').forEach(checkbox => {
       checkbox.addEventListener('change', (e) => {
         const category = e.target.value;
@@ -541,20 +541,20 @@
         });
       });
     });
-
+    
     map.on('click', async (e) => {
       if (activeMarker) activeMarker.setLngLat(e.lngLat);
       else activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(e.lngLat).addTo(map);
       document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
       await triggerAnalysis(e.lngLat);
     });
-
+    
     const liveDataStore = {
       data: { level: 0, flow: 0, rain: 0, timeInfo: "" },
       data2: { level: 0, flow: 0, rain: 0, timeInfo: "" },
       data3: { level: 0, flow: 0, rain: 0, timeInfo: "" }
     };
-
+    
     async function populateRiverData() {
       try {
         const snapshot = await db.ref('pins').once('value');
@@ -579,7 +579,7 @@
         console.error("Error populating rivers array:", error);
       }
     }
-
+    
     function setupRiverStations() {
       ['data', 'data2', 'data3'].forEach(nodeKey => {
         db.ref(nodeKey).orderByKey().limitToLast(1).on('value', async (snapshot) => {
@@ -600,41 +600,41 @@
         });
       });
     }
-
+    
     // Optimization: Parallel fetching of elevation for river array
     async function updateStationPinsIndividually() {
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
-
+      
       const elevations = await Promise.all(rivers.map(r => getElevationFromCoords(r.lng, r.lat)));
-
+      
       rivers.forEach((river, idx) => {
         const telemetry = liveDataStore[river.node];
         const elevation = elevations[idx];
         const riskScore = predictRisk([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
         const dynamicPinColor = getFloodMarkerColor(riskScore);
-
+        
         if (dynamicPinColor === '#198754') return;
-
+        
         const probChartId = `riverProb-${idx}`;
         const popup = new mapboxgl.Popup({ offset: 25 });
         const markerInstance = new mapboxgl.Marker({ color: dynamicPinColor })
-          .setLngLat([river.lng, river.lat])
-          .setPopup(popup)
-          .addTo(map);
-
+        .setLngLat([river.lng, river.lat])
+        .setPopup(popup)
+        .addTo(map);
+        
         markerInstance.getElement().addEventListener('click', async (e) => {
           e.stopPropagation();
           map.flyTo({ center: [river.lng, river.lat], zoom: 17, essential: true, pitch: 45 });
           document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-
+          
           currentFirebaseTimestamp = telemetry.timeInfo;
           await triggerAnalysis(new mapboxgl.LngLat(river.lng, river.lat), telemetry);
-
+          
           const alertMap = { 20: ["Yellow Alert", "#d9a000"], 50: ["Orange Alert", "orange"], 70: ["Red Alert", "red"] };
           const topRiskText = riskScore < 20 ? ["Safe", "green"] : (riskScore < 50 ? alertMap[20] : riskScore < 70 ? alertMap[50] : alertMap[70]);
           if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${topRiskText[1]}">${riskScore}% - ${topRiskText[0]}</b>`;
-
+          
           popup.setHTML(`
             <div class="popup-chart-container" style="min-width: 180px; font-family: system-ui, sans-serif;">
               <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
@@ -652,9 +652,9 @@
           `);
           markerInstance.togglePopup();
         });
-
+        
         stationMarkersArray.push(markerInstance);
-
+        
         popup.on('open', async () => {
           const forecastData = await getForecast([telemetry.level, telemetry.rain, telemetry.flow, elevation]);
           setTimeout(() => {
@@ -662,7 +662,7 @@
             if (!pCtx) return;
             const existingChart = Chart.getChart(pCtx);
             if (existingChart) existingChart.destroy();
-
+            
             new Chart(pCtx, {
               type: 'line',
               data: {
@@ -682,29 +682,29 @@
         });
       });
     }
-
+    
     async function triggerAnalysis(lngLat, forcedTelemetry = null) {
       const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
       if (DOM.elevation) DOM.elevation.value = Math.round(elevation);
-
+      
       let w = forcedTelemetry ? parseFloat(forcedTelemetry.level) || 0 : parseFloat(DOM.waterLevel?.value) || 0;
       let r = forcedTelemetry ? parseFloat(forcedTelemetry.rain) || 0 : parseFloat(DOM.rainfall?.value) || 0;
       let d = forcedTelemetry ? parseFloat(forcedTelemetry.flow) || 0 : parseFloat(DOM.discharge?.value) || 0;
-
+      
       if (forcedTelemetry) setSensorInputs(w, r, d);
       else updateKPIs();
-
+      
       const finalRisk = predictRisk([w, r, d, elevation]);
-
+      
       const alertMap = { 20: ["Yellow Alert", "#d9a000"], 50: ["Orange Alert", "orange"], 70: ["Red Alert", "red"] };
       const topRiskText = finalRisk < 20 ? ["Safe", "green"] : (finalRisk < 50 ? alertMap[20] : finalRisk < 70 ? alertMap[50] : alertMap[70]);
       if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
-
+      
       let interpretText = "Low / Safe Scenario";
       let alertBadgeClass = "bg-success";
       let interpretColor = "#198754";
       let recommendation = "";
-
+      
       if (finalRisk >= 70) {
         interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
         alertBadgeClass = "bg-danger";
@@ -723,11 +723,11 @@
       } else {
         recommendation = `<div class="alert alert-success text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #198754; background-color: #e8f5e9;"><i class="bi bi-shield-check text-success fs-4 flex-shrink-0"></i><div><strong class="d-block text-success">SAFE CONDITIONS</strong></div></div>`;
       }
-
+      
       const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
       let locName = "Selected Coordinate Point";
       let municipality = null;
-
+      
       try {
         const resp = await fetch(geoQuery);
         const data = await resp.json();
@@ -744,14 +744,14 @@
       } catch (err) {
         console.error("Geocode error lookup:", err);
       }
-
+      
       if (municipality) {
         subscribeToMunicipalityData(municipality);
       } else {
         detachCurrentDataListener();
         DOM.status.innerText = 'Area outside covered municipalities — running localized neural grid.';
       }
-
+      
       if (DOM.details) {
         DOM.details.innerHTML = `
           <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
@@ -764,13 +764,13 @@
         `;
       }
     }
-
+    
     async function getForecast(currentInput) {
       const horizons = [1, 3, 12, 24];
       let last = [...currentInput];
       const predictions = [];
       if (!model) return [0, 0, 0, 0];
-
+      
       for (const h of horizons) {
         const val = predictRisk(last);
         predictions.push(val);
@@ -778,19 +778,19 @@
       }
       return predictions;
     }
-
+    
     async function manualPredict() {
       if (!model) return;
       const input = [
-        parseFloat(DOM.waterLevel.value),
-        parseFloat(DOM.rainfall.value),
-        parseFloat(DOM.discharge.value),
-        parseFloat(DOM.elevation.value)
+      parseFloat(DOM.waterLevel.value),
+      parseFloat(DOM.rainfall.value),
+      parseFloat(DOM.discharge.value),
+      parseFloat(DOM.elevation.value)
       ];
       updateKPIs();
       await generateForecastChart(input);
     }
-
+    
     async function generateForecastChart(current) {
       const predictions = await getForecast(current);
       const v = Math.round(predictions[0]);
@@ -798,7 +798,7 @@
       const r = v < 20 ? ["Safe", "green"] : (v < 50 ? alertMap[20] : v < 70 ? alertMap[50] : alertMap[70]);
       if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
     }
-
+    
     async function loadModel() {
       DOM.status.innerText = "Downloading Architecture...";
       try {
@@ -819,7 +819,7 @@
         console.error(err);
       }
     }
-
+    
     document.getElementById('logoutLink').addEventListener('click', (e) => {
       e.preventDefault();
       Swal.fire({
@@ -830,7 +830,7 @@
         if (result.isConfirmed) {
           sessionStorage.clear();
           Swal.fire({ title: 'Logged Out', text: 'You have been logged out successfully.', icon: 'success', timer: 1500, showConfirmButton: false })
-            .then(() => { window.location.href = 'log.html'; });
+          .then(() => { window.location.href = 'log.html'; });
         }
       });
     });
