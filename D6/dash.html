@@ -29,14 +29,9 @@
             font-weight: 500;
         }
         
-        .nav-link:hover { 
-            background-color: #212529; 
-            color: #fff; 
-        }
-        
-        .nav-link.active { 
+        .nav-link:hover, .nav-link.active { 
             background-color: #212529 !important; 
-            color: white !important; 
+            color: #fff !important; 
         }
         
         /* Card & UI Refinement */
@@ -341,10 +336,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="menu.js"></script>
 
-    <!-- Embedded ES Module JavaScript -->
+    <!-- Optimized JavaScript ES Module -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
@@ -360,167 +355,121 @@
 
         const chartInstances = {};
         const stationRecordsMap = {};
-        const stationNodeListeners = {};
+        const stationNodeListeners = new Set();
         let dbThresholds = null;
         let loggedInUserKey = null;
         let bsVideoModalInstance = null;
 
+        // Cache DB Thresholds
         onValue(ref(db, 'threshold'), (snapshot) => {
-            if (snapshot.exists()) {
-                dbThresholds = snapshot.val();
-            }
+            if (snapshot.exists()) dbThresholds = snapshot.val();
         });
 
+        // Safe Escaping Helper
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            })[m]);
+        }
+
         function getThresholdValues(type) {
-            let warning = 2.5, high = 4.0;
-            if (type === 'water') {
-                warning = parseFloat(dbThresholds?.level) || 2.5;
-                high = parseFloat(dbThresholds?.level_high) || 4.0;
-            } else if (type === 'rain') {
-                warning = parseFloat(dbThresholds?.rain) || 7.5;
-                high = parseFloat(dbThresholds?.rain_high) || 15.0;
-            } else if (type === 'flow') {
-                warning = parseFloat(dbThresholds?.flow) || 10.0;
-                high = parseFloat(dbThresholds?.flow_high) || 25.0;
-            }
-            return { warning, high };
+            const defaults = { water: [2.5, 4.0], rain: [7.5, 15.0], flow: [10.0, 25.0] };
+            const keys = { water: ['level', 'level_high'], rain: ['rain', 'rain_high'], flow: ['flow', 'flow_high'] };
+            
+            if (!keys[type]) return { warning: 2.5, high: 4.0 };
+            
+            const [wKey, hKey] = keys[type];
+            return {
+                warning: parseFloat(dbThresholds?.[wKey]) || defaults[type][0],
+                high: parseFloat(dbThresholds?.[hKey]) || defaults[type][1]
+            };
         }
 
         function getThresholdTextClass(type, val) {
             const v = parseFloat(val);
             if (isNaN(v)) return 'lvl-text-low';
-
             const { warning, high } = getThresholdValues(type);
-
-            if (v >= high) return 'lvl-text-high';
-            if (v >= warning) return 'lvl-text-med';
-            return 'lvl-text-low';
+            return v >= high ? 'lvl-text-high' : v >= warning ? 'lvl-text-med' : 'lvl-text-low';
         }
 
         function applyValueTextStyle(elemId, type, val) {
             const elem = document.getElementById(elemId);
             if (!elem) return;
-
-            elem.classList.remove('lvl-text-low', 'lvl-text-med', 'lvl-text-high');
-            const styleClass = getThresholdTextClass(type, val);
-            elem.classList.add(styleClass);
+            elem.className = `metric-value ${getThresholdTextClass(type, val)}`;
         }
 
         function formatTimeTo12Hour(timeStr) {
             if (!timeStr || timeStr === '--:--') return '--:--';
-            
             const parts = timeStr.trim().split(':');
             if (parts.length < 2) return timeStr;
-
             let hours = parseInt(parts[0], 10);
-            const minutes = parts[1];
             if (isNaN(hours)) return timeStr;
-
             const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-
-            const formattedHours = hours < 10 ? `0${hours}` : hours;
-            return `${formattedHours}:${minutes} ${ampm}`;
+            hours = (hours % 12) || 12;
+            return `${hours < 10 ? '0' : ''}${hours}:${parts[1]} ${ampm}`;
         }
 
         function formatDateToMMDDYYYY(dateStr) {
             if (!dateStr || dateStr === '--') return '--';
-            
-            try {
-                const parts = dateStr.trim().split(/[-/]/);
-                if (parts.length === 3) {
-                    if (parts[0].length === 4) {
-                        return `${parts[1]}-${parts[2]}-${parts[0]}`;
-                    }
-                    if (parts[2].length === 4) {
-                        return `${parts[0]}-${parts[1]}-${parts[2]}`;
-                    }
-                }
-                const parsedDate = new Date(dateStr);
-                if (!isNaN(parsedDate.getTime())) {
-                    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(parsedDate.getDate()).padStart(2, '0');
-                    const year = parsedDate.getFullYear();
-                    return `${month}-${day}-${year}`;
-                }
-            } catch (e) {
-                console.warn("Date formatting error:", e);
+            const parts = dateStr.trim().split(/[-/]/);
+            if (parts.length === 3) {
+                if (parts[0].length === 4) return `${parts[1]}-${parts[2]}-${parts[0]}`;
+                if (parts[2].length === 4) return `${parts[0]}-${parts[1]}-${parts[2]}`;
+            }
+            const parsedDate = new Date(dateStr);
+            if (!isNaN(parsedDate.getTime())) {
+                const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                const day = String(parsedDate.getDate()).padStart(2, '0');
+                return `${month}-${day}-${parsedDate.getFullYear()}`;
             }
             return dateStr;
         }
 
         function parseRawReadingsPayload(rawData) {
             if (!rawData) return [];
-
-            if (Array.isArray(rawData)) {
-                return rawData.filter(item => item !== null && typeof item === 'object');
-            }
-
+            if (Array.isArray(rawData)) return rawData.filter(item => item && typeof item === 'object');
             if (typeof rawData === 'object') {
-                return Object.keys(rawData).map(k => {
-                    const item = (typeof rawData[k] === 'object') ? rawData[k] : {};
-                    return { ...item, __key: k };
-                }).filter(item => item.level !== undefined || item.rain !== undefined || item.flow !== undefined || item.date !== undefined);
+                return Object.entries(rawData)
+                    .map(([k, v]) => (typeof v === 'object' ? { ...v, __key: k } : {}))
+                    .filter(item => item.level !== undefined || item.rain !== undefined || item.flow !== undefined || item.date !== undefined);
             }
-
             return [];
         }
 
         function generate30DayTrend(records) {
-            const emptyPredictions = {
-                water: { p1: null, p3: null, p12: null, p24: null },
-                rain: { p1: null, p3: null, p12: null, p24: null },
-                flow: { p1: null, p3: null, p12: null, p24: null }
-            };
-
-            if (!records || records.length === 0) {
-                return { labels: [], waterLevels: [], rainfalls: [], flowRates: [], predictions: emptyPredictions };
+            const emptyPredictions = { p1: null, p3: null, p12: null, p24: null };
+            if (!records?.length) {
+                return { labels: [], waterLevels: [], rainfalls: [], flowRates: [], predictions: { water: emptyPredictions, rain: emptyPredictions, flow: emptyPredictions } };
             }
 
             const dailyGroups = {};
-
             records.forEach(item => {
                 if (!item.date) return;
-                const groupKey = item.date; 
-
-                if (!dailyGroups[groupKey]) {
-                    dailyGroups[groupKey] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
+                if (!dailyGroups[item.date]) {
+                    dailyGroups[item.date] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
                 }
-
-                dailyGroups[groupKey].levelSum += parseFloat(item.level) || 0;
-                dailyGroups[groupKey].rainSum += parseFloat(item.rain) || 0;
-                dailyGroups[groupKey].flowSum += parseFloat(item.flow) || 0;
-                dailyGroups[groupKey].count++;
+                dailyGroups[item.date].levelSum += parseFloat(item.level) || 0;
+                dailyGroups[item.date].rainSum += parseFloat(item.rain) || 0;
+                dailyGroups[item.date].flowSum += parseFloat(item.flow) || 0;
+                dailyGroups[item.date].count++;
             });
 
-            const sortedDates = Object.keys(dailyGroups).sort((a, b) => new Date(a) - new Date(b));
-            const last30Dates = sortedDates.slice(-30);
-
-            const labels = last30Dates.map(d => {
-                try {
-                    const parts = d.split('-');
-                    return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : d;
-                } catch(e) { return d; }
+            const sortedDates = Object.keys(dailyGroups).sort((a, b) => new Date(a) - new Date(b)).slice(-30);
+            const labels = sortedDates.map(d => {
+                const parts = d.split('-');
+                return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : d;
             });
 
-            const waterLevels = last30Dates.map(d => (dailyGroups[d].levelSum / dailyGroups[d].count).toFixed(2));
-            const rainfalls = last30Dates.map(d => (dailyGroups[d].rainSum / dailyGroups[d].count).toFixed(1));
-            const flowRates = last30Dates.map(d => (dailyGroups[d].flowSum / dailyGroups[d].count).toFixed(1));
+            const waterLevels = sortedDates.map(d => (dailyGroups[d].levelSum / dailyGroups[d].count).toFixed(2));
+            const rainfalls = sortedDates.map(d => (dailyGroups[d].rainSum / dailyGroups[d].count).toFixed(1));
+            const flowRates = sortedDates.map(d => (dailyGroups[d].flowSum / dailyGroups[d].count).toFixed(1));
 
             const lastRecord = records[records.length - 1];
             if (lastRecord && waterLevels.length > 0) {
-                const lastIdx = waterLevels.length - 1;
-                
-                if (lastRecord.level !== undefined && !isNaN(parseFloat(lastRecord.level))) {
-                    waterLevels[lastIdx] = parseFloat(lastRecord.level).toFixed(2);
-                }
-                if (lastRecord.rain !== undefined && !isNaN(parseFloat(lastRecord.rain))) {
-                    rainfalls[lastIdx] = parseFloat(lastRecord.rain).toFixed(1);
-                }
-                if (lastRecord.flow !== undefined && !isNaN(parseFloat(lastRecord.flow))) {
-                    flowRates[lastIdx] = parseFloat(lastRecord.flow).toFixed(1);
-                }
+                const idx = waterLevels.length - 1;
+                if (!isNaN(parseFloat(lastRecord.level))) waterLevels[idx] = parseFloat(lastRecord.level).toFixed(2);
+                if (!isNaN(parseFloat(lastRecord.rain))) rainfalls[idx] = parseFloat(lastRecord.rain).toFixed(1);
+                if (!isNaN(parseFloat(lastRecord.flow))) flowRates[idx] = parseFloat(lastRecord.flow).toFixed(1);
             }
 
             function predictMultiHorizons(dataArr, decimals = 2) {
@@ -530,35 +479,22 @@
                     return { p1: fallback, p3: fallback, p12: fallback, p24: fallback };
                 }
 
-                const recent = dataArr.slice(-numPoints).map(v => parseFloat(v));
+                const recent = dataArr.slice(-numPoints).map(Number);
                 let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-
                 for (let i = 0; i < numPoints; i++) {
-                    sumX += i;
-                    sumY += recent[i];
-                    sumXY += i * recent[i];
-                    sumXX += i * i;
+                    sumX += i; sumY += recent[i]; sumXY += i * recent[i]; sumXX += i * i;
                 }
 
                 const slope = (numPoints * sumXY - sumX * sumY) / (numPoints * sumXX - sumX * sumX);
                 const intercept = (sumY - slope * sumX) / numPoints;
-
                 const baseIdx = numPoints - 1;
-                const calcVal = (stepMult) => Math.max(0, slope * (baseIdx + stepMult) + intercept).toFixed(decimals);
+                const calcVal = (step) => Math.max(0, slope * (baseIdx + step) + intercept).toFixed(decimals);
 
-                return {
-                    p1: calcVal(0.2),
-                    p3: calcVal(0.5),
-                    p12: calcVal(1.2),
-                    p24: calcVal(2.0)
-                };
+                return { p1: calcVal(0.2), p3: calcVal(0.5), p12: calcVal(1.2), p24: calcVal(2.0) };
             }
 
             return {
-                labels: labels,
-                waterLevels: waterLevels,
-                rainfalls: rainfalls,
-                flowRates: flowRates,
+                labels, waterLevels, rainfalls, flowRates,
                 predictions: {
                     water: predictMultiHorizons(waterLevels, 2),
                     rain: predictMultiHorizons(rainfalls, 1),
@@ -571,48 +507,23 @@
             const records = stationRecordsMap[stationId] || [];
             const trendData = generate30DayTrend(records);
 
-            let label = '';
-            let data = [];
-            let color = '';
-            let predObj = { p1: 0, p3: 0, p12: 0, p24: 0 };
+            const typeConfig = {
+                water: { label: 'Water Level (m)', data: trendData.waterLevels, color: '#0d6efd', pred: trendData.predictions.water },
+                rain: { label: 'Rainfall (mm)', data: trendData.rainfalls, color: '#0dcaf0', pred: trendData.predictions.rain },
+                flow: { label: 'Flow Rate (m³/s)', data: trendData.flowRates, color: '#198754', pred: trendData.predictions.flow }
+            };
 
-            if (metricType === 'water') {
-                label = 'Water Level (m)';
-                data = trendData.waterLevels;
-                color = '#0d6efd';
-                predObj = trendData.predictions.water;
-            } else if (metricType === 'rain') {
-                label = 'Rainfall (mm)';
-                data = trendData.rainfalls;
-                color = '#0dcaf0';
-                predObj = trendData.predictions.rain;
-            } else if (metricType === 'flow') {
-                label = 'Flow Rate (m³/s)';
-                data = trendData.flowRates;
-                color = '#198754';
-                predObj = trendData.predictions.flow;
-            }
-
+            const cfg = typeConfig[metricType];
             const limits = getThresholdValues(metricType);
             const extendedLabels = [...trendData.labels, '+1h (Pred)', '+3h (Pred)', '+12h (Pred)', '+24h (Pred)'];
-            const historicalSeries = [...data, null, null, null, null];
+            
+            const historicalSeries = [...cfg.data, null, null, null, null];
+            const lastVal = cfg.data.length ? cfg.data[cfg.data.length - 1] : null;
+            const predictionSeries = [...Array(Math.max(0, cfg.data.length - 1)).fill(null), lastVal, cfg.pred.p1, cfg.pred.p3, cfg.pred.p12, cfg.pred.p24];
 
-            const lastActualValue = data.length > 0 ? data[data.length - 1] : null;
-            const predictionSeries = Array(data.length - 1).fill(null);
-            predictionSeries.push(lastActualValue);
-            predictionSeries.push(predObj.p1);
-            predictionSeries.push(predObj.p3);
-            predictionSeries.push(predObj.p12);
-            predictionSeries.push(predObj.p24);
+            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${escapeHtml(stationName)} - ${cfg.label} (Forecast)`;
 
-            const warningLineData = Array(extendedLabels.length).fill(limits.warning);
-            const highLineData = Array(extendedLabels.length).fill(limits.high);
-
-            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${stationName} - ${label} (1h, 3h, 12h, 24h Forecast)`;
-
-            if (chartInstances['modalMetricChart']) {
-                chartInstances['modalMetricChart'].destroy();
-            }
+            if (chartInstances['modalMetricChart']) chartInstances['modalMetricChart'].destroy();
 
             const ctx = document.getElementById('modalMetricChart').getContext('2d');
             chartInstances['modalMetricChart'] = new Chart(ctx, {
@@ -620,63 +531,16 @@
                 data: {
                     labels: extendedLabels,
                     datasets: [
-                        {
-                            label: `Historical ${label}`,
-                            data: historicalSeries,
-                            borderColor: color,
-                            backgroundColor: color + '22',
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 2.5,
-                            pointRadius: 3,
-                            pointHoverRadius: 5
-                        },
-                        {
-                            label: 'Multi-Horizon Forecast',
-                            data: predictionSeries,
-                            borderColor: '#6f42c1',
-                            backgroundColor: '#6f42c133',
-                            borderDash: [5, 5],
-                            borderWidth: 2.5,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#6f42c1',
-                            fill: false
-                        },
-                        {
-                            label: 'Warning Threshold',
-                            data: warningLineData,
-                            borderColor: '#fd7e14',
-                            borderDash: [6, 6],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false
-                        },
-                        {
-                            label: 'High Risk Threshold',
-                            data: highLineData,
-                            borderColor: '#dc3545',
-                            borderDash: [6, 6],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false
-                        }
+                        { label: `Historical ${cfg.label}`, data: historicalSeries, borderColor: cfg.color, backgroundColor: cfg.color + '22', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+                        { label: 'Forecast Horizon', data: predictionSeries, borderColor: '#6f42c1', backgroundColor: '#6f42c133', borderDash: [5, 5], borderWidth: 2.5, pointRadius: 5, fill: false },
+                        { label: 'Warning Level', data: Array(extendedLabels.length).fill(limits.warning), borderColor: '#fd7e14', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false },
+                        { label: 'High Risk Level', data: Array(extendedLabels.length).fill(limits.high), borderColor: '#dc3545', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true, position: 'top' }
-                    },
-                    scales: {
-                        x: { display: true, title: { display: true, text: 'Date / Projection Horizon' } },
-                        y: { display: true, title: { display: true, text: label } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: true }, y: { display: true } } }
             });
 
-            const metricModal = new bootstrap.Modal(document.getElementById('metricModal'));
-            metricModal.show();
+            new bootstrap.Modal(document.getElementById('metricModal')).show();
         };
 
         function getDepthBadgeInfo(level) {
@@ -692,35 +556,28 @@
             return stationMeta.station || stationMeta.stationName || stationMeta.name || stationMeta.station_name || fallbackId;
         }
 
-        function updateStationCardUI(stationId, stationName, assignedNode, records) {
+        function updateStationCardUI(stationId, records) {
             stationRecordsMap[stationId] = records;
+            records.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-            records.sort((a, b) => {
-                const dateA = a.date && a.time ? new Date(`${a.date} ${a.time}`) : new Date(Number(a.timestamp) || 0);
-                const dateB = b.date && b.time ? new Date(`${b.date} ${b.time}`) : new Date(Number(b.timestamp) || 0);
-                return dateA - dateB;
-            });
-
-            const current = records.length > 0 ? records[records.length - 1] : {};
+            const current = records[records.length - 1] || {};
             const meta = current.level !== undefined ? getDepthBadgeInfo(current.level) : { label: 'No Data', class: 'bg-dark text-white' };
 
-            const rawTime = current.time || '';
-            const displayTime = rawTime ? formatTimeTo12Hour(rawTime) : '--:--';
-            const formattedDate = formatDateToMMDDYYYY(current.date);
+            const elements = {
+                lvl: document.getElementById(`lvl-${stationId}`),
+                rain: document.getElementById(`rain-${stationId}`),
+                flow: document.getElementById(`flow-${stationId}`),
+                time: document.getElementById(`time-${stationId}`),
+                interval: document.getElementById(`interval-${stationId}`),
+                status: document.getElementById(`status-${stationId}`)
+            };
 
-            const lvlElem = document.getElementById(`lvl-${stationId}`);
-            const rainElem = document.getElementById(`rain-${stationId}`);
-            const flowElem = document.getElementById(`flow-${stationId}`);
-            const timeElem = document.getElementById(`time-${stationId}`);
-            const dateElem = document.getElementById(`interval-${stationId}`);
-            const statusElem = document.getElementById(`status-${stationId}`);
-
-            if (lvlElem) lvlElem.innerText = current.level !== undefined ? `${current.level} m` : '--';
-            if (rainElem) rainElem.innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
-            if (flowElem) flowElem.innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
-            if (timeElem) timeElem.innerText = displayTime;
-            if (dateElem) dateElem.innerHTML = `<i class="bi bi-calendar3"></i> Date: ${formattedDate}`;
-            if (statusElem) statusElem.innerHTML = `<span class="badge-metric ${meta.class}">${meta.label}</span>`;
+            if (elements.lvl) elements.lvl.innerText = current.level !== undefined ? `${current.level} m` : '--';
+            if (elements.rain) elements.rain.innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
+            if (elements.flow) elements.flow.innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
+            if (elements.time) elements.time.innerText = formatTimeTo12Hour(current.time || '');
+            if (elements.interval) elements.interval.innerHTML = `<i class="bi bi-calendar3"></i> Date: ${formatDateToMMDDYYYY(current.date)}`;
+            if (elements.status) elements.status.innerHTML = `<span class="badge-metric ${meta.class}">${meta.label}</span>`;
 
             if (current.level !== undefined) applyValueTextStyle(`lvl-${stationId}`, 'water', current.level);
             if (current.rain !== undefined) applyValueTextStyle(`rain-${stationId}`, 'rain', current.rain);
@@ -728,44 +585,41 @@
         }
 
         function syncStationToAssignedNode(stationId, stationMeta) {
-            const stationDisplayName = resolveStationDisplayName(stationMeta, stationId);
+            const displayName = resolveStationDisplayName(stationMeta, stationId);
             const assignedNode = stationMeta.node || stationMeta.nodePath || stationMeta.path || stationMeta.dataReader || stationId;
-
             const container = document.getElementById('dynamic-stations-container');
-            let cardCol = document.getElementById(`station-card-${stationId}`);
 
-            if (!cardCol) {
-                cardCol = document.createElement('div');
+            if (!document.getElementById(`station-card-${stationId}`)) {
+                const cardCol = document.createElement('div');
                 cardCol.className = 'col-lg-4';
                 cardCol.id = `station-card-${stationId}`;
                 cardCol.innerHTML = `
                     <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
                         <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
-                            <span class="text-dark fw-bold fs-6" id="title-${stationId}"><i class="bi bi-router-fill me-1 text-primary"></i>${stationDisplayName}</span>
+                            <span class="text-dark fw-bold fs-6"><i class="bi bi-router-fill me-1 text-primary"></i>${escapeHtml(displayName)}</span>
                             <div id="status-${stationId}"><span class="badge-metric bg-dark text-white">Connecting...</span></div>
                         </div>
                         <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
                             <span id="interval-${stationId}"><i class="bi bi-calendar3"></i> Date: --</span>
                             <span id="time-${stationId}" class="fw-bold text-dark">--:--</span>
                         </div>
-
                         <div class="row g-2 mt-1">
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${stationDisplayName.replace(/'/g, "\\'")}', 'water')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'water')">
                                     <div class="metric-icon-wrapper text-primary"><i class="bi bi-droplet-fill"></i></div>
                                     <div class="metric-title">Water Level</div>
                                     <h6 id="lvl-${stationId}" class="metric-value">--</h6>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${stationDisplayName.replace(/'/g, "\\'")}', 'rain')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'rain')">
                                     <div class="metric-icon-wrapper text-info"><i class="bi bi-cloud-rain-fill"></i></div>
                                     <div class="metric-title">Rainfall</div>
                                     <h6 id="rain-${stationId}" class="metric-value">--</h6>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${stationDisplayName.replace(/'/g, "\\'")}', 'flow')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'flow')">
                                     <div class="metric-icon-wrapper text-success"><i class="bi bi-water"></i></div>
                                     <div class="metric-title">Flow Rate</div>
                                     <h6 id="flow-${stationId}" class="metric-value">--</h6>
@@ -776,61 +630,42 @@
                 container.appendChild(cardCol);
             }
 
-            const inlinePayload = stationMeta.logs || stationMeta.records || stationMeta.readings || stationMeta.data;
-            if (inlinePayload) {
-                const records = parseRawReadingsPayload(inlinePayload);
-                updateStationCardUI(stationId, stationDisplayName, assignedNode, records);
-            }
-
-            if (!stationNodeListeners[stationId]) {
-                stationNodeListeners[stationId] = assignedNode;
-                const nodeRef = ref(db, assignedNode);
-
-                onValue(nodeRef, (snapshot) => {
-                    let records = [];
-                    if (snapshot.exists()) {
-                        records = parseRawReadingsPayload(snapshot.val());
-                    }
-                    updateStationCardUI(stationId, stationDisplayName, assignedNode, records);
+            if (!stationNodeListeners.has(stationId)) {
+                stationNodeListeners.add(stationId);
+                // Optimized Query: Limit real-time stream footprint to 100 entries max per station node
+                const nodeQuery = query(ref(db, assignedNode), limitToLast(100));
+                onValue(nodeQuery, (snapshot) => {
+                    const records = snapshot.exists() ? parseRawReadingsPayload(snapshot.val()) : [];
+                    updateStationCardUI(stationId, records);
                 });
             }
         }
 
         function loadDynamicStations() {
-            const stationsRef = ref(db, 'stations');
-
-            onValue(stationsRef, (snapshot) => {
+            onValue(ref(db, 'stations'), (snapshot) => {
                 const container = document.getElementById('dynamic-stations-container');
                 if (!container) return;
 
                 if (!snapshot.exists()) {
-                    container.innerHTML = `
-                        <div class="col-12 text-center text-muted py-4">
-                            <i class="bi bi-exclamation-circle fs-3 d-block mb-2 text-secondary"></i>
-                            No station records found under <code>stations</code> node in Firebase.
-                        </div>`;
+                    container.innerHTML = `<div class="col-12 text-center text-muted py-4"><i class="bi bi-exclamation-circle fs-3 d-block mb-2"></i>No active stations configured.</div>`;
                     updateStationCount(0);
                     return;
                 }
 
                 const stationsObj = snapshot.val();
                 const stationKeys = Object.keys(stationsObj);
-
                 container.innerHTML = '';
                 updateStationCount(stationKeys.length);
 
-                stationKeys.forEach((stationId) => {
-                    const stationMeta = typeof stationsObj[stationId] === 'object' ? stationsObj[stationId] : {};
-                    syncStationToAssignedNode(stationId, stationMeta);
+                stationKeys.forEach(stationId => {
+                    syncStationToAssignedNode(stationId, stationsObj[stationId] || {});
                 });
             });
         }
 
         function updateStationCount(count) {
             const countElem = document.getElementById('monitored-stations-count');
-            if (countElem) {
-                countElem.innerText = `${count} Active Node${count !== 1 ? 's' : ''}`;
-            }
+            if (countElem) countElem.innerText = `${count} Active Node${count !== 1 ? 's' : ''}`;
 
             if (chartInstances['stationsCircleChart']) {
                 chartInstances['stationsCircleChart'].data.datasets[0].data = [count, Math.max(0, 10 - count)];
@@ -841,31 +676,22 @@
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('loggedIn') !== 'true') { 
                 window.location.href = 'log.html'; 
+                return;
             }
             
             const activeUserEmail = (sessionStorage.getItem("userEmail") || "").trim();
             const emailElem = document.getElementById("emails");
-            if (emailElem) {
-                emailElem.innerHTML = activeUserEmail || "Admin";
-            }
+            if (emailElem) emailElem.innerText = activeUserEmail || "Admin";
 
             checkUserIsPlayStatus(activeUserEmail);
             initCircleGraphs();
-
             loadDynamicStations();
 
-            const logoutLink = document.getElementById('logoutLink');
-            if (logoutLink) logoutLink.addEventListener('click', logoutUser);
-
-            const dropdownLogout = document.getElementById('dropdownLogout');
-            if (dropdownLogout) dropdownLogout.addEventListener('click', logoutUser);
+            document.getElementById('logoutLink')?.addEventListener('click', logoutUser);
         });
 
         async function saveUserPreference() {
-            const dontPlayCheckbox = document.getElementById('dontPlayCheckbox');
-            const isChecked = dontPlayCheckbox ? dontPlayCheckbox.checked : false;
-            const newPlayVal = isChecked ? 0 : 1;
-
+            const isChecked = document.getElementById('dontPlayCheckbox')?.checked || false;
             const activeEmail = (sessionStorage.getItem("userEmail") || "").trim().toLowerCase();
 
             if (!loggedInUserKey && activeEmail) {
@@ -875,123 +701,84 @@
                         const usersList = snapshot.val();
                         for (const key in usersList) {
                             const u = usersList[key];
-                            const storedUser = (u?.user || u?.email || u?.userEmail || "").trim().toLowerCase();
-                            if (storedUser === activeEmail || key.toLowerCase() === activeEmail) {
+                            if ((u?.user || u?.email || u?.userEmail || "").trim().toLowerCase() === activeEmail || key.toLowerCase() === activeEmail) {
                                 loggedInUserKey = key;
                                 break;
                             }
                         }
                     }
                 } catch (err) {
-                    console.error("Error querying users node:", err);
+                    console.error("User match error:", err);
                 }
             }
 
             if (!loggedInUserKey) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'User session error',
-                    text: `Could not match "${activeEmail}" under users in Firebase Database.`
-                });
+                Swal.fire({ icon: 'error', title: 'Session Error', text: 'Could not resolve active profile.' });
                 return;
             }
 
-            update(ref(db, `users/${loggedInUserKey}`), { isPlay: newPlayVal })
-                .then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Preference Saved!',
-                        text: isChecked ? 'Video will not play on your next login.' : 'Video will play on next login.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    if (bsVideoModalInstance) bsVideoModalInstance.hide();
-                })
-                .catch((err) => {
-                    console.error("Error updating isPlay field: ", err);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Update Failed',
-                        text: 'Could not save preference to Firebase.'
-                    });
-                });
+            try {
+                await update(ref(db, `users/${loggedInUserKey}`), { isPlay: isChecked ? 0 : 1 });
+                Swal.fire({ icon: 'success', title: 'Preference Saved', timer: 1500, showConfirmButton: false });
+                bsVideoModalInstance?.hide();
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Update Failed', text: 'Could not commit preferences.' });
+            }
         }
 
         function checkUserIsPlayStatus(userEmail) {
-            if (!userEmail) {
-                initVideoModal();
-                return;
-            }
+            if (!userEmail) return initVideoModal();
 
-            const usersRef = ref(db, 'users');
-            const normalizedSessionEmail = userEmail.trim().toLowerCase();
-
-            get(usersRef).then((snapshot) => {
+            get(ref(db, 'users')).then((snapshot) => {
                 if (snapshot.exists()) {
                     const usersList = snapshot.val();
-                    let targetUserData = null;
+                    const normalizedEmail = userEmail.trim().toLowerCase();
+                    let targetUser = null;
 
-                    for (const userKey in usersList) {
-                        const currentUser = usersList[userKey];
-                        const storedUserVal = (currentUser?.user || currentUser?.email || currentUser?.userEmail || "").trim().toLowerCase();
-
-                        if (storedUserVal === normalizedSessionEmail || userKey.toLowerCase() === normalizedSessionEmail) {
-                            targetUserData = currentUser;
-                            loggedInUserKey = userKey;
+                    for (const key in usersList) {
+                        const u = usersList[key];
+                        if ((u?.user || u?.email || u?.userEmail || "").trim().toLowerCase() === normalizedEmail || key.toLowerCase() === normalizedEmail) {
+                            targetUser = u;
+                            loggedInUserKey = key;
                             break;
                         }
                     }
 
-                    if (!targetUserData || targetUserData.isPlay === undefined || Number(targetUserData.isPlay) === 1) {
+                    if (!targetUser || targetUser.isPlay === undefined || Number(targetUser.isPlay) === 1) {
                         initVideoModal();
                     }
                 } else {
                     initVideoModal();
                 }
-            }).catch((err) => {
-                console.error("Error fetching user data from Firebase:", err);
-                initVideoModal();
-            });
+            }).catch(() => initVideoModal());
         }
 
         function initVideoModal() {
-            const videoModalElement = document.getElementById('videoModal');
-            const popupVideo = document.getElementById('popupVideo');
+            const modalElem = document.getElementById('videoModal');
+            const videoElem = document.getElementById('popupVideo');
             const unmuteBtn = document.getElementById('unmuteBtn');
-            const saveBtn = document.getElementById('savePlayPreferenceBtn');
 
-            if (!videoModalElement || !popupVideo) return;
+            if (!modalElem || !videoElem) return;
 
-            bsVideoModalInstance = bootstrap.Modal.getInstance(videoModalElement) || new bootstrap.Modal(videoModalElement);
+            bsVideoModalInstance = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
             bsVideoModalInstance.show();
 
-            if (unmuteBtn) unmuteBtn.style.display = 'inline-block';
-
-            popupVideo.muted = true;
-            const playPromise = popupVideo.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.warn("Autoplay was prevented by browser policy:", error);
-                });
-            }
+            videoElem.muted = true;
+            videoElem.play().catch(e => console.warn("Autoplay deferred:", e));
 
             if (unmuteBtn) {
                 unmuteBtn.onclick = () => {
-                    popupVideo.muted = false;
-                    popupVideo.play();
+                    videoElem.muted = false;
+                    videoElem.play();
                     unmuteBtn.style.display = 'none';
                 };
             }
 
-            if (saveBtn) {
-                saveBtn.onclick = saveUserPreference;
-            }
+            document.getElementById('savePlayPreferenceBtn')?.addEventListener('click', saveUserPreference, { once: true });
 
-            videoModalElement.addEventListener('hidden.bs.modal', () => {
-                popupVideo.pause();
-                popupVideo.currentTime = 0;
-                popupVideo.muted = true;
-                if (unmuteBtn) unmuteBtn.style.display = 'inline-block';
+            modalElem.addEventListener('hidden.bs.modal', () => {
+                videoElem.pause();
+                videoElem.currentTime = 0;
             }, { once: true });
         }
 
@@ -1002,50 +789,24 @@
         }
 
         function initCircleGraphs() {
-            const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: { legend: { display: false } }
-            };
+            const opts = { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } };
 
             chartInstances['usersCircleChart'] = new Chart(document.getElementById('usersCircleChart').getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Users Registered', 'Target capacity Space'],
-                    datasets: [{
-                        data: [4, 20], 
-                        backgroundColor: ['#1c96c5', '#e9ecef'],
-                        borderWidth: 0
-                    }]
-                },
-                options: commonOptions
+                data: { labels: ['Users', 'Space'], datasets: [{ data: [4, 20], backgroundColor: ['#1c96c5', '#e9ecef'], borderWidth: 0 }] },
+                options: opts
             });
 
             chartInstances['stationsCircleChart'] = new Chart(document.getElementById('stationsCircleChart').getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Active Nodes', 'Inactive Space'],
-                    datasets: [{
-                        data: [0, 10], 
-                        backgroundColor: ['#198754', '#e9ecef'],
-                        borderWidth: 0
-                    }]
-                },
-                options: commonOptions
+                data: { labels: ['Active Nodes', 'Space'], datasets: [{ data: [0, 10], backgroundColor: ['#198754', '#e9ecef'], borderWidth: 0 }] },
+                options: opts
             });
 
             chartInstances['municipalitiesCircleChart'] = new Chart(document.getElementById('municipalitiesCircleChart').getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Municipalities Covered', 'Remaining Provincial Space'],
-                    datasets: [{
-                        data: [23, 25], 
-                        backgroundColor: ['#ffc107', '#e9ecef'],
-                        borderWidth: 0
-                    }]
-                },
-                options: commonOptions
+                data: { labels: ['Covered', 'Space'], datasets: [{ data: [23, 25], backgroundColor: ['#ffc107', '#e9ecef'], borderWidth: 0 }] },
+                options: opts
             });
         }
     </script>

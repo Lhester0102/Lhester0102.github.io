@@ -397,461 +397,124 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  <script>
-    let model, minVals=[], maxVals=[];
-    let geocoder;
-    let parsedCsvFeatures = [], parsedCsvLabels = [];
-    
-    let locationModal;
-    let selectedCoords = null;
-    let searchDebounceTimeout = null;
-    
-    let loadedFloodAreasMap = {}; 
-    
-    window.onload = async function() {
-      const modalElement = document.getElementById('initialLocationModal');
-      locationModal = new bootstrap.Modal(modalElement);
-      locationModal.show();
-      
-      modalElement.addEventListener('shown.bs.modal', () => {
-        const addressInputEl = document.getElementById('initialAddressInput');
-        if (addressInputEl) addressInputEl.focus();
-      });
+<script>
+  // Unified State & Mappings
+  let model, minVals = [], maxVals = [];
+  let geocoder, locationModal, activeMarker = null;
+  let selectedCoords = null, searchDebounceTimeout = null;
+  let parsedCsvFeatures = [], parsedCsvLabels = [];
+  let loadedFloodAreasMap = {};
+  let currentMunicipality = null, currentDataListener = null;
 
-      const modalCloseBtn = document.getElementById('modalCloseBtn');
-      if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', () => {
-          const addressInputEl = document.getElementById('initialAddressInput');
-          if (addressInputEl) addressInputEl.focus();
-        });
-      }
-      
-      updateKPIs();
-      await loadModel(); 
-      await initLiveSensorsAndEvaluation();
-    }
-    
-    function updateKPIs() {
-      const waterInput = document.getElementById("waterLevel");
-      const rainInput = document.getElementById("rainfall");
-      const dischargeInput = document.getElementById("discharge");
-      
-      if (waterInput) {
-        document.getElementById("kpiWater").innerHTML = `${parseFloat(waterInput.value || 0).toFixed(2)} m`;
-      }
-      if (rainInput) document.getElementById("kpiRain").innerHTML = `${parseFloat(rainInput.value || 0).toFixed(2)} mm`;
-      if (dischargeInput) document.getElementById("kpiDischarge").innerHTML = `${parseFloat(dischargeInput.value || 0).toFixed(2)} m³/s`;
+  const MUNICIPALITY_NODES = {
+    'laoag': 'data2',
+    'san nicolas': 'data2',
+    'pasuquin': 'data',
+    'bacarra': 'data3',
+    'vintar': 'data3'
+  };
 
-      if (activeMarker) {
-        const currentLngLat = activeMarker.getLngLat();
-        triggerAnalysis(currentLngLat);
-      }
-    }  
+  const liveDataStore = {
+    data: { level: 0, flow: 0, rain: 0 },
+    data2: { level: 0, flow: 0, rain: 0 },
+    data3: { level: 0, flow: 0, rain: 0 }
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-      authDomain: "flooded-95eeb.firebaseapp.com",
-      projectId: "flooded-95eeb",
-      storageBucket: "flooded-95eeb.firebasestorage.app",
-      messagingSenderId: "142547476223",
-      appId: "1:142547476223:web:70de7014c664e26d0636ca"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storageRef = firebase.storage().ref();
-    
-    let currentMunicipality = null;
-    let currentDataListener = null;
-    
-    function detachCurrentDataListener() {
-      if (currentDataListener && currentDataListener.off) {
-        currentDataListener.off('value');
-      }
-      currentDataListener = null;
-    }
-    
-    function processMunicipalitySnapshot(snapshot, sourceName) {
-      if (!snapshot.exists()) {
-        if (sourceName === 'data2') {
-          loadData2JsonFallback();
-        }
-        return;
-      }
-      snapshot.forEach(child => {
-        const v = child.val();
-        const level = v.level ?? v.water ?? v.water_level ?? null;
-        const rain = v.rain ?? v.rainfall ?? null;
-        const flow = v.flow ?? v.discharge ?? null;
-        
-        setSensorInputs(level, rain, flow);
-      });
-      manualPredict();
-    }
-    
-    async function loadData2JsonFallback() {
-      try {
-        const url = await storageRef.child('data2.json').getDownloadURL();
-        const resp = await fetch(url);
-        const payload = await resp.json();
-        let level = payload.level ?? payload.water ?? payload.water_level ?? null;
-        let rain = payload.rain ?? payload.rainfall ?? null;
-        let flow = payload.flow ?? payload.discharge ?? null;
-        
-        if ((level === null && rain === null && flow === null) && payload.features && payload.features[0] && payload.features[0].properties) {
-          const p = payload.features[0].properties;
-          level = level ?? p.level ?? p.water ?? p.water_level ?? null;
-          rain = rain ?? p.rain ?? p.rainfall ?? null;
-          flow = flow ?? p.flow ?? p.discharge ?? null;
-        }
-        
-        setSensorInputs(level, rain, flow);
-        await manualPredict();
-      } catch (err) {
-        console.error('Failed to load data2.json fallback:', err);
-      }
-    }
-    
-    function subscribeToMunicipalityData(municipality) {
-      if (!municipality) return;
-      if (currentMunicipality === municipality) return;
-      detachCurrentDataListener();
-      currentMunicipality = municipality;
-      if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-        const ref = db.ref('data2').orderByKey().limitToLast(1);
-        currentDataListener = ref;
-        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data2'));
-      } else if (municipality === 'Pasuquin') {
-        const ref = db.ref('data').orderByKey().limitToLast(1);
-        currentDataListener = ref;
-        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data'));
-      } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-        const ref = db.ref('data3').orderByKey().limitToLast(1);
-        currentDataListener = ref;
-        ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, 'data3'));
-      }
-    }
-    
-    function setSensorInputs(level, rain, flow) {
-      if (typeof level !== 'undefined' && level !== null) {
-        const input = document.getElementById('waterLevel');
-        if (input) input.value = level;
-        updateKPIs();
-      }
-      if (typeof rain !== 'undefined' && rain !== null) {
-        const input = document.getElementById('rainfall');
-        if (input) input.value = rain;
-        const kpi = document.getElementById('kpiRain');
-        if (kpi) kpi.innerHTML = `${parseFloat(rain).toFixed(2)} mm`;
-      }
-      if (typeof flow !== 'undefined' && flow !== null) {
-        const input = document.getElementById('discharge');
-        if (input) input.value = flow;
-        const kpi = document.getElementById('kpiDischarge');
-        if (kpi) kpi.innerHTML = `${parseFloat(flow).toFixed(2)} m³/s`;
-      }
-    }
-    
-    mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-    if ('telemetry' in mapboxgl) {
-      mapboxgl.telemetry = false;
-    }
-    
-    const initialCenter = [120.5927871, 18.1959782];
-    
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
-      center: initialCenter,
-      zoom: 11,
-      pitch: 65
-    });
-    
-    function setLocationAndFly(lng, lat) {
-      const point = new mapboxgl.LngLat(lng, lat);
-      if (activeMarker) {
-        activeMarker.setLngLat(point);
-      } else {
-        activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
-      }
-      map.flyTo({ center: point, zoom: 16, pitch: 65 });
-      triggerAnalysis(point);
-      if (locationModal) locationModal.hide();
-    }
+  // Firebase Setup
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+    authDomain: "flooded-95eeb.firebaseapp.com",
+    projectId: "flooded-95eeb",
+    storageBucket: "flooded-95eeb.firebasestorage.app",
+    messagingSenderId: "142547476223",
+    appId: "1:142547476223:web:70de7014c664e26d0636ca"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const storageRef = firebase.storage().ref();
 
-    const addressInput = document.getElementById('initialAddressInput');
-    const suggestionsBox = document.getElementById('addressSuggestions');
+  // Map Initialization
+  mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+  if ('telemetry' in mapboxgl) mapboxgl.telemetry = false;
+  
+  const initialCenter = [120.5927871, 18.1959782];
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
+    center: initialCenter,
+    zoom: 11,
+    pitch: 65
+  });
 
-    addressInput.addEventListener('input', (e) => {
-      const query = e.target.value.trim();
-      selectedCoords = null;
-      if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
-      
-      if (query.length < 3) {
-        suggestionsBox.style.display = 'none';
-        suggestionsBox.innerHTML = '';
-        return;
-      }
-
-      searchDebounceTimeout = setTimeout(async () => {
-        try {
-          const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&proximity=${initialCenter[0]},${initialCenter[1]}&limit=5`);
-          const data = await resp.json();
-          
-          if (data.features && data.features.length > 0) {
-            suggestionsBox.innerHTML = '';
-            data.features.forEach((feature) => {
-              const item = document.createElement('button');
-              item.type = 'button';
-              item.className = 'list-group-item list-group-item-action suggestion-item py-2 px-3';
-              item.innerHTML = `<i class="bi bi-geo-alt text-primary me-2"></i>${feature.place_name}`;
-              item.addEventListener('click', () => {
-                addressInput.value = feature.place_name;
-                selectedCoords = feature.center;
-                suggestionsBox.style.display = 'none';
-              });
-              suggestionsBox.appendChild(item);
-            });
-            suggestionsBox.style.display = 'block';
-          } else {
-            suggestionsBox.style.display = 'none';
-          }
-        } catch (e) {
-          console.error("Geocoding autosuggestion error:", e);
-        }
-      }, 300);
+  window.onload = async function() {
+    const modalElement = document.getElementById('initialLocationModal');
+    locationModal = new bootstrap.Modal(modalElement);
+    locationModal.show();
+    
+    modalElement.addEventListener('shown.bs.modal', () => {
+      document.getElementById('initialAddressInput')?.focus();
     });
 
-    document.getElementById('searchAddressBtn').addEventListener('click', async () => {
-      const query = addressInput.value.trim();
-      const errEl = document.getElementById('locationErrorText');
-      errEl.style.display = 'none';
-      
-      if (selectedCoords) {
-        setLocationAndFly(selectedCoords[0], selectedCoords[1]);
-        return;
-      }
+    updateKPIs();
+    await loadModel(); 
+    initLiveSensorsAndEvaluation();
+  };
 
-      if (!query) {
-        errEl.innerText = "Please enter an address or location.";
-        errEl.style.display = 'block';
-        return;
-      }
-
-      try {
-        const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&limit=1`);
-        const data = await resp.json();
-        if (data.features && data.features.length > 0) {
-          const [lng, lat] = data.features[0].center;
-          setLocationAndFly(lng, lat);
-        } else {
-          errEl.innerText = "Location not found. Please try another address.";
-          errEl.style.display = 'block';
-        }
-      } catch (e) {
-        errEl.innerText = "Geocoding error. Please check your network.";
-        errEl.style.display = 'block';
-      }
+  // Tensor Normalization with Memory Protection
+  function normalize(row) {
+    return row.map((v, i) => {
+      const denom = maxVals[i] - minVals[i];
+      return denom === 0 ? 0 : (v - minVals[i]) / denom;
     });
+  }
 
-    function getFloodColor(vulnerability) {
-      const val = parseFloat(vulnerability) || 0;
-      if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
-      if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
-      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
-      return 'rgba(40, 167, 69, 0.2)';                    
+  function getFloodColor(vulnerability) {
+    const val = parseFloat(vulnerability) || 0;
+    if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
+    if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
+    if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
+    return 'rgba(40, 167, 69, 0.2)';                    
+  }
+
+  function getNodeKeyForMunicipality(name) {
+    if (!name) return 'data2';
+    const lower = name.toLowerCase();
+    for (const [key, node] of Object.entries(MUNICIPALITY_NODES)) {
+      if (lower.includes(key)) return node;
     }
-    
-    let activeMarker = null;
-    
-    async function getElevationFromCoords(lng, lat) {
-      const token = mapboxgl.accessToken;
-      const zoom = 15; 
-      const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
-      const latRad = lat * Math.PI / 180;
-      const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
-      
-      const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngraw?access_token=${token}`;
-      
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Terrain tile request failed.");
-        const blob = await response.blob();
-        const bitmap = await createImageBitmap(blob);
-        
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 256;
-        canvas.height = 256;
-        ctx.drawImage(bitmap, 0, 0);
-        
-        const pixelX = Math.floor(((lng + 180) / 360 * Math.pow(2, zoom) - x) * 256);
-        const latMerc = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-        const pixelY = Math.floor(((1 - (latMerc / Math.PI)) / 2 * Math.pow(2, zoom) - y) * 256);
-        
-        const p = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-        const elevation = -10000 + ((p[0] * 65536 + p[1] * 256 + p[2]) * 0.1);
-        return elevation;
-      } catch (err) {
-        console.warn("API terrain fetch failed, stepping back to client canvas calculation pipeline:", err);
-        return map.queryTerrainElevation([lng, lat]) || 25.0; 
-      }
+    return 'data2';
+  }
+
+  function updateKPIs() {
+    const water = parseFloat(document.getElementById("waterLevel")?.value || 0);
+    const rain = parseFloat(document.getElementById("rainfall")?.value || 0);
+    const discharge = parseFloat(document.getElementById("discharge")?.value || 0);
+
+    document.getElementById("kpiWater").innerHTML = `${water.toFixed(2)} m`;
+    document.getElementById("kpiRain").innerHTML = `${rain.toFixed(2)} mm`;
+    document.getElementById("kpiDischarge").innerHTML = `${discharge.toFixed(2)} m³/s`;
+
+    if (activeMarker) {
+      triggerAnalysis(activeMarker.getLngLat());
     }
-    
-    map.on('style.load', () => {
-      if (!map.getSource('mapbox-dem')) {
-        map.addSource('mapbox-dem', {
-          'type': 'raster-dem',
-          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          'tileSize': 512,
-          'maxzoom': 17
-        });
-      }
-    });
-    
-    map.on('load', async () => {
-      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-      
-      geocoder = new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl,
-        marker: false,
-        placeholder: 'Search location',
-        proximity: initialCenter,
-        types: 'country,region,place,locality,neighborhood,address'
-      });
-      map.addControl(geocoder, 'top-left');
-      
-      geocoder.on('result', async (event) => {
-        const [lng, lat] = event.result.center;
-        const point = new mapboxgl.LngLat(lng, lat);
-        if (activeMarker) {
-          activeMarker.setLngLat(point);
-        } else {
-          activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
-        }
-        map.flyTo({ center: point, zoom: 17, pitch: 65});
-        await triggerAnalysis(point);
-      });
-      
-      db.ref('Flooded_Areas').once('value').then(snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
-        
-        loadedFloodAreasMap = {};
-        
-        Object.entries(data).forEach(([id, f], i) => {
-          if (!f.geojson) return;
-          const sourceId = `flood-src-${i}`;
-          const layerId = `flood-layer-${i}`;
-          
-          const municipalityNote = f.note ? f.note.trim().toLowerCase() : "";
-          
-          let elevationMean = 25.0;
-          if (f.geojson.features && Array.isArray(f.geojson.features)) {
-            for (const feature of f.geojson.features) {
-              if (feature.properties && feature.properties.elevation_mean !== undefined) {
-                elevationMean = parseFloat(feature.properties.elevation_mean) || elevationMean;
-                break;
-              }
-            }
-          }
-          
-          loadedFloodAreasMap[id] = {
-            layerId: layerId,
-            municipalityNote: municipalityNote,
-            elevationMean: elevationMean,
-            type: f.type
-          };
-          
-          const vulnVal = f.vulnerability ?? f.risk_level ?? f.risk ?? 0;
-          
-          map.addSource(sourceId, { type: 'geojson', data: f.geojson });
-          map.addLayer({
-            id: layerId,
-            type: f.type === 'municipality' ? 'line' : 'fill',
-            source: sourceId,
-            layout: {
-              'visibility': 'visible'
-            },
-            paint: f.type === 'municipality' ? 
-            { 'line-color': '#1c96c5', 'line-width': 2 } : 
-            { 'fill-color': getFloodColor(vulnVal), 'fill-opacity': 0.65 }
-          });
-        });
+  }
 
-        updateMapColorCodesBasedOnPredictions();
-      });
-      
-      const startPoint = mapboxgl.LngLat.convert(initialCenter);
-      activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
-      .setLngLat(startPoint)
-      .addTo(map);
-    });
-    
-    map.on('click', async (e) => {
-      if (activeMarker) {
-        activeMarker.setLngLat(e.lngLat);
-      } else {
-        activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
-        .setLngLat(e.lngLat)
-        .addTo(map);
-      }
-      document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-      await triggerAnalysis(e.lngLat);
-    }); 
-    
-    const liveDataStore = {
-      data: { level: 0, flow: 0, rain: 0 },
-      data2: { level: 0, flow: 0, rain: 0 },
-      data3: { level: 0, flow: 0, rain: 0 }
-    };
-    
-    function initLiveSensorsAndEvaluation() {
-      ['data', 'data2', 'data3'].forEach(nodeKey => {
-        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', async (snapshot) => {
-          if (!snapshot.exists()) return;
-          snapshot.forEach(child => {
-            const latest = child.val();
-            liveDataStore[nodeKey] = {
-              level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
-              flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
-              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
-            };
-          });
-          await updateMapColorCodesBasedOnPredictions();
-        });
-      });
-    }
+  // Real-time Batch Map Updates
+  async function updateMapColorCodesBasedOnPredictions() {
+    if (!model || minVals.length === 0 || maxVals.length === 0) return;
 
-    function getNodeKeyForMunicipality(municipalityName) {
-      if (!municipalityName) return 'data2';
-      const m = municipalityName.toLowerCase();
-      if (m.includes('laoag') || m.includes('san nicolas')) return 'data2';
-      if (m.includes('pasuquin')) return 'data';
-      if (m.includes('bacarra') || m.includes('vintar')) return 'data3';
-      return 'data2';
-    }
-
-    async function updateMapColorCodesBasedOnPredictions() {
-      if (!model || minVals.length === 0 || maxVals.length === 0) return;
-
-      for (const [id, areaObj] of Object.entries(loadedFloodAreasMap)) {
-        if (!map.getLayer(areaObj.layerId)) continue;
+    // Batch prediction tensors inside memory-managed block
+    tf.tidy(() => {
+      Object.entries(loadedFloodAreasMap).forEach(async ([id, areaObj]) => {
+        if (!map.getLayer(areaObj.layerId)) return;
 
         const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
         const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
-        const elevation = areaObj.elevationMean;
-
-        let riskScore = 0;
-        try {
-          const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, elevation];
-          const normFeatures = normalize(rawFeatures);
-          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-          const predictionResult = await predictionTensor.data();
-          riskScore = Math.round(predictionResult[0] * 100);
-        } catch (err) {
-          console.error("TensorFlow evaluation error for area:", err);
-        }
+        const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
+        
+        const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+        const scoreArr = predictionTensor.dataSync(); // Synchronous tensor read for UI iteration
+        const riskScore = Math.round(scoreArr[0] * 100);
 
         const newColor = getFloodColor(riskScore);
         if (areaObj.type === 'municipality') {
@@ -863,303 +526,305 @@
         } else {
           map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
         }
-      }
-    }
-    
-    async function triggerAnalysis(lngLat, forcedTelemetry = null) {
-      const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
-      const elevInput = document.getElementById('elevation');
-      if (elevInput) {
-        elevInput.value = Math.round(elevation);
-      }
-      
-      let currentWater = 0;
-      let currentRain = 0;
-      let currentDischarge = 0;
-      
-      if (forcedTelemetry) {
-        currentWater = parseFloat(forcedTelemetry.level) || 0;
-        currentRain = parseFloat(forcedTelemetry.rain) || 0;
-        currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
-        
-        setSensorInputs(currentWater, currentRain, currentDischarge);
-      } else {
-        currentWater = parseFloat(document.getElementById('waterLevel')?.value) || 0;
-        currentRain = parseFloat(document.getElementById('rainfall')?.value) || 0;
-        currentDischarge = parseFloat(document.getElementById('discharge')?.value) || 0;
-        
-        updateKPIs();
-      }
-      
-      let finalRisk = 0;
-      if (model && minVals.length > 0 && maxVals.length > 0) {
-        try {
-          const rawFeatures = [currentWater, currentRain, currentDischarge, elevation];
-          const normFeatures = normalize(rawFeatures);
-          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-          const predictionResult = await predictionTensor.data();
-          finalRisk = Math.round(predictionResult[0] * 100);
-        } catch (err) {
-          console.error("TensorFlow runtime processing error:", err);
-        }
-      }
-      
-      const kpiRiskEl = document.getElementById("kpiRisk");
-      let riskLabel = "Low";
-      let riskColor = "rgba(40, 167, 69, 1)";
-      if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
-      else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
-      else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
+      });
+    });
+  }
 
-      if (kpiRiskEl) {
-        kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
-      }
-      
-      let interpretText = "Low Risk Scenario";
-      let interpretColor = "rgba(40, 167, 69, 1)"; 
-      let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
-      
-      if (finalRisk >= 70) {
-        interpretText = "Severe Flood Risk";
-        interpretColor = "rgba(220, 53, 69, 1)"; 
-        recommendation = `CRITICAL: High threat detected! Current factors indicate localized warnings concern. Prepare immediate high-ground evacuation protocols.`;
-      } else if (finalRisk >= 50) {
-        interpretText = "High Flood Risk";
-        interpretColor = "rgba(253, 126, 20, 1)"; 
-        recommendation = `WARNING: Elevated threat parameters detected. Monitor local water bounds closely.`;
-      } else if (finalRisk >= 20) {
-        interpretText = "Moderate Flood Risk";
-        interpretColor = "rgba(255, 193, 7, 1)"; 
-        recommendation = `CAUTION: Elevating indices monitored. Moderate vulnerability observed. Secure low-lying equipment and proactive measures.`;
-      }
-      
-      let waterInterpretText = "Normal";
-      let waterInterpretColor = "rgba(40, 167, 69, 1)"; 
-      
-      if (currentWater > 5.0) { 
-        waterInterpretText = "Critical";
-        waterInterpretColor = "rgba(220, 53, 69, 1)"; 
-      } else if (currentWater > 2.5) { 
-        waterInterpretText = "Elevated";
-        waterInterpretColor = "rgba(253, 126, 20, 1)"; 
-      }
-      
+  function setSensorInputs(level, rain, flow) {
+    if (level != null) document.getElementById('waterLevel').value = level;
+    if (rain != null) document.getElementById('rainfall').value = rain;
+    if (flow != null) document.getElementById('discharge').value = flow;
+    updateKPIs();
+  }
+
+  function detachCurrentDataListener() {
+    if (currentDataListener?.off) {
+      currentDataListener.off('value');
+    }
+    currentDataListener = null;
+  }
+
+  function subscribeToMunicipalityData(municipality) {
+    if (!municipality || currentMunicipality === municipality) return;
+    detachCurrentDataListener();
+    currentMunicipality = municipality;
+    
+    const nodeKey = getNodeKeyForMunicipality(municipality);
+    const ref = db.ref(nodeKey).orderByKey().limitToLast(1);
+    currentDataListener = ref;
+    
+    ref.on('value', snapshot => {
+      if (!snapshot.exists()) return;
+      snapshot.forEach(child => {
+        const v = child.val();
+        setSensorInputs(
+          v.level ?? v.water ?? v.water_level,
+          v.rain ?? v.rainfall,
+          v.flow ?? v.discharge
+        );
+      });
+      manualPredict();
+    });
+  }
+
+  function initLiveSensorsAndEvaluation() {
+    ['data', 'data2', 'data3'].forEach(nodeKey => {
+      db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        snapshot.forEach(child => {
+          const latest = child.val();
+          liveDataStore[nodeKey] = {
+            level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
+            flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
+            rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
+          };
+        });
+        updateMapColorCodesBasedOnPredictions();
+      });
+    });
+  }
+
+  async function getElevationFromCoords(lng, lat) {
+    // Primary: Direct Mapbox GL query
+    const elev = map.queryTerrainElevation([lng, lat]);
+    if (elev !== null && elev !== undefined) return elev;
+    
+    // Fallback: Default average elevation
+    return 25.0; 
+  }
+
+  async function triggerAnalysis(lngLat, forcedTelemetry = null) {
+    const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
+    const elevInput = document.getElementById('elevation');
+    if (elevInput) elevInput.value = Math.round(elevation);
+
+    let currentWater = parseFloat(document.getElementById('waterLevel')?.value || 0);
+    let currentRain = parseFloat(document.getElementById('rainfall')?.value || 0);
+    let currentDischarge = parseFloat(document.getElementById('discharge')?.value || 0);
+
+    if (forcedTelemetry) {
+      currentWater = parseFloat(forcedTelemetry.level) || 0;
+      currentRain = parseFloat(forcedTelemetry.rain) || 0;
+      currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
+      setSensorInputs(currentWater, currentRain, currentDischarge);
+    }
+
+    let finalRisk = 0;
+    if (model && minVals.length > 0 && maxVals.length > 0) {
+      tf.tidy(() => {
+        const normFeatures = normalize([currentWater, currentRain, currentDischarge, elevation]);
+        const pred = model.predict(tf.tensor2d([normFeatures]));
+        finalRisk = Math.round(pred.dataSync()[0] * 100);
+      });
+    }
+
+    // Risk Display Update
+    const kpiRiskEl = document.getElementById("kpiRisk");
+    let riskLabel = "Low", riskColor = "rgba(40, 167, 69, 1)";
+    if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
+    else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
+    else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
+
+    if (kpiRiskEl) kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
+
+    // Perform Geocoding Lookup
+    try {
       const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
+      const resp = await fetch(geoQuery);
+      const data = await resp.json();
+      
       let locName = "Selected Coordinate Point";
-      let municipality = null;
-      try {
-        const resp = await fetch(geoQuery);
-        const data = await resp.json();
-        if (data.features?.length > 0) {
-          const f = data.features[0];
-          locName = f.place_name.split(',')[0];
-          if (/laoag/i.test(f.place_name)) municipality = 'Laoag';
-          if (/san nicolas/i.test(f.place_name)) municipality = 'San Nicolas';
-          if (/pasuquin/i.test(f.place_name)) municipality = 'Pasuquin';
-          if (/bacarra/i.test(f.place_name)) municipality = 'Bacarra';
-          if (/vintar/i.test(f.place_name)) municipality = 'Vintar';
-          if (!municipality && f.context) {
-            f.context.forEach(ctx => {
-              if (/laoag/i.test(ctx.text)) municipality = 'Laoag';
-              if (/san nicolas/i.test(ctx.text)) municipality = 'San Nicolas';
-              if (/pasuquin/i.test(ctx.text)) municipality = 'Pasuquin';
-              if (/bacarra/i.test(ctx.text)) municipality = 'Bacarra';
-              if (/vintar/i.test(ctx.text)) municipality = 'Vintar';
-            });
+      let matchedMunicipality = null;
+
+      if (data.features?.length > 0) {
+        const placeName = data.features[0].place_name;
+        locName = placeName.split(',')[0];
+        
+        for (const mName of Object.keys(MUNICIPALITY_NODES)) {
+          if (new RegExp(mName, 'i').test(placeName)) {
+            matchedMunicipality = mName;
+            break;
           }
         }
-      } catch (err) {
-        console.error("Geocode error lookup details:", err);
       }
-      
-      try {
-        if (municipality === 'Laoag' || municipality === 'San Nicolas') {
-          subscribeToMunicipalityData(municipality);
-        } else if (municipality === 'Pasuquin') {
-          subscribeToMunicipalityData('Pasuquin');
-        } else if (municipality === 'Bacarra' || municipality === 'Vintar') {
-          subscribeToMunicipalityData(municipality);
-        } else {
-          detachCurrentDataListener();
-        }
-      } catch (err) {
-        console.error('Error loading municipality sensor values:', err);
-      }
-      
-      const generateHtmlContent = () => `
-          <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
-              <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
-              <small class="d-block mb-2 text-dark" style="font-size: 0.75rem;">${locName}</small>
-          
-              <div class="d-flex justify-content-between">
-                  <span class="text-dark">Target Elevation:</span>
-                  <span class="fw-semibold">${elevation.toFixed(1)}m</span>
-              </div>
 
-              <div class="d-flex justify-content-between mt-1">
-                  <span class="text-dark">Current Water Level:</span>
-                  <span class="fw-semibold">${currentWater.toFixed(2)}m 
-                      <small style="color: ${waterInterpretColor}; font-weight: 700; margin-left: 4px;">(${waterInterpretText})</small>
-                  </span>
-              </div>
-              
-              <div class="mt-2 pt-2 border-top">
-                  <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
-                  <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.92rem;">${interpretText}</span>
-              </div>
-              
-              <div class="mt-2">
-                  <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                  <p class="mb-0 text-dark text-start" style="font-size: 0.78rem; text-align: justify; margin-top: 2px;">${recommendation}</p>
-              </div>
-          </div>
-      `;
-      
+      if (matchedMunicipality) {
+        subscribeToMunicipalityData(matchedMunicipality);
+      } else {
+        detachCurrentDataListener();
+      }
+
       const infoPanel = document.getElementById('details'); 
       if (infoPanel) {
-        infoPanel.innerHTML = generateHtmlContent();
+        infoPanel.innerHTML = `
+          <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
+            <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
+            <small class="d-block mb-2 text-dark" style="font-size: 0.75rem;">${locName}</small>
+            <div class="d-flex justify-content-between"><span class="text-dark">Elevation:</span><span class="fw-semibold">${elevation.toFixed(1)}m</span></div>
+            <div class="d-flex justify-content-between mt-1"><span class="text-dark">Water Level:</span><span class="fw-semibold">${currentWater.toFixed(2)}m</span></div>
+            <div class="mt-2 pt-2 border-top">
+              <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700;">Model Assessment</span>
+              <span class="fw-bold d-block" style="color: ${riskColor}; font-size: 0.92rem;">${finalRisk}% - ${riskLabel}</span>
+            </div>
+          </div>`;
       }
+    } catch (err) {
+      console.error("Analysis resolution error:", err);
     }
-    
-    function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
-    
-    document.getElementById('csvFileInput').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const text = evt.target.result;
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        if(lines.length < 2) return alert("Insufficient data structural lines in selected CSV.");
-        
-        const firstLine = lines[0].toLowerCase();
-        let indexOffset = 0;
-        if (firstLine.includes('water') || firstLine.includes('rain') || firstLine.includes('label')) {
-          indexOffset = 1;
-        }
-        
-        parsedCsvFeatures = [];
-        parsedCsvLabels = [];
-        
-        for(let i = indexOffset; i < lines.length; i++) {
-          const columns = lines[i].split(',').map(v => parseFloat(v.trim()));
-          if(columns.length >= 5 && !columns.some(isNaN)) {
-            parsedCsvFeatures.push([columns[0], columns[1], columns[2], columns[3]]);
-            parsedCsvLabels.push(columns[4]);
-          }
-        }
-        
-        if(parsedCsvFeatures.length === 0) {
-          document.getElementById('trainBtn').disabled = true;
-        } else {
-          document.getElementById('trainBtn').disabled = false;
-        }
-      };
-      reader.readAsText(file);
-    });
-    
-    async function autoTrain(){
-      if(parsedCsvFeatures.length === 0) return alert("Please select a local CSV file first.");
-      
-      const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
-      let trainX = parsedCsvFeatures.slice(0, splitIndex);
-      let testX  = parsedCsvFeatures.slice(splitIndex);
-      let trainY = parsedCsvLabels.slice(0, splitIndex);
-      let testY  = parsedCsvLabels.slice(splitIndex);
-      
+  }
+
+  // Model Persistence & Handlers
+  async function autoTrain() {
+    if (parsedCsvFeatures.length === 0) return alert("Please select a valid CSV dataset first.");
+
+    const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
+    let trainX = parsedCsvFeatures.slice(0, splitIndex);
+    let testX  = parsedCsvFeatures.slice(splitIndex);
+    let trainY = parsedCsvLabels.slice(0, splitIndex);
+    let testY  = parsedCsvLabels.slice(splitIndex);
+
+    tf.tidy(() => {
       minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
       maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
-      trainX = trainX.map(normalize);
-      testX  = testX.map(normalize);
-      
-      const xsTrain = tf.tensor2d(trainX);
-      const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
-      const xsTest = tf.tensor2d(testX);
-      const ysTest = tf.tensor2d(testY, [testY.length, 1]);
-      
-      model = tf.sequential();
-      model.add(tf.layers.dense({inputShape: [4], units: 128, activation: 'relu'}));
-      model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-      model.add(tf.layers.dense({units: 32, activation: 'relu'}));
-      model.add(tf.layers.dense({units: 16, activation: 'relu'}));
-      model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-      model.compile({optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
-      
-      await model.fit(xsTrain, ysTrain, {epochs: 150, batchSize: 16, shuffle: true, validationData: [xsTest, ysTest]});
-      
-      manualPredict();
-    }
-    
-    async function manualPredict(){
-      if(!model) return;
-      const input = [
-      parseFloat(document.getElementById('waterLevel').value), 
-      parseFloat(document.getElementById('rainfall').value), 
-      parseFloat(document.getElementById('discharge').value), 
-      parseFloat(document.getElementById('elevation').value)
-      ];
-      updateKPIs();
-      await generateForecastChart(input);
-    }
-    
-    async function generateForecastChart(current){
-      const horizons = [1, 3, 12, 24];
-      let last = [...current];
-      const predictions = [];
-      for(const h of horizons){
-        const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
-        predictions.push(pred[0] * 100);
-        last[0] += 0.05; 
-      }
-      const v = Math.round(predictions[0]);
-      let rLabel = "Low"; let rColor = "rgba(40, 167, 69, 1)";
-      if(v >= 70) { rLabel = "Severe"; rColor = "rgba(220, 53, 69, 1)"; }
-      else if(v >= 50) { rLabel = "High"; rColor = "rgba(253, 126, 20, 1)"; }
-      else if(v >= 20) { rLabel = "Moderate"; rColor = "rgba(255, 193, 7, 1)"; }
-      document.getElementById("kpiRisk").innerHTML = `<b style="color:${rColor}">${v}% - ${rLabel}</b>`;
-    }
-    
-    async function saveModel() {
-      if (!model) return alert("Train first!");
-      await model.save(tf.io.withSaveHandler(async (artifacts) => {
-        const weightsBlob = new Blob([artifacts.weightData], {type: 'application/octet-stream'});
-        await storageRef.child('models/flood_weights.bin').put(weightsBlob);
-        const modelConfig = { modelTopology: artifacts.modelTopology, weightSpecs: artifacts.weightSpecs, metadata: { minVals, maxVals } };
-        const configBlob = new Blob([JSON.stringify(modelConfig)], {type: 'application/json'});
-        await storageRef.child('models/flood_model.json').put(configBlob);
-        return { modelArtifactsInfo: { dateSaved: new Date() } };
-      }));
-    }
-    
-    async function loadModel() {
-      try {
-        const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-        const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-        
-        const config = await (await fetch(jsonUrl)).json();
-        const weights = await (await fetch(weightsUrl)).arrayBuffer();
-        
-        minVals = config.metadata.minVals;
-        maxVals = config.metadata.maxVals;
-        
-        model = await tf.loadLayersModel(tf.io.fromMemory(
+    });
+
+    trainX = trainX.map(normalize);
+    testX  = testX.map(normalize);
+
+    const xsTrain = tf.tensor2d(trainX);
+    const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
+    const xsTest = tf.tensor2d(testX);
+    const ysTest = tf.tensor2d(testY, [testY.length, 1]);
+
+    model = tf.sequential();
+    model.add(tf.layers.dense({ inputShape: [4], units: 128, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+    model.compile({ optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy'] });
+
+    await model.fit(xsTrain, ysTrain, {
+      epochs: 150,
+      batchSize: 16,
+      shuffle: true,
+      validationData: [xsTest, ysTest]
+    });
+
+    // Clean up training tensors
+    xsTrain.dispose(); ysTrain.dispose();
+    xsTest.dispose(); ysTest.dispose();
+
+    manualPredict();
+  }
+
+  async function manualPredict() {
+    if (!model) return;
+    updateKPIs();
+  }
+
+  async function loadModel() {
+    try {
+      const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+      const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+
+      const config = await (await fetch(jsonUrl)).json();
+      const weights = await (await fetch(weightsUrl)).arrayBuffer();
+
+      minVals = config.metadata.minVals;
+      maxVals = config.metadata.maxVals;
+
+      model = await tf.loadLayersModel(tf.io.fromMemory(
         config.modelTopology,
         config.weightSpecs,
         weights
-        ));
-        
-        await updateMapColorCodesBasedOnPredictions();
-      } catch (err) {
-        console.error(err);
-      }
+      ));
+
+      await updateMapColorCodesBasedOnPredictions();
+    } catch (err) {
+      console.warn("Pre-trained model initialization skipped or unavailable:", err);
     }
+  }
+
+  // Event Listeners
+  map.on('load', () => {
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
-    document.getElementById('trainBtn').onclick = autoTrain;
-    document.getElementById('saveBtn').onclick = saveModel;
-    document.getElementById('loadBtn').onclick = loadModel;
-    document.getElementById('predictBtn').onclick = manualPredict;
-  </script>
+    geocoder = new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      mapboxgl: mapboxgl,
+      marker: false,
+      placeholder: 'Search location',
+      proximity: initialCenter
+    });
+    map.addControl(geocoder, 'top-left');
+
+    geocoder.on('result', async (e) => {
+      const [lng, lat] = e.result.center;
+      const point = new mapboxgl.LngLat(lng, lat);
+      
+      if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
+      activeMarker.setLngLat(point);
+      
+      map.flyTo({ center: point, zoom: 17, pitch: 65 });
+      await triggerAnalysis(point);
+    });
+
+    db.ref('Flooded_Areas').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      loadedFloodAreasMap = {};
+      Object.entries(data).forEach(([id, f], i) => {
+        if (!f.geojson) return;
+        const sourceId = `flood-src-${i}`;
+        const layerId = `flood-layer-${i}`;
+
+        let elevationMean = 25.0;
+        if (f.geojson.features && Array.isArray(f.geojson.features)) {
+          for (const feature of f.geojson.features) {
+            if (feature.properties?.elevation_mean !== undefined) {
+              elevationMean = parseFloat(feature.properties.elevation_mean) || elevationMean;
+              break;
+            }
+          }
+        }
+
+        loadedFloodAreasMap[id] = {
+          layerId: layerId,
+          municipalityNote: f.note ? f.note.trim().toLowerCase() : "",
+          elevationMean: elevationMean,
+          type: f.type
+        };
+
+        map.addSource(sourceId, { type: 'geojson', data: f.geojson });
+        map.addLayer({
+          id: layerId,
+          type: f.type === 'municipality' ? 'line' : 'fill',
+          source: sourceId,
+          paint: f.type === 'municipality' 
+            ? { 'line-color': '#1c96c5', 'line-width': 2 } 
+            : { 'fill-color': getFloodColor(f.vulnerability ?? f.risk_level ?? f.risk ?? 0), 'fill-opacity': 0.65 }
+        });
+      });
+
+      updateMapColorCodesBasedOnPredictions();
+    });
+
+    const startPoint = mapboxgl.LngLat.convert(initialCenter);
+    activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(startPoint).addTo(map);
+  });
+
+  map.on('click', async (e) => {
+    if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
+    activeMarker.setLngLat(e.lngLat);
+    document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
+    await triggerAnalysis(e.lngLat);
+  });
+
+  document.getElementById('trainBtn').onclick = autoTrain;
+  document.getElementById('predictBtn').onclick = manualPredict;
+</script>
     <script src="menu.js"></script>
 </body>
 </html>
