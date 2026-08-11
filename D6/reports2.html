@@ -135,7 +135,6 @@
                     <li class="mb-1"><a class="nav-link text-white" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
-                    <!-- <li class="mb-1"><a class="nav-link text-white" href="floods4.html"><i class="bi bi-water me-2"></i>Flood Watch Lists</a></li> -->
                     <hr>
                     <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
                 </ul>
@@ -156,530 +155,609 @@
                     </div>
                     
                     <div class="dropdown">
-                        <button
-                        class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" 
-                        type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle"></i>
-                        <span id="emails">User Loading...</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                        <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
-                        <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
-                    </ul>
+                        <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="emails">User Loading...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
+                            <li><a class="dropdown-item small text-danger fw-bold" href="#" onclick="logoutUser()"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
             
-            <div class="card shadow-sm mb-1" id="filterCard">
-                <div class="card-body">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
-                            <label class="form-label small text-dark mb-1">Station</label>
-                            <input type="text" id="filterStation" class="form-control form-control-sm" placeholder="Search station name...">
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <label class="form-label small text-dark mb-1 d-block">Historical Window</label>
-                            <div class="btn-group w-100" role="group" aria-label="Historical Range Selection">
-                                <input type="radio" class="btn-check" name="historicalDays" id="days5" value="5" checked autocomplete="off">
-                                <label class="btn btn-outline-primary btn-sm" for="days5">5 Days</label>
-                                
-                                <input type="radio" class="btn-check" name="historicalDays" id="days10" value="10" autocomplete="off">
-                                <label class="btn btn-outline-primary btn-sm" for="days10">10 Days</label>
-                                
-                                <input type="radio" class="btn-check" name="historicalDays" id="days15" value="15" autocomplete="off">
-                                <label class="btn btn-outline-primary btn-sm" for="days15">15 Days</label>
-                                
-                                <input type="radio" class="btn-check" name="historicalDays" id="days30" value="30" autocomplete="off">
-                                <label class="btn btn-outline-primary btn-sm" for="days30">30 Days</label>
+                <div class="card shadow-sm mb-1" id="filterCard">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label small text-dark mb-1">Station</label>
+                                <select id="filterStation" class="form-select form-select-sm">
+                                    <option value="">All Stations</option>
+                                </select>
                             </div>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            <div class="d-flex gap-2">
-                                <button id="btnApplyFilters" class="btn btn-sm btn-primary w-50">Apply</button>
-                                <button id="btnResetFilters" class="btn btn-sm btn-light w-50 border">Reset</button>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label small text-dark mb-1 d-block">Historical Window</label>
+                                <div class="btn-group w-100" role="group" aria-label="Historical Range Selection">
+                                    <input type="radio" class="btn-check" name="historicalDays" id="days5" value="5" checked autocomplete="off">
+                                    <label class="btn btn-outline-primary btn-sm" for="days5">5 Days</label>
+                                    
+                                    <input type="radio" class="btn-check" name="historicalDays" id="days10" value="10" autocomplete="off">
+                                    <label class="btn btn-outline-primary btn-sm" for="days10">10 Days</label>
+                                    
+                                    <input type="radio" class="btn-check" name="historicalDays" id="days15" value="15" autocomplete="off">
+                                    <label class="btn btn-outline-primary btn-sm" for="days15">15 Days</label>
+                                    
+                                    <input type="radio" class="btn-check" name="historicalDays" id="days30" value="30" autocomplete="off">
+                                    <label class="btn btn-outline-primary btn-sm" for="days30">30 Days</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="d-flex gap-2">
+                                    <button id="btnApplyFilters" class="btn btn-sm btn-primary w-50">Apply</button>
+                                    <button id="btnResetFilters" class="btn btn-sm btn-light w-50 border">Reset</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             
-            <!-- Added mt-0, pt-0, and forced zero margins/padding on the main card container -->
-            <div class="card shadow-sm chart-card mt-0 pt-0" style="margin-top: 0px !important; padding-top: 0px !important;">
-                <!-- Explicitly set padding-top to 0px -->
-                <div class="card-body" style="padding-top: 0px !important;">
-                    <!-- Changed layout to eliminate top gutters and force zero-offset row margin -->
-                    <div id="station-charts" class="row gx-3 gy-0 pb-2 align-items-start" style="min-height: 550px; margin-top: 0px !important; padding-top: 0px !important;">
-                        <!-- Stripped mt-0 from the ID string, forced the placeholder text to line up at the absolute top -->
-                        <div class="col-12 text-center text-dark pt-2 pb-5" id="chart-placeholder">Connecting to Firebase...</div>
+                <div class="card shadow-sm chart-card mt-0 pt-0" style="margin-top: 0px !important; padding-top: 0px !important;">
+                    <div class="card-body" style="padding-top: 0px !important;">
+                        <div id="station-charts" class="row gx-3 gy-0 pb-2 align-items-start" style="min-height: 550px; margin-top: 0px !important; padding-top: 0px !important;">
+                            <div class="col-12 text-center text-dark pt-2 pb-5" id="chart-placeholder">Loading stations from Firebase...</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-        </main>
+            </main>
+        </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref as dbRef, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getStorage, ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-    
-    // Session Guard
-    window.onload = async function() {
-        if (sessionStorage.getItem('loggedIn') !== 'true') {
-            window.location.href = 'log.html';
-        }
-        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
-        document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
-        await loadForecastModel();
-    };
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-        authDomain: "flooded-95eeb.firebaseapp.com",
-        projectId: "flooded-95eeb",
-        storageBucket: "flooded-95eeb.firebasestorage.app",
-        messagingSenderId: "142547476223",
-        appId: "1:142547476223:web:70de7014c664e26d0636ca"
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const storage = getStorage(app);
-    const dataRef = dbRef(db, 'data');
-    const data2Ref = dbRef(db, 'data2');
-    const data3Ref = dbRef(db, 'data3');
-    
-    let model = null;
-    let minVals = [];
-    let maxVals = [];
-    let dataReports = [];
-    let data2Reports = [];
-    let data3Reports = [];
-    let allReports = []; 
-    let currentFilteredData = [];
-    let stationCharts = [];
-    let isRendering = false;
-    let modelLoaded = false;
-    
-    function normalizeInput(values) {
-        if (!minVals.length || !maxVals.length) return values;
-        return values.map((val, index) => {
-            const min = minVals[index] ?? 0;
-            const max = maxVals[index] ?? 1;
-            return max === min ? 0 : (parseFloat(val) - min) / (max - min);
-        });
-    }
-    
-    async function loadForecastModel() {
-        try {
-            console.log('Starting to load forecast model from Firebase storage...');
-            const jsonUrl = await getDownloadURL(storageRef(storage, 'models/flood_model.json'));
-            const weightsUrl = await getDownloadURL(storageRef(storage, 'models/flood_weights.bin'));
-            
-            const config = await (await fetch(jsonUrl)).json();
-            const weights = await (await fetch(weightsUrl)).arrayBuffer();
-            
-            minVals = config.metadata?.minVals || [];
-            maxVals = config.metadata?.maxVals || [];
-            
-            model = await tf.loadLayersModel(tf.io.fromMemory({
-                modelTopology: config.modelTopology,
-                weightSpecs: config.weightSpecs,
-                weightData: weights
-            }));
-            console.log('✓ Forecast model loaded successfully.');
-            modelLoaded = true;
-            // Force dynamic forecast calculations if data arrived before model finished loading
-            if (allReports.length > 0) {
-                renderTable();
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref as dbRef, onValue, off } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getStorage, ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        
+        // Session Guard
+        window.onload = async function() {
+            if (sessionStorage.getItem('loggedIn') !== 'true') {
+                window.location.href = 'log.html';
             }
-        } catch (err) {
-            console.error('Failed to load forecast model from storage:', err.message || err);
-            model = null;
+            document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin User";
+            document.getElementById('printTimestamp').innerText = "Generated on: " + new Date().toLocaleString();
+            await loadForecastModel();
+            listenToFirebaseStations();
+        };
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+            authDomain: "flooded-95eeb.firebaseapp.com",
+            projectId: "flooded-95eeb",
+            storageBucket: "flooded-95eeb.firebasestorage.app",
+            messagingSenderId: "142547476223",
+            appId: "1:142547476223:web:70de7014c664e26d0636ca"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const storage = getStorage(app);
+        
+        let model = null;
+        let minVals = [];
+        let maxVals = [];
+        
+        let registeredStations = []; 
+        let telemetryListeners = {}; 
+        let stationTelemetryData = {}; 
+        let allReports = []; 
+        let currentFilteredData = [];
+        let stationCharts = [];
+        let isRendering = false;
+
+        // Normalize strings for case-insensitive and space-trimmed matching
+        function normalizeStationName(str) {
+            return (str || '').toString().trim().toLowerCase();
         }
-    }
-    
-    async function predictFloodProbability(features) {
-        if (!model) return null;
-        try {
-            const normalized = normalizeInput(features);
-            const input = tf.tensor2d([normalized]);
-            const output = model.predict(input);
-            const pred = await output.data();
-            input.dispose();
-            output.dispose();
-            return pred[0] * 100;
-        } catch (err) {
-            console.error('Error in predictFloodProbability:', err.message || err);
+
+        async function loadForecastModel() {
+            try {
+                console.log('Loading forecast model from Firebase storage...');
+                const jsonUrl = await getDownloadURL(storageRef(storage, 'models/flood_model.json'));
+                const weightsUrl = await getDownloadURL(storageRef(storage, 'models/flood_weights.bin'));
+                
+                const config = await (await fetch(jsonUrl)).json();
+                const weights = await (await fetch(weightsUrl)).arrayBuffer();
+                
+                minVals = config.metadata?.minVals || [];
+                maxVals = config.metadata?.maxVals || [];
+                
+                model = await tf.loadLayersModel(tf.io.fromMemory({
+                    modelTopology: config.modelTopology,
+                    weightSpecs: config.weightSpecs,
+                    weightData: weights
+                }));
+                console.log('✓ Forecast model loaded successfully.');
+                if (allReports.length > 0) {
+                    renderTable();
+                }
+            } catch (err) {
+                console.error('Failed to load forecast model:', err.message || err);
+                model = null;
+            }
+        }
+
+        // Dynamically listen to firebase.com -> stations
+        function listenToFirebaseStations() {
+            const stationsRef = dbRef(db, 'stations');
+            
+            onValue(stationsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    registeredStations = Object.keys(data).map(key => {
+                        const stationObj = data[key] || {};
+                        const rawName = stationObj.name || stationObj.stationName || stationObj.station || stationObj.city || key;
+                        return {
+                            id: key,
+                            name: rawName,
+                            normalizedName: normalizeStationName(rawName),
+                            nodePath: stationObj.node || stationObj.nodePath || stationObj.dataNode || stationObj.telemetryNode || key,
+                            ...stationObj
+                        };
+                    });
+                } else {
+                    registeredStations = [];
+                    const container = document.getElementById('station-charts');
+                    if (container) {
+                        container.innerHTML = '<div class="col-12 text-center text-dark py-5">No stations configured under firebase.com->stations node.</div>';
+                    }
+                }
+                
+                updateStationDropdown();
+                attachTelemetryListeners();
+            });
+        }
+
+        // Attach listeners for each station's associated node
+        function attachTelemetryListeners() {
+            Object.keys(telemetryListeners).forEach(nodePath => {
+                off(dbRef(db, nodePath));
+            });
+            telemetryListeners = {};
+            stationTelemetryData = {};
+
+            if (registeredStations.length === 0) return;
+
+            registeredStations.forEach(st => {
+                const nodePath = st.nodePath;
+                if (!nodePath) return;
+
+                const nodeRef = dbRef(db, nodePath);
+                telemetryListeners[nodePath] = onValue(nodeRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const rawData = snapshot.val();
+                        
+                        let records = [];
+                        if (Array.isArray(rawData)) {
+                            records = rawData.filter(Boolean);
+                        } else if (typeof rawData === 'object') {
+                            records = Object.keys(rawData).map(k => ({ __key: k, ...rawData[k] }));
+                        }
+
+                        stationTelemetryData[st.id] = records.map(item => ({
+                            station: item.station || item.city || st.name,
+                            stationId: st.id,
+                            normalizedStation: normalizeStationName(item.station || item.city || st.name),
+                            ...item,
+                            __node: nodePath
+                        })).reverse();
+                    } else {
+                        stationTelemetryData[st.id] = [];
+                    }
+                    mergeAndRender();
+                });
+            });
+        }
+
+        function updateStationDropdown() {
+            const filterSelect = document.getElementById('filterStation');
+            if (!filterSelect) return;
+            
+            const currentValueNormalized = normalizeStationName(filterSelect.value);
+            filterSelect.innerHTML = '<option value="">All Stations</option>';
+            
+            // Deduplicate stations case-insensitively
+            const seenNormalizedNames = new Set();
+            registeredStations.forEach(st => {
+                if (!seenNormalizedNames.has(st.normalizedName)) {
+                    seenNormalizedNames.add(st.normalizedName);
+                    const option = document.createElement('option');
+                    // Store normalized lowercase name in the value attribute for precise filtering
+                    option.value = st.normalizedName;
+                    option.textContent = st.name; // Display full properly-cased name
+                    filterSelect.appendChild(option);
+                }
+            });
+
+            if (currentValueNormalized && seenNormalizedNames.has(currentValueNormalized)) {
+                filterSelect.value = currentValueNormalized;
+            }
+        }
+
+        function mergeAndRender() {
+            allReports = [];
+            Object.keys(stationTelemetryData).forEach(stId => {
+                allReports = allReports.concat(stationTelemetryData[stId]);
+            });
+            
+            allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+            renderTable();
+        }
+
+        function normalizeInput(values) {
+            if (!minVals.length || !maxVals.length) return values;
+            return values.map((val, index) => {
+                const min = minVals[index] ?? 0;
+                const max = maxVals[index] ?? 1;
+                return max === min ? 0 : (parseFloat(val) - min) / (max - min);
+            });
+        }
+
+        async function predictFloodProbability(features) {
+            if (!model) return null;
+            try {
+                const normalized = normalizeInput(features);
+                const input = tf.tensor2d([normalized]);
+                const output = model.predict(input);
+                const pred = await output.data();
+                input.dispose();
+                output.dispose();
+                return pred[0] * 100;
+            } catch (err) {
+                console.error('Error in predictFloodProbability:', err.message || err);
+                return null;
+            }
+        }
+
+        function formatField(f) {
+            return (f === undefined || f === null || f === 'N/A') ? '' : f;
+        }
+
+        function formatMonthDay(dateStr) {
+            const date = new Date(dateStr);
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function destroyStationCharts() {
+            stationCharts.forEach(chart => chart.destroy());
+            stationCharts = [];
+        }
+
+        function levelToProbability(level) {
+            const low = 2.5;
+            const high = 5.0;
+            const normalized = (level - low) / (high - low);
+            return Math.max(0, Math.min(1, normalized)) * 100;
+        }
+
+        function getItemDateKey(item) {
+            if (item?.date) return item.date.slice(0, 10);
+            if (item?.timestamp) {
+                const tsDate = new Date(item.timestamp);
+                if (!isNaN(tsDate)) return tsDate.toISOString().slice(0, 10);
+            }
             return null;
         }
-    }
-    
-    function formatField(f) {
-        return (f === undefined || f === null || f === 'N/A') ? '' : f;
-    }
-    
-    function formatMonthDay(dateStr) {
-        const date = new Date(dateStr);
-        if (isNaN(date)) return dateStr;
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-    
-    function destroyStationCharts() {
-        stationCharts.forEach(chart => chart.destroy());
-        stationCharts = [];
-    }
-    
-    // Normalization transformation for fallback visualization metric maps
-    function levelToProbability(level) {
-        const low = 2.5;
-        const high = 5.0;
-        const normalized = (level - low) / (high - low);
-        return Math.max(0, Math.min(1, normalized)) * 100;
-    }
-    
-    function getItemDateKey(item) {
-        if (item?.date) return item.date.slice(0, 10);
-        if (item?.timestamp) {
-            const tsDate = new Date(item.timestamp);
-            if (!isNaN(tsDate)) return tsDate.toISOString().slice(0, 10);
+
+        function getItemTimestamp(item) {
+            if (!item) return Date.now();
+            if (item.date) {
+                try {
+                    const timePart = item.time ? (' ' + item.time) : '';
+                    const dt = new Date(item.date + timePart);
+                    if (!isNaN(dt)) return dt.getTime();
+                } catch (e) {}
+            }
+            if (item.timestamp) return Number(item.timestamp) || Date.now();
+            return Date.now();
         }
-        return null;
-    }
-    
-    async function buildStationCharts() {
-        const container = document.getElementById('station-charts');
-        container.innerHTML = '';
-        destroyStationCharts();
-        
-        if (currentFilteredData.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center text-dark py-5">No records match your filters.</div>';
-            return;
-        }
-        
-        const stationGroups = {};
-        currentFilteredData.forEach(item => {
-            const station = formatField(item.station || item.city) || 'Unknown Station';
-            const dateKey = getItemDateKey(item);
-            if (!dateKey) return;
+
+        async function buildStationCharts() {
+            const container = document.getElementById('station-charts');
+            container.innerHTML = '';
+            destroyStationCharts();
             
-            const level = parseFloat(item.level);
-            const rain = parseFloat(item.rain);
-            const flow = parseFloat(item.flow);
-            stationGroups[station] = stationGroups[station] || {};
-            const bucket = stationGroups[station][dateKey] || { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
-            if (!isNaN(level)) { bucket.levelSum += level; }
-            if (!isNaN(rain)) { bucket.rainSum += rain; }
-            if (!isNaN(flow)) { bucket.flowSum += flow; }
-            bucket.count += 1;
-            stationGroups[station][dateKey] = bucket;
-        });
-        
-        const stationNames = Object.keys(stationGroups);
-        if (stationNames.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center text-dark py-5">No valid data points available.</div>';
-            return;
-        }
-        
-        const stationDailyPoints = {};
-        stationNames.forEach(station => {
-            stationDailyPoints[station] = Object.keys(stationGroups[station]).sort().map(dateKey => {
-                const bucket = stationGroups[station][dateKey];
-                return {
-                    dateKey,
-                    label: formatMonthDay(dateKey),
-                    level: bucket.count ? bucket.levelSum / bucket.count : null,
-                    rain: bucket.count ? bucket.rainSum / bucket.count : null,
-                    flow: bucket.count ? bucket.flowSum / bucket.count : null
-                };
-            });
-        });
-        
-        for (let index = 0; index < stationNames.length; index += 1) {
-            const station = stationNames[index];
-            const points = stationDailyPoints[station];
-            const labels = points.map(pt => pt.label);
-            const probabilityData = points.map(pt => pt.level !== null ? levelToProbability(pt.level) : null);
-            
-            const forecastLabels = [];
-            const forecastData = [];
-            const latestPoint = points[points.length - 1];
-            
-            if (model && latestPoint && latestPoint.level !== null) {
-                const horizons = [1, 3, 12, 24];
-                let futureInput = [latestPoint.level, latestPoint.rain || 0, latestPoint.flow || 0, 0];
-                for (const h of horizons) {
-                    const forecastProb = await predictFloodProbability(futureInput);
-                    if (forecastProb === null) break;
-                    forecastLabels.push(`+${h}h`);
-                    forecastData.push(parseFloat(forecastProb.toFixed(1)));
-                    futureInput = [futureInput[0] + 0.02, futureInput[1] + 1, futureInput[2] + 3, futureInput[3]];
-                }
+            if (currentFilteredData.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-dark py-5">No telemetry records match your selected filters.</div>';
+                return;
             }
             
-            const combinedLabels = [...labels, ...forecastLabels];
-            const actualSeries = [...probabilityData, ...forecastLabels.map(() => null)];
-            const forecastSeries = [...labels.map(() => null), ...forecastData];
-            
-            const col = document.createElement('div');
-            col.className = 'col-12 mb-1';
-            col.innerHTML = `
-                <div class="card p-2 shadow-sm">
-                    <div class="mb-1">
-                        <h5 class="fw-bold text-dark d-inline me-2">${station}</h5>
-                        <p class="text-dark small d-inline mb-0">Observed parameters compared directly with machine learning flood probability insights</p>
-                    </div>
+            // Group data by case-insensitive normalized station name, preserving nice visual title
+            const stationGroups = {};
+            const displayNamesMap = {};
 
-                    <div class="row g-4">
-                        <div class="col-12 col-lg-6">
-                            <div class="p-2 border rounded bg-light-subtle">
-                                <div class="mb-2 px-1">
-                                    <strong class="small text-uppercase text-secondary">Daily Historical Metrics</strong>
-                                </div>
-                                <canvas id="station-chart-${index}" class="station-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6">
-                            <div class="p-2 border rounded bg-light-subtle">
-                                <div class="mb-2 px-1">
-                                    <strong class="small text-uppercase text-secondary">Observed vs Hourly Forecast Probability</strong>
-                                </div>
-                                <canvas id="station-probability-chart-${index}" class="station-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            container.appendChild(col);
+            currentFilteredData.forEach(item => {
+                const rawStation = formatField(item.station || item.city) || 'Unknown Station';
+                const normStation = normalizeStationName(rawStation);
+                const dateKey = getItemDateKey(item);
+                if (!dateKey) return;
+                
+                displayNamesMap[normStation] = displayNamesMap[normStation] || rawStation;
+
+                const level = parseFloat(item.level);
+                const rain = parseFloat(item.rain);
+                const flow = parseFloat(item.flow);
+                stationGroups[normStation] = stationGroups[normStation] || {};
+                const bucket = stationGroups[normStation][dateKey] || { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
+                if (!isNaN(level)) { bucket.levelSum += level; }
+                if (!isNaN(rain)) { bucket.rainSum += rain; }
+                if (!isNaN(flow)) { bucket.flowSum += flow; }
+                bucket.count += 1;
+                stationGroups[normStation][dateKey] = bucket;
+            });
             
-            const ctx = document.getElementById(`station-chart-${index}`);
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                    {
-                        label: 'Level',
-                        data: points.map(pt => pt.level !== null ? parseFloat(pt.level.toFixed(2)) : null),
-                        borderColor: '#1f77b4',
-                        backgroundColor: 'rgba(31, 119, 180, 0.15)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 4,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Rain',
-                        data: points.map(pt => pt.rain !== null ? parseFloat(pt.rain.toFixed(2)) : null),
-                        borderColor: '#2ca02c',
-                        backgroundColor: 'rgba(44, 160, 44, 0.15)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 4,
-                        yAxisID: 'y1'
-                    },
-                    {
-                        label: 'Flow',
-                        data: points.map(pt => pt.flow !== null ? parseFloat(pt.flow.toFixed(2)) : null),
-                        borderColor: '#ff7f0e',
-                        backgroundColor: 'rgba(255, 127, 14, 0.15)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 4,
-                        yAxisID: 'y1'
-                    }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
-                        tooltip: { mode: 'index', intersect: false }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Date' }, ticks: { autoSkip: true, maxRotation: 45 } },
-                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Level' } },
-                        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Rain / Flow' }, grid: { drawOnChartArea: false } }
+            const stationKeys = Object.keys(stationGroups);
+            if (stationKeys.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-dark py-5">No valid data points available.</div>';
+                return;
+            }
+            
+            const stationDailyPoints = {};
+            stationKeys.forEach(normKey => {
+                stationDailyPoints[normKey] = Object.keys(stationGroups[normKey]).sort().map(dateKey => {
+                    const bucket = stationGroups[normKey][dateKey];
+                    return {
+                        dateKey,
+                        label: formatMonthDay(dateKey),
+                        level: bucket.count ? bucket.levelSum / bucket.count : null,
+                        rain: bucket.count ? bucket.rainSum / bucket.count : null,
+                        flow: bucket.count ? bucket.flowSum / bucket.count : null
+                    };
+                });
+            });
+            
+            for (let index = 0; index < stationKeys.length; index += 1) {
+                const normKey = stationKeys[index];
+                const displayTitle = displayNamesMap[normKey];
+                const points = stationDailyPoints[normKey];
+                const labels = points.map(pt => pt.label);
+                const probabilityData = points.map(pt => pt.level !== null ? levelToProbability(pt.level) : null);
+                
+                const forecastLabels = [];
+                const forecastData = [];
+                const latestPoint = points[points.length - 1];
+                
+                if (model && latestPoint && latestPoint.level !== null) {
+                    const horizons = [1, 3, 12, 24];
+                    let futureInput = [latestPoint.level, latestPoint.rain || 0, latestPoint.flow || 0, 0];
+                    for (const h of horizons) {
+                        const forecastProb = await predictFloodProbability(futureInput);
+                        if (forecastProb === null) break;
+                        forecastLabels.push(`+${h}h`);
+                        forecastData.push(parseFloat(forecastProb.toFixed(1)));
+                        futureInput = [futureInput[0] + 0.02, futureInput[1] + 1, futureInput[2] + 3, futureInput[3]];
                     }
                 }
-            });
-            stationCharts.push(chart);
-            
-            const pCtx = document.getElementById(`station-probability-chart-${index}`);
-            const probChart = new Chart(pCtx, {
-                type: 'line',
-                data: {
-                    labels: combinedLabels,
-                    datasets: [
-                    {
-                        label: 'Observed Probability (%)',
-                        data: actualSeries,
-                        borderColor: '#1f77b4',
-                        backgroundColor: 'rgba(31, 119, 180, 0.15)',
-                        tension: 0.3,
-                        fill: false,
-                        pointRadius: 4
+                
+                const combinedLabels = [...labels, ...forecastLabels];
+                const actualSeries = [...probabilityData, ...forecastLabels.map(() => null)];
+                const forecastSeries = [...labels.map(() => null), ...forecastData];
+                
+                const col = document.createElement('div');
+                col.className = 'col-12 mb-1';
+                col.innerHTML = `
+                    <div class="card p-2 shadow-sm">
+                        <div class="mb-1">
+                            <h5 class="fw-bold text-dark d-inline me-2">${displayTitle}</h5>
+                            <p class="text-dark small d-inline mb-0">Observed parameters compared directly with machine learning flood probability insights</p>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-12 col-lg-6">
+                                <div class="p-2 border rounded bg-light-subtle">
+                                    <div class="mb-2 px-1">
+                                        <strong class="small text-uppercase text-secondary">Daily Historical Metrics</strong>
+                                    </div>
+                                    <canvas id="station-chart-${index}" class="station-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="p-2 border rounded bg-light-subtle">
+                                    <div class="mb-2 px-1">
+                                        <strong class="small text-uppercase text-secondary">Observed vs Hourly Forecast Probability</strong>
+                                    </div>
+                                    <canvas id="station-probability-chart-${index}" class="station-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.appendChild(col);
+                
+                const ctx = document.getElementById(`station-chart-${index}`);
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Level',
+                                data: points.map(pt => pt.level !== null ? parseFloat(pt.level.toFixed(2)) : null),
+                                borderColor: '#1f77b4',
+                                backgroundColor: 'rgba(31, 119, 180, 0.15)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Rain',
+                                data: points.map(pt => pt.rain !== null ? parseFloat(pt.rain.toFixed(2)) : null),
+                                borderColor: '#2ca02c',
+                                backgroundColor: 'rgba(44, 160, 44, 0.15)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 4,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'Flow',
+                                data: points.map(pt => pt.flow !== null ? parseFloat(pt.flow.toFixed(2)) : null),
+                                borderColor: '#ff7f0e',
+                                backgroundColor: 'rgba(255, 127, 14, 0.15)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 4,
+                                yAxisID: 'y1'
+                            }
+                        ]
                     },
-                    {
-                        label: 'Forecast Probability (%)',
-                        data: forecastSeries,
-                        borderColor: '#dc3545',
-                        backgroundColor: 'rgba(220, 53, 69, 0.15)',
-                        tension: 0.3,
-                        fill: false,
-                        pointRadius: 4
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Date' }, ticks: { autoSkip: true, maxRotation: 45 } },
+                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Level' } },
+                            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Rain / Flow' }, grid: { drawOnChartArea: false } }
+                        }
                     }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
-                        tooltip: { mode: 'index', intersect: false }
+                });
+                stationCharts.push(chart);
+                
+                const pCtx = document.getElementById(`station-probability-chart-${index}`);
+                const probChart = new Chart(pCtx, {
+                    type: 'line',
+                    data: {
+                        labels: combinedLabels,
+                        datasets: [
+                            {
+                                label: 'Observed Probability (%)',
+                                data: actualSeries,
+                                borderColor: '#1f77b4',
+                                backgroundColor: 'rgba(31, 119, 180, 0.15)',
+                                tension: 0.3,
+                                fill: false,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Forecast Probability (%)',
+                                data: forecastSeries,
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                                tension: 0.3,
+                                fill: false,
+                                pointRadius: 4
+                            }
+                        ]
                     },
-                    scales: {
-                        x: { title: { display: true, text: 'Date' }, ticks: { autoSkip: true, maxRotation: 45 } },
-                        y: { title: { display: true, text: 'Flood Probability (%)' }, beginAtZero: true, max: 100 }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Date' }, ticks: { autoSkip: true, maxRotation: 45 } },
+                            y: { title: { display: true, text: 'Flood Probability (%)' }, beginAtZero: true, max: 100 }
+                        }
                     }
-                }
-            });
-            stationCharts.push(probChart);
+                });
+                stationCharts.push(probChart);
+            }
         }
-    }
-    
-    async function renderTable() {
-        if (isRendering) return;
-        isRendering = true;
-        
-        try {
-            const stationFieldElement = document.getElementById('filterStation');
-            const stationFilter = stationFieldElement ? stationFieldElement.value.toLowerCase() : '';
+
+        async function renderTable() {
+            if (isRendering) return;
+            isRendering = true;
             
-            const selectedDaysOpt = document.querySelector('input[name="historicalDays"]:checked');
-            const targetDaysLimit = selectedDaysOpt ? parseInt(selectedDaysOpt.value) : 5;
-            
-            currentFilteredData = allReports.filter(item => {
-                let match = true;
-                const stationValue = item.station || item.city || '';
-                if (stationFilter && !stationValue.toLowerCase().includes(stationFilter)) match = false;
-                return match;
-            });
-            
-            currentFilteredData = currentFilteredData.filter(item => {
-                const dateStr = formatField(item.date);
-                const stationStr = formatField(item.station || item.city);
-                const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
-                return (dateStr !== '' && stationStr !== '' && levelVal !== '');
-            });
-            
-            const globalUniqueDates = [...new Set(currentFilteredData.map(item => getItemDateKey(item)))].sort().reverse();
-            const allowedDatesWindow = globalUniqueDates.slice(0, targetDaysLimit);
-            
-            currentFilteredData = currentFilteredData.filter(item => {
-                return allowedDatesWindow.includes(getItemDateKey(item));
-            });
-            
-            await buildStationCharts();
-        } finally {
-            isRendering = false;
-        }
-    }
-    
-    function getItemTimestamp(item) {
-        if (!item) return Date.now();
-        if (item.date) {
             try {
-                const timePart = item.time ? (' ' + item.time) : '';
-                const dt = new Date(item.date + timePart);
-                if (!isNaN(dt)) return dt.getTime();
-            } catch (e) {}
+                const stationFieldElement = document.getElementById('filterStation');
+                const stationFilterNormalized = stationFieldElement ? normalizeStationName(stationFieldElement.value) : '';
+                
+                const selectedDaysOpt = document.querySelector('input[name="historicalDays"]:checked');
+                const targetDaysLimit = selectedDaysOpt ? parseInt(selectedDaysOpt.value) : 5;
+                
+                // Perform case-insensitive filter matching
+                currentFilteredData = allReports.filter(item => {
+                    let match = true;
+                    const itemStationNormalized = normalizeStationName(item.station || item.city);
+                    if (stationFilterNormalized && itemStationNormalized !== stationFilterNormalized) match = false;
+                    return match;
+                });
+                
+                currentFilteredData = currentFilteredData.filter(item => {
+                    const dateStr = formatField(item.date);
+                    const stationStr = formatField(item.station || item.city);
+                    const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : String(item.level);
+                    return (dateStr !== '' && stationStr !== '' && levelVal !== '');
+                });
+                
+                const globalUniqueDates = [...new Set(currentFilteredData.map(item => getItemDateKey(item)))].sort().reverse();
+                const allowedDatesWindow = globalUniqueDates.slice(0, targetDaysLimit);
+                
+                currentFilteredData = currentFilteredData.filter(item => {
+                    return allowedDatesWindow.includes(getItemDateKey(item));
+                });
+                
+                await buildStationCharts();
+            } finally {
+                isRendering = false;
+            }
         }
-        if (item.timestamp) return Number(item.timestamp) || Date.now();
-        return Date.now();
-    }
-    
-    function mergeAndRender() {
-        allReports = [...dataReports, ...data2Reports, ...data3Reports];
-        allReports.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
-        // Automatically calculate predictions and load charts instantly on data ingestion
-        renderTable();
-    }
-    
-    onValue(dataRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            dataReports = Object.keys(data).map(key => ({ station: 'Pasuquin', ...data[key], __key: key, __source: 'data' })).reverse();
-        } else { dataReports = []; }
-        mergeAndRender();
-    });
-    
-    onValue(data2Ref, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            data2Reports = Object.keys(data).map(key => ({ station: 'Laoag', ...data[key], __key: key, __source: 'data2' })).reverse();
-        } else { data2Reports = []; }
-        mergeAndRender();
-    });
-    
-    onValue(data3Ref, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            data3Reports = Object.keys(data).map(key => ({ station: 'Bacarra', ...data[key], __key: key, __source: 'data3' })).reverse();
-        } else { data3Reports = []; }
-        mergeAndRender();
-    });
-    
-    document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
-    
-    document.querySelectorAll('input[name="historicalDays"]').forEach(radio => {
-        radio.addEventListener('change', renderTable);
-    });
-    
-    document.getElementById('btnResetFilters').addEventListener('click', () => {
-        document.getElementById('filterStation').value = '';
-        document.getElementById('days5').checked = true;
-        renderTable();
-    });
-    
-document.getElementById('logoutLink').addEventListener('click', function (e) {
-    e.preventDefault();
 
-    Swal.fire({
-        title: 'Logout?',
-        text: 'Are you sure you want to log out?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Logout',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            sessionStorage.clear();
+        document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+        
+        document.querySelectorAll('input[name="historicalDays"]').forEach(radio => {
+            radio.addEventListener('change', renderTable);
+        });
+        
+        document.getElementById('btnResetFilters').addEventListener('click', () => {
+            document.getElementById('filterStation').value = '';
+            document.getElementById('days5').checked = true;
+            renderTable();
+        });
+        
+        document.getElementById('logoutLink').addEventListener('click', function (e) {
+            e.preventDefault();
 
             Swal.fire({
-                title: 'Logged Out',
-                text: 'You have been logged out successfully.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                window.location.href = 'log.html';
+                title: 'Logout?',
+                text: 'Are you sure you want to log out?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    sessionStorage.clear();
+
+                    Swal.fire({
+                        title: 'Logged Out',
+                        text: 'You have been logged out successfully.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'log.html';
+                    });
+                }
             });
-        }
-    });
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="menu.js"></script>
+        });
+    </script>
+    <script src="menu.js"></script>
 </body>
 </html>
