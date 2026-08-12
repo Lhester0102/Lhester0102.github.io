@@ -425,10 +425,14 @@
             return dateStr;
         }
 
+        // Parses payload records cleanly without altering metric values
         function parseRawReadingsPayload(rawData) {
             if (!rawData) return [];
             if (Array.isArray(rawData)) return rawData.filter(item => item && typeof item === 'object');
             if (typeof rawData === 'object') {
+                if (rawData.level !== undefined || rawData.rain !== undefined || rawData.flow !== undefined) {
+                    return [rawData];
+                }
                 return Object.entries(rawData)
                     .map(([k, v]) => (typeof v === 'object' ? { ...v, __key: k } : {}))
                     .filter(item => item.level !== undefined || item.rain !== undefined || item.flow !== undefined || item.date !== undefined);
@@ -556,11 +560,12 @@
             return stationMeta.station || stationMeta.stationName || stationMeta.name || stationMeta.station_name || fallbackId;
         }
 
+        // Renders exact live KPI values directly from the latest snapshot entry without averaging
         function updateStationCardUI(stationId, records) {
             stationRecordsMap[stationId] = records;
-            records.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-            const current = records[records.length - 1] || {};
+            // Direct extraction of the single latest reading without mathematical operations
+            const current = records.length > 0 ? records[records.length - 1] : {};
             const meta = current.level !== undefined ? getDepthBadgeInfo(current.level) : { label: 'No Data', class: 'bg-dark text-white' };
 
             const elements = {
@@ -572,6 +577,7 @@
                 status: document.getElementById(`status-${stationId}`)
             };
 
+            // Directly outputting the raw metric values
             if (elements.lvl) elements.lvl.innerText = current.level !== undefined ? `${current.level} m` : '--';
             if (elements.rain) elements.rain.innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
             if (elements.flow) elements.flow.innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
@@ -584,9 +590,33 @@
             if (current.flow !== undefined) applyValueTextStyle(`flow-${stationId}`, 'flow', current.flow);
         }
 
-        function syncStationToAssignedNode(stationId, stationMeta) {
+        function loadDynamicStations() {
+            onValue(ref(db, 'stations'), (snapshot) => {
+                const container = document.getElementById('dynamic-stations-container');
+                if (!container) return;
+
+                if (!snapshot.exists()) {
+                    container.innerHTML = `<div class="col-12 text-center text-muted py-4"><i class="bi bi-exclamation-circle fs-3 d-block mb-2"></i>No active stations configured.</div>`;
+                    updateStationCount(0);
+                    return;
+                }
+
+                const stationsObj = snapshot.val();
+                const stationKeys = Object.keys(stationsObj);
+                container.innerHTML = '';
+                updateStationCount(stationKeys.length);
+
+                stationKeys.forEach(stationId => {
+                    const stationMeta = stationsObj[stationId] || {};
+                    const assignedNodePath = stationMeta.node || stationMeta.nodePath || stationMeta.path || stationMeta.dataReader || stationId;
+                    
+                    syncStationToAssignedNode(stationId, stationMeta, assignedNodePath);
+                });
+            });
+        }
+
+        function syncStationToAssignedNode(stationId, stationMeta, assignedNodePath) {
             const displayName = resolveStationDisplayName(stationMeta, stationId);
-            const assignedNode = stationMeta.node || stationMeta.nodePath || stationMeta.path || stationMeta.dataReader || stationId;
             const container = document.getElementById('dynamic-stations-container');
 
             if (!document.getElementById(`station-card-${stationId}`)) {
@@ -632,35 +662,13 @@
 
             if (!stationNodeListeners.has(stationId)) {
                 stationNodeListeners.add(stationId);
-                // Optimized Query: Limit real-time stream footprint to 100 entries max per station node
-                const nodeQuery = query(ref(db, assignedNode), limitToLast(100));
+                
+                const nodeQuery = query(ref(db, assignedNodePath), limitToLast(100));
                 onValue(nodeQuery, (snapshot) => {
                     const records = snapshot.exists() ? parseRawReadingsPayload(snapshot.val()) : [];
                     updateStationCardUI(stationId, records);
                 });
             }
-        }
-
-        function loadDynamicStations() {
-            onValue(ref(db, 'stations'), (snapshot) => {
-                const container = document.getElementById('dynamic-stations-container');
-                if (!container) return;
-
-                if (!snapshot.exists()) {
-                    container.innerHTML = `<div class="col-12 text-center text-muted py-4"><i class="bi bi-exclamation-circle fs-3 d-block mb-2"></i>No active stations configured.</div>`;
-                    updateStationCount(0);
-                    return;
-                }
-
-                const stationsObj = snapshot.val();
-                const stationKeys = Object.keys(stationsObj);
-                container.innerHTML = '';
-                updateStationCount(stationKeys.length);
-
-                stationKeys.forEach(stationId => {
-                    syncStationToAssignedNode(stationId, stationsObj[stationId] || {});
-                });
-            });
         }
 
         function updateStationCount(count) {
