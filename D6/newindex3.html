@@ -793,13 +793,13 @@
             if (vulnerability === 'severe') return 'rgba(220, 53, 69, 1)';
             if (vulnerability === 'high') return 'rgba(253, 126, 20, 1)';
             if (vulnerability === 'moderate') return 'rgba(217, 160, 0, 1)';
-            if (vulnerability === 'low') return 'rgba(144, 238, 144, 0.5)';
+            if (vulnerability === 'low') return 'rgba(144, 238, 144, 0.0)';
 
             const val = parseFloat(vulnerability) || 0;
             if (val >= 70) return 'rgba(220, 53, 69, 1)';     
             if (val >= 50) return 'rgba(253, 126, 20, 1)';    
             if (val >= 20) return 'rgba(217, 160, 0, 1)';     
-            return 'rgba(144, 238, 144, 0.5)';                                                   
+            return 'rgba(144, 238, 144, 0.0)';                                                   
         }
         
         function getRiskCategory(val) {
