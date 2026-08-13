@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GDSS</title>
+  <title>GDSS - Map Flood Watch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <link rel="icon" href="images/GDSS.png">
@@ -19,24 +19,43 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    /* Theme Core */
-    html, body { height: 100%; margin: 0; padding: 0; background: #f4f6f9; overflow: hidden; }
-    
-    /* Layout Structure */
-    .app-container { height: 100vh; display: flex; overflow: hidden; }
+    /* Theme Core & Responsive Viewport Base */
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      padding: 0; 
+      background: #f4f6f9; 
+      overflow-x: hidden; 
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .app-container { 
+      height: 100vh; 
+      display: flex; 
+      overflow: hidden; 
+    }
     
     /* Fixed Sidebar Styles */
     .sidebar { 
-      background-color: #1c96c5; transition: all 0.3s; z-index: 1050; 
-      overflow-y: auto; height: 100vh; position: sticky; top: 0; 
+      background-color: #1c96c5; 
+      transition: all 0.3s; 
+      z-index: 1050; 
+      overflow-y: auto; 
+      height: 100vh; 
+      position: sticky; 
+      top: 0; 
     }
     .nav-link { color: rgba(255, 255, 255, 0.85); transition: 0.2s; border-radius: 5px; margin-bottom: 2px; }
     .nav-link:hover, .nav-link.active { background-color: #212529 !important; color: #fff !important; }
     
-    /* Scrollable Main Content Area */
-    .main-content { height: 100vh; overflow-y: auto; overflow-x: hidden; padding-bottom: 2rem; }
-    .main-content::-webkit-scrollbar { width: 6px; }
-    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    /* Responsive Content Viewport */
+    .main-content { 
+      height: 100vh; 
+      overflow-y: auto; 
+      overflow-x: hidden; 
+      display: flex;
+      flex-direction: column;
+    }
     
     .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
@@ -45,28 +64,61 @@
     .mobile-brand img { width: 35px; height: 35px; }
     .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
     
-    #map { width: 100%; height: 500px; border-radius: 10px; }
+    /* Dynamic Responsive Map Wrapper */
+    .map-card-wrapper {
+      position: relative;
+      height: calc(100vh - 210px);
+      min-height: 380px;
+      width: 100%;
+    }
+
+    #map { 
+      width: 100%; 
+      height: 100%; 
+      border-radius: 10px; 
+    }
+
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.02); }
     
-    /* Risk Overlay Box */
+    /* Risk Overlay Box - Positioned at Bottom Left */
     #riskControlBox {
-      position: absolute; top: 65px; right: 15px; background: rgba(255, 255, 255, 0.85);
-      padding: 10px; border-radius: 10px; font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      z-index: 2; width: 200px; backdrop-filter: blur(4px); transition: width 0.3s ease, padding 0.3s ease;
+      position: absolute; 
+      bottom: 20px; 
+      left: 15px; 
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px; 
+      border-radius: 10px; 
+      font-size: 12px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      z-index: 2; 
+      width: 200px; 
+      backdrop-filter: blur(4px); 
+      transition: all 0.3s ease;
     }
-    #riskControlBox.collapsed { width: 44px !important; padding: 6px !important; overflow: hidden; }
-    #riskControlBox.collapsed .collapse-content, #riskControlBox.collapsed .overlay-header-title { display: none !important; }
-    #riskControlBox.collapsed .overlay-header { justify-content: center !important; margin: 0 !important; padding: 0 !important; }
+    #riskControlBox.collapsed { 
+      width: 44px !important; 
+      padding: 6px !important; 
+      overflow: hidden; 
+    }
+    #riskControlBox.collapsed .collapse-content, 
+    #riskControlBox.collapsed .overlay-header-title { 
+      display: none !important; 
+    }
+    #riskControlBox.collapsed .overlay-header { 
+      justify-content: center !important; 
+      margin: 0 !important; 
+      padding: 0 !important; 
+    }
     
     .overlay-header { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
     .overlay-toggle-btn { background: transparent; border: none; padding: 0; color: #212529; font-size: 0.95rem; }
     .bg-dark-yellow { background-color: #d9a000 !important; color: #ffffff !important; }
     
-    @media (max-width: 767.98px) {
-      html, body { overflow: auto; }
-      .app-container, .main-content { height: auto; overflow: visible; }
+    @media (max-width: 991.98px) {
+      html, body, .app-container, .main-content { height: auto; overflow: visible; }
       .sidebar { height: auto; position: relative; }
+      .map-card-wrapper { height: 450px; }
     }
   </style>
 </head>
@@ -74,9 +126,11 @@
 <body>
   <div class="container-fluid p-0 app-container">
     <div class="row g-0 w-100">
+      
+      <!-- NAVIGATION SIDEBAR -->
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         <div class="d-md-none mobile-brand">
-          <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
+          <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
             <small class="text-white-50" style="font-size: 0.7rem;">Map Flood Watch</small>
@@ -86,7 +140,7 @@
           </button>
         </div>
         <div class="text-center mb-4 d-none d-md-block">
-          <img src="images/gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+          <img src="images/GDSS.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
         </div>
         <ul class="nav flex-column">
@@ -113,8 +167,11 @@
         </ul>
       </nav>
       
-      <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
+      <!-- MAIN VIEWPORT CONTENT -->
+      <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
+        
+        <!-- HEADER CONTROL BAR -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2 p-2 bg-white rounded shadow-sm gap-2">
           <div class="d-flex align-items-center gap-3">
             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
               <i class="bi bi-list"></i>
@@ -124,13 +181,29 @@
           
           <div class="d-flex align-items-center gap-2 ms-auto">
             <div class="d-none d-md-flex align-items-center gap-1">
-              <a href="floods3.html" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm"><i class="bi bi-geo-alt-fill me-1"></i> By Pins</a>
-              <a href="floodsmap.html" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm"><i class="bi bi-map-fill text-info me-1"></i> By Map</a>
+              <a href="floods3.html" class="p-2 btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-geo-alt-fill"></i> By Pins
+              </a>
+              <a href="floodsmap.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-map-fill text-info"></i> By Map
+              </a>
+              <a href="floods4.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-list text-info"></i> All Barangays</a>
+            </div>
+            
+            <div class="dropdown d-md-none">
+              <button class="p-2 btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-grid-fill me-1"></i> Navigation
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                <li><a class="dropdown-item small active" href="floods3.html"><i class="bi bi-geo-alt-fill me-2 text-info"></i>Flood Pins</a></li>
+                <li><a class="dropdown-item small" href="floodsmap.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
+                <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
+              </ul>
             </div>
             
             <div class="dropdown">
-              <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-person-circle"></i>
+              <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle fs-6"></i>
                 <span id="emails">User Loading...</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
@@ -142,18 +215,41 @@
           </div>
         </div>
         
-        <div class="row g-3 mb-1">
-          <div class="col-md-3"><div class="card p-3"><h6>Water Level (m)</h6><h4 id="kpiWater">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Rainfall (mm)</h6><h4 id="kpiRain">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Discharge (m³/s)</h6><h4 id="kpiDischarge">0.0</h4></div></div>
-          <div class="col-md-3"><div class="card p-3"><h6>Flood Risk Summary</h6><h4 id="kpiRisk">--</h4></div></div>
+        <!-- TELEMETRY KPI CARDS -->
+        <div class="row g-2 mb-2">
+          <div class="col-6 col-md-3">
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Water Level</span>
+              <h5 id="kpiWater" class="mb-0 fw-bold text-primary">0.00 m</h5>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Rainfall</span>
+              <h5 id="kpiRain" class="mb-0 fw-bold text-info">0.0 mm</h5>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Discharge Flow</span>
+              <h5 id="kpiDischarge" class="mb-0 fw-bold text-success">0.0 m³/s</h5>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Flood Risk Status</span>
+              <h5 id="kpiRisk" class="mb-0 fw-bold text-dark">--</h5>
+            </div>
+          </div>
         </div>
         
-        <div class="row g-3">
-          <div class="col-lg-9 d-flex flex-column">
-            <div class="card mb-1" style="height: 500px; position: relative;">
-              <div class="card-body p-1"><div style="height: 500px;" id="map"></div></div>
+        <!-- MAIN MAP DISPLAY & ANALYSIS PANEL -->
+        <div class="row g-2 mb-2 flex-grow-1">
+          <div class="col-12 col-lg-9 d-flex flex-column">
+            <div class="card map-card-wrapper mb-2">
+              <div id="map"></div>
               
+              <!-- FLOOD RISK OVERLAY CONTROL (COLLAPSIBLE AT BOTTOM) -->
               <div id="riskControlBox" class="border">
                 <div class="overlay-header text-dark d-flex justify-content-between align-items-center" id="riskHeader" title="Toggle Flood Prone Risks">
                   <div class="d-flex align-items-center gap-2">
@@ -161,32 +257,32 @@
                     <span class="overlay-header-title">FLOOD PRONE RISKS</span>
                   </div>
                   <button class="overlay-toggle-btn" type="button" id="riskToggleBtn">
-                    <i class="bi bi-chevron-right" id="riskToggleIcon"></i>
+                    <i class="bi bi-chevron-down" id="riskToggleIcon"></i>
                   </button>
                 </div>
                 <div class="collapse-content mt-1">
                   <div class="d-flex flex-column gap-1 pt-1 border-top">
                     <div class="form-check m-0 d-flex align-items-center gap-2">
                       <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleSevere" value="severe">
-                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleSevere">
+                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleSevere" style="cursor: pointer;">
                         <span style="display:inline-block; width:10px; height:10px; background:rgba(220,53,69,1); border-radius:2px;"></span> Severe
                       </label>
                     </div>
                     <div class="form-check m-0 d-flex align-items-center gap-2">
                       <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleHigh" value="high">
-                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleHigh">
+                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleHigh" style="cursor: pointer;">
                         <span style="display:inline-block; width:10px; height:10px; background:rgba(253,126,20,1); border-radius:2px;"></span> High
                       </label>
                     </div>
                     <div class="form-check m-0 d-flex align-items-center gap-2">
                       <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleModerate" value="moderate">
-                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleModerate">
+                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleModerate" style="cursor: pointer;">
                         <span style="display:inline-block; width:10px; height:10px; background:#d9a000; border-radius:2px;"></span> Moderate
                       </label>
                     </div>
                     <div class="form-check m-0 d-flex align-items-center gap-2">
                       <input class="form-check-input risk-toggle mt-0 me-1" type="checkbox" id="toggleLow" value="low">
-                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleLow">
+                      <label class="form-check-label d-flex align-items-center gap-2 text-dark" for="toggleLow" style="cursor: pointer;">
                         <span style="display:inline-block; width:10px; height:10px; background:rgba(144,238,144,1); border-radius:2px;"></span> Low / Safe
                       </label>
                     </div>
@@ -195,22 +291,22 @@
               </div>
             </div>
             
-            <div class="card mb-1 mt-2 p-3">
-              <p id="status" class="small text-dark mt-1 mb-0">Please select a local CSV file</p>
+            <div class="card p-2">
+              <p id="status" class="small text-dark mb-0"><i class="bi bi-info-circle me-1"></i>Initializing Map Flood Watch System...</p>
             </div>
           </div>
           
-          <div class="col-lg-3">
-            <div class="card p-3 shadow-sm" id="detailsCard">
-              <label id="details" class="form-label small text-dark mb-0">Map Pins 📍 Will be displayed if there are flood warnings in the area.</label>
+          <!-- ANALYTICS PANEL -->
+          <div class="col-12 col-lg-3">
+            <div class="card p-3 shadow-sm h-100" id="detailsCard">
+              <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="bi bi-clipboard-data text-primary me-1"></i> Field Hazard Analysis</h6>
+              <div id="details">
+                <span class="small text-muted">Click any map station or perform a search to inspect field hazard analytics.</span>
+              </div>
             </div>
-            
-            <input type="hidden" value="0.0" id="waterLevel">
-            <input type="hidden" value="0.0" id="rainfall">
-            <input type="hidden" value="0.0" id="discharge">
-            <input type="hidden" value="0.0" id="elevation">
           </div>
         </div>
+
       </main>
     </div>
   </div>
@@ -222,12 +318,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script>
-    // Cached DOM References
     const DOM = {
-      waterLevel: document.getElementById("waterLevel"),
-      rainfall: document.getElementById("rainfall"),
-      discharge: document.getElementById("discharge"),
-      elevation: document.getElementById("elevation"),
       kpiWater: document.getElementById("kpiWater"),
       kpiRain: document.getElementById("kpiRain"),
       kpiDischarge: document.getElementById("kpiDischarge"),
@@ -237,13 +328,15 @@
       emails: document.getElementById("emails")
     };
     
-    let model, minVals = [], maxVals = [];
-    let geocoder, activeMarker = null;
+    let model = null, minVals = [], maxVals = [];
+    let geocoder = null, activeMarker = null;
     let stationMarkersArray = [];
     let rivers = [];
     const elevationCache = new Map();
     let riskLayers = { severe: [], high: [], moderate: [], low: [] };
     let currentFirebaseTimestamp = "";
+    
+    let activeSensors = { level: 0, rain: 0, flow: 0, elevation: 0 };
     
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
@@ -264,7 +357,7 @@
       if (sessionStorage.getItem('loggedIn') !== 'true') {
         window.location.href = 'log.html';
       }
-      DOM.emails.innerText = sessionStorage.getItem("userEmail") || "User";
+      if (DOM.emails) DOM.emails.innerText = sessionStorage.getItem("userEmail") || "User";
       
       updateKPIs();
       await loadModel();
@@ -277,38 +370,32 @@
       
       const toggleAction = () => {
         box.classList.toggle('collapsed');
-        icon.className = box.classList.contains('collapsed') ? "bi bi-chevron-left" : "bi bi-chevron-right";
+        icon.className = box.classList.contains('collapsed') ? "bi bi-chevron-up" : "bi bi-chevron-down";
       };
       
       if (header) header.onclick = toggleAction;
       if (btn) btn.onclick = (e) => { e.stopPropagation(); toggleAction(); };
     };
     
-    // Optimization: Standard vector normalization
     function normalize(row) {
       return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
     }
     
-    // Optimization: Memory-safe Tensorflow Predict Function
     function predictRisk(rawFeatures) {
       if (!model || !minVals.length || !maxVals.length) return 0;
       return tf.tidy(() => {
         const normFeatures = normalize(rawFeatures);
         const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-        const val = predictionTensor.dataSync()[0];
-        return Math.round(val * 100);
+        return Math.round(predictionTensor.dataSync()[0] * 100);
       });
     }
     
     function updateKPIs() {
-      if (DOM.waterLevel) {
-        DOM.kpiWater.innerHTML = `
-          ${DOM.waterLevel.value} m
-          ${currentFirebaseTimestamp ? `<div class="text-dark small" style="font-size: 0.75rem; font-weight: normal; margin-top: 4px;"><i class="bi bi-clock"></i> ${currentFirebaseTimestamp}</div>` : ''}
-        `;
+      if (DOM.kpiWater) {
+        DOM.kpiWater.innerHTML = `${activeSensors.level.toFixed(2)} m ${currentFirebaseTimestamp ? `<div class="text-dark extra-small font-weight-normal mt-1"><i class="bi bi-clock"></i> ${currentFirebaseTimestamp}</div>` : ''}`;
       }
-      if (DOM.rainfall) DOM.kpiRain.innerText = parseFloat(DOM.rainfall.value).toFixed(2);
-      if (DOM.discharge) DOM.kpiDischarge.innerText = parseFloat(DOM.discharge.value).toFixed(2);
+      if (DOM.kpiRain) DOM.kpiRain.innerText = `${activeSensors.rain.toFixed(1)} mm`;
+      if (DOM.kpiDischarge) DOM.kpiDischarge.innerText = `${activeSensors.flow.toFixed(1)} m³/s`;
     }
     
     function detachCurrentDataListener() {
@@ -321,7 +408,7 @@
     function processMunicipalitySnapshot(snapshot, sourceName) {
       if (!snapshot.exists()) {
         if (sourceName === 'data2') loadData2JsonFallback();
-        else DOM.status.innerText = `${sourceName} has no latest value yet.`;
+        else DOM.status.innerText = `${sourceName} registry snapshot pending.`;
         return;
       }
       snapshot.forEach(child => {
@@ -335,8 +422,7 @@
         
         setSensorInputs(level, rain, flow);
       });
-      DOM.status.innerText = `${sourceName} updated — auto refreshed.`;
-      manualPredict();
+      DOM.status.innerText = `✓ Synced with ${sourceName} telemetry stream.`;
     }
     
     async function loadData2JsonFallback() {
@@ -350,21 +436,11 @@
         let dbDate = payload.dt ?? payload.date ?? "";
         let dbTime = payload.t ?? payload.time ?? "";
         
-        if ((level === null && rain === null && flow === null) && payload.features?.[0]?.properties) {
-          const p = payload.features[0].properties;
-          level = level ?? p.level ?? p.water ?? p.water_level ?? null;
-          rain = rain ?? p.rain ?? p.rainfall ?? null;
-          flow = flow ?? p.flow ?? p.discharge ?? null;
-          dbDate = dbDate ?? p.dt ?? p.date ?? "";
-          dbTime = dbTime ?? p.t ?? p.time ?? "";
-        }
-        
         currentFirebaseTimestamp = (dbDate && dbTime) ? `${dbDate} | ${dbTime}` : (dbDate || dbTime || "");
         setSensorInputs(level, rain, flow);
-        DOM.status.innerText = 'data2.json fallback loaded.';
-        await manualPredict();
+        DOM.status.innerText = '✓ Backup telemetry loaded.';
       } catch (err) {
-        console.error('Failed to load data2.json fallback:', err);
+        console.error('Failed to load backup telemetry:', err);
       }
     }
     
@@ -384,19 +460,18 @@
         const ref = db.ref(targetNode).orderByKey().limitToLast(1);
         currentDataListener = ref;
         ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, targetNode));
-        DOM.status.innerText = `Subscribed to latest ${municipality} data updates.`;
+        DOM.status.innerText = `Subscribed to live telemetry stream: ${municipality}`;
       }
     }
     
     function setSensorInputs(level, rain, flow) {
-      if (level != null && DOM.waterLevel) DOM.waterLevel.value = level;
-      if (rain != null && DOM.rainfall) DOM.rainfall.value = rain;
-      if (flow != null && DOM.discharge) DOM.discharge.value = flow;
+      if (level != null) activeSensors.level = parseFloat(level) || 0;
+      if (rain != null) activeSensors.rain = parseFloat(rain) || 0;
+      if (flow != null) activeSensors.flow = parseFloat(flow) || 0;
       updateKPIs();
     }
     
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-    if ('telemetry' in mapboxgl) mapboxgl.telemetry = false;
     
     const initialCenter = [120.5927871, 18.1959782];
     const map = new mapboxgl.Map({
@@ -404,7 +479,7 @@
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
       center: initialCenter,
       zoom: 11,
-      pitch: 60
+      pitch: 50
     });
     
     function getFloodMarkerColor(val) {
@@ -434,42 +509,13 @@
       return 'low';
     }
     
-    // Optimization: Caching elevation requests
     async function getElevationFromCoords(lng, lat) {
       const key = `${lng.toFixed(5)},${lat.toFixed(5)}`;
       if (elevationCache.has(key)) return elevationCache.get(key);
       
-      const token = mapboxgl.accessToken;
-      const zoom = 15;
-      const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
-      const latRad = lat * Math.PI / 180;
-      const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
-      const url = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.pngraw?access_token=${token}`;
-      
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Terrain tile error");
-        const blob = await response.blob();
-        const bitmap = await createImageBitmap(blob);
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 256;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bitmap, 0, 0);
-        
-        const pixelX = Math.floor(((lng + 180) / 360 * Math.pow(2, zoom) - x) * 256);
-        const latMerc = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-        const pixelY = Math.floor(((1 - (latMerc / Math.PI)) / 2 * Math.pow(2, zoom) - y) * 256);
-        const p = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-        
-        const elevation = -10000 + ((p[0] * 65536 + p[1] * 256 + p[2]) * 0.1);
-        elevationCache.set(key, elevation);
-        return elevation;
-      } catch (err) {
-        const fallback = map.queryTerrainElevation([lng, lat]) || 25.0;
-        elevationCache.set(key, fallback);
-        return fallback;
-      }
+      const fallback = map.queryTerrainElevation([lng, lat]) || 25.0;
+      elevationCache.set(key, fallback);
+      return fallback;
     }
     
     map.on('style.load', () => {
@@ -478,6 +524,7 @@
           'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
           'tileSize': 512, 'maxzoom': 17
         });
+        map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
       }
     });
     
@@ -496,7 +543,7 @@
         const point = new mapboxgl.LngLat(lng, lat);
         if (activeMarker) activeMarker.setLngLat(point);
         else activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).setLngLat(point).addTo(map);
-        map.flyTo({ center: point, zoom: 17, pitch: 45 });
+        map.flyTo({ center: point, zoom: 16, pitch: 45 });
         await triggerAnalysis(point);
       });
       
@@ -526,8 +573,8 @@
       });
       
       activeMarker = new mapboxgl.Marker({ color: '#1c96c5' })
-      .setLngLat(mapboxgl.LngLat.convert(initialCenter))
-      .addTo(map);
+        .setLngLat(mapboxgl.LngLat.convert(initialCenter))
+        .addTo(map);
       
       setupRiverStations();
     });
@@ -601,7 +648,6 @@
       });
     }
     
-    // Optimization: Parallel fetching of elevation for river array
     async function updateStationPinsIndividually() {
       stationMarkersArray.forEach(m => m.remove());
       stationMarkersArray = [];
@@ -619,13 +665,13 @@
         const probChartId = `riverProb-${idx}`;
         const popup = new mapboxgl.Popup({ offset: 25 });
         const markerInstance = new mapboxgl.Marker({ color: dynamicPinColor })
-        .setLngLat([river.lng, river.lat])
-        .setPopup(popup)
-        .addTo(map);
+          .setLngLat([river.lng, river.lat])
+          .setPopup(popup)
+          .addTo(map);
         
         markerInstance.getElement().addEventListener('click', async (e) => {
           e.stopPropagation();
-          map.flyTo({ center: [river.lng, river.lat], zoom: 17, essential: true, pitch: 45 });
+          map.flyTo({ center: [river.lng, river.lat], zoom: 16, pitch: 45 });
           document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
           
           currentFirebaseTimestamp = telemetry.timeInfo;
@@ -685,11 +731,11 @@
     
     async function triggerAnalysis(lngLat, forcedTelemetry = null) {
       const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
-      if (DOM.elevation) DOM.elevation.value = Math.round(elevation);
+      activeSensors.elevation = Math.round(elevation);
       
-      let w = forcedTelemetry ? parseFloat(forcedTelemetry.level) || 0 : parseFloat(DOM.waterLevel?.value) || 0;
-      let r = forcedTelemetry ? parseFloat(forcedTelemetry.rain) || 0 : parseFloat(DOM.rainfall?.value) || 0;
-      let d = forcedTelemetry ? parseFloat(forcedTelemetry.flow) || 0 : parseFloat(DOM.discharge?.value) || 0;
+      let w = forcedTelemetry ? parseFloat(forcedTelemetry.level) || 0 : activeSensors.level;
+      let r = forcedTelemetry ? parseFloat(forcedTelemetry.rain) || 0 : activeSensors.rain;
+      let d = forcedTelemetry ? parseFloat(forcedTelemetry.flow) || 0 : activeSensors.flow;
       
       if (forcedTelemetry) setSensorInputs(w, r, d);
       else updateKPIs();
@@ -700,25 +746,19 @@
       const topRiskText = finalRisk < 20 ? ["Safe", "green"] : (finalRisk < 50 ? alertMap[20] : finalRisk < 70 ? alertMap[50] : alertMap[70]);
       if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
       
-      let interpretText = "Low / Safe Scenario";
-      let alertBadgeClass = "bg-success";
-      let interpretColor = "#198754";
-      let recommendation = "";
+      let interpretText = "Low / Safe Scenario", alertBadgeClass = "bg-success", interpretColor = "#198754", recommendation = "";
       
       if (finalRisk >= 70) {
         interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
-        alertBadgeClass = "bg-danger";
-        interpretColor = "#dc3545";
-        recommendation = `<div class="alert alert-danger d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #dc3545;"><i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i><div><strong class="d-block text-danger">CRITICAL HAZARD</strong><p class="mb-1 small">Severe threat at <b>${w.toFixed(2)}m</b> water level and <b>${r.toFixed(1)}mm</b> rain.</p></div></div>`;
+        alertBadgeClass = "bg-danger"; interpretColor = "#dc3545";
+        recommendation = `<div class="alert alert-danger d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #dc3545;"><i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i><div><strong class="d-block text-danger">CRITICAL HAZARD</strong><p class="mb-1 small">Severe flood threat detected. Initiate forced evacuation to higher ground.</p></div></div>`;
       } else if (finalRisk >= 50) {
         interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
-        alertBadgeClass = "bg-warning text-dark";
-        interpretColor = "#fd7e14";
-        recommendation = `<div class="alert alert-warning text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #fd7e14; background-color: #fff3cd;"><i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i><div><strong class="d-block text-warning-emphasis">HIGH VULNERABILITY</strong><p class="mb-1 small">Water levels approaching bank limits.</p></div></div>`;
+        alertBadgeClass = "bg-warning text-dark"; interpretColor = "#fd7e14";
+        recommendation = `<div class="alert alert-warning text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #fd7e14; background-color: #fff3cd;"><i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i><div><strong class="d-block text-warning-emphasis">HIGH VULNERABILITY</strong><p class="mb-1 small">Elevated water levels approaching river bank capacity.</p></div></div>`;
       } else if (finalRisk >= 20) {
         interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
-        alertBadgeClass = "bg-dark-yellow";
-        interpretColor = "#d9a000";
+        alertBadgeClass = "bg-dark-yellow"; interpretColor = "#d9a000";
         recommendation = `<div class="alert alert-info text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #d9a000; background-color: #fff8e1;"><i class="bi bi-info-circle-fill fs-4 flex-shrink-0" style="color: #d9a000;"></i><div><strong class="d-block" style="color: #b38300;">MODERATE MONITORING</strong></div></div>`;
       } else {
         recommendation = `<div class="alert alert-success text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #198754; background-color: #e8f5e9;"><i class="bi bi-shield-check text-success fs-4 flex-shrink-0"></i><div><strong class="d-block text-success">SAFE CONDITIONS</strong></div></div>`;
@@ -779,28 +819,8 @@
       return predictions;
     }
     
-    async function manualPredict() {
-      if (!model) return;
-      const input = [
-      parseFloat(DOM.waterLevel.value),
-      parseFloat(DOM.rainfall.value),
-      parseFloat(DOM.discharge.value),
-      parseFloat(DOM.elevation.value)
-      ];
-      updateKPIs();
-      await generateForecastChart(input);
-    }
-    
-    async function generateForecastChart(current) {
-      const predictions = await getForecast(current);
-      const v = Math.round(predictions[0]);
-      const alertMap = { 20: ["Yellow Alert", "#d9a000"], 50: ["Orange Alert", "orange"], 70: ["Red Alert", "red"] };
-      const r = v < 20 ? ["Safe", "green"] : (v < 50 ? alertMap[20] : v < 70 ? alertMap[50] : alertMap[70]);
-      if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${r[1]}">${v}% - ${r[0]}</b>`;
-    }
-    
     async function loadModel() {
-      DOM.status.innerText = "Downloading Architecture...";
+      DOM.status.innerText = "Initializing Machine Learning Grid...";
       try {
         const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
         const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
@@ -812,10 +832,10 @@
         maxVals = config.metadata.maxVals;
         
         model = await tf.loadLayersModel(tf.io.fromMemory(config.modelTopology, config.weightSpecs, weights));
-        DOM.status.innerText = "Model Active. Select an area or search on the map to view flood risk.";
+        DOM.status.innerText = "✓ Model Active. Select an area or station to inspect live flood risk.";
         await updateStationPinsIndividually();
       } catch (err) {
-        DOM.status.innerText = "Load Error: Check CORS configurations.";
+        DOM.status.innerText = "Using default rule matrix. Neural model offline.";
         console.error(err);
       }
     }
@@ -830,7 +850,7 @@
         if (result.isConfirmed) {
           sessionStorage.clear();
           Swal.fire({ title: 'Logged Out', text: 'You have been logged out successfully.', icon: 'success', timer: 1500, showConfirmButton: false })
-          .then(() => { window.location.href = 'log.html'; });
+            .then(() => { window.location.href = 'log.html'; });
         }
       });
     });

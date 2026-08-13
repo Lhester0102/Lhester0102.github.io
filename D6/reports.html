@@ -148,7 +148,7 @@
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h5 class="mb-0 fw-bold text-dark">Data Reports</h5>
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-view-list"></i>Telemetry Reports</h5>
                     </div>
                     
                     <div class="dropdown">
@@ -485,6 +485,9 @@
                 const rainNum = item.rain ?? 0.1;
                 const flowNum = item.flow ?? 12.0;
                 const targetNode = item.__source ?? 'data';
+
+                const dateParam = encodeURIComponent(dateStr);
+                const timeParam = encodeURIComponent(timeStr);
                 
                 const rowHTML = `
                     <tr>
@@ -497,7 +500,7 @@
                         <td class="fw-semibold text-dark">${depthCalcStr}</td>
                         <td>${statusStr ? `<span class="badge rounded-pill ${depthMeta.class}">${statusStr}</span>` : ''}</td>
                         <td>
-                            <a target="_blank" href="floods5.html?node=${targetNode}&level=${lvlNum}&rain=${rainNum}&flow=${flowNum}" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 0.75rem;">
+                            <a target="_blank" href="floods5.html?node=${targetNode}&level=${lvlNum}&rain=${rainNum}&flow=${flowNum}&date=${dateParam}&time=${timeParam}" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 0.75rem;">
                                 <i class="bi bi-eye-fill"></i> View
                             </a>
                         </td>
