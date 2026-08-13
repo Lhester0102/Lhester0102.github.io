@@ -16,16 +16,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    /* Popup container adjustments */
-    .popup-chart-container { 
-      width: 320px; 
-      padding: 5px; 
-    }
-    
-    /* Mapbox wider popup overrides */
-    .mapboxgl-popup {
-      max-width: 350px !important;
-      z-index: 3000;
+    /* Global Base */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      overflow-x: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     
     /* Sidebar Styles */
@@ -43,14 +41,9 @@
       margin-bottom: 2px; 
     }
     
-    .nav-link:hover { 
-      background-color: #212529; 
-      color: #fff; 
-    }
-    
-    .nav-link.active { 
+    .nav-link:hover, .nav-link.active { 
       background-color: #212529 !important; 
-      color: white !important; 
+      color: #fff !important; 
     }
     
     /* Card & UI Refinement */
@@ -62,7 +55,7 @@
       background-color: #212529; 
       color: white; 
       font-size: 0.85rem;
-      padding: 12px;
+      padding: 10px;
     }
     
     /* Responsive Layout Logic */
@@ -90,11 +83,11 @@
     /* Map Container Height adjustments for Mobile/Desktop */
     #map { width: 100%; height: 100%; border-radius: 10px; }
     .map-col { height: 50vh; }
-    .table-col { height: 36vh; }
+    .table-col { height: auto; }
     
     @media (min-width: 992px) {
       .map-col { height: 100%; }
-      .table-col { height: 100%; }
+      .table-col { height: 100%; display: flex; flex-direction: column; }
     }
     
     .main-content { height: 100vh; overflow-y: auto; }
@@ -135,10 +128,14 @@
       margin-right: 6px;
       vertical-align: middle;
     }
-    
-    /* Popups */
-    .popup-chart { width: 100% !important; height: 110px !important; margin-bottom: 6px; }
-    .chart-label { font-size: 0.6rem; font-weight: 700; color: #6c757d; text-transform: uppercase; margin-bottom: 2px; display: block; }
+
+    #stationUnderListCanvas {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #stationUnderListCanvas:hover {
+      transform: scale(1.01);
+    }
   </style>
 </head>
 
@@ -180,7 +177,7 @@
             </button>
             
             <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark">Stations on Map</h5>
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-router-fill"></i>Stations on Map</h5>
               <span id="lastUpdated" class="text-muted small"></span>
             </div>
           </div>
@@ -192,7 +189,7 @@
             <div class="card h-100 p-1 position-relative">
               <div id="map"></div>
               
-              <!-- FLOOD PRONE RISKS Collapsible Control Box -->
+              <!-- FLOOD PRONE RISKS Collapsible Control Box (UNCHECKED BY DEFAULT) -->
               <div id="layer-controls">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="fw-bold mb-0 text-dark collapse-target" style="font-size: 14px; letter-spacing: 0.5px;">FLOOD PRONE RISKS</h6>
@@ -203,28 +200,28 @@
                 
                 <div class="collapse-target">
                   <div class="form-check mb-2 d-flex align-items-center">
-                    <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere" checked>
+                    <input class="form-check-input risk-filter" type="checkbox" value="severe" id="chkSevere">
                     <label class="form-check-label text-dark fw-bold ms-1" for="chkSevere">
                       <span class="risk-color-box" style="background-color: #b0101b;"></span>Severe
                     </label>
                   </div>
                   
                   <div class="form-check mb-2 d-flex align-items-center">
-                    <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh" checked>
+                    <input class="form-check-input risk-filter" type="checkbox" value="high" id="chkHigh">
                     <label class="form-check-label text-dark fw-bold ms-1" for="chkHigh">
                       <span class="risk-color-box" style="background-color: #d96100;"></span>High
                     </label>
                   </div>
                   
                   <div class="form-check mb-2 d-flex align-items-center">
-                    <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate" checked>
+                    <input class="form-check-input risk-filter" type="checkbox" value="moderate" id="chkModerate">
                     <label class="form-check-label text-dark fw-bold ms-1" for="chkModerate">
                       <span class="risk-color-box" style="background-color: #a87900;"></span>Moderate
                     </label>
                   </div>
                   
                   <div class="form-check mb-1 d-flex align-items-center">
-                    <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow" checked>
+                    <input class="form-check-input risk-filter" type="checkbox" value="low" id="chkLow">
                     <label class="form-check-label text-dark fw-bold ms-1" for="chkLow">
                       <span class="risk-color-box" style="background-color: #55a855;"></span>Low / Safe
                     </label>
@@ -235,31 +232,61 @@
             </div>
           </div>
           
-          <!-- Table Column Added to the Right -->
+          <!-- Table and Chart Column -->
           <div class="col-lg-4 table-col">
-            <div class="card h-100 p-3 shadow-sm d-flex flex-column">
-              <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-table me-2"></i>River Stations List</h6>
+            <div class="card p-3 shadow-sm mb-2" style="max-height: 55%; overflow: hidden; display: flex; flex-direction: column;">
+              <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-table me-2"></i>River Stations List</h6>
               <div class="table-responsive flex-grow-1" style="overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
                   <thead>
                     <tr>
                       <th>Station Name</th>
                       <th>Level</th>
-                      <th>Risk</th>
+                      <th>Rainfall</th>
+                      <th>Discharge</th>
                     </tr>
                   </thead>
                   <tbody id="stationTableBody">
                     <tr>
-                      <td colspan="3" class="text-center text-muted">Loading station data...[cite: 1]</td>
+                      <td colspan="4" class="text-center text-muted">Loading dynamic station registries...</td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- DEDICATED CLICKABLE CHART PANEL UNDER THE LIST -->
+            <div class="card p-3 shadow-sm flex-grow-1 d-flex flex-column justify-content-between" id="chartCardPanel">
+              <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <h6 class="fw-bold text-dark mb-0 fs-6" id="selectedStationChartTitle"><i class="bi bi-graph-up me-1 text-primary"></i> Station Hydrograph</h6>
+                <span class="badge bg-light text-dark border" id="selectedStationNodeTag">Click Chart to Expand</span>
+              </div>
+              
+              <div style="position: relative; height: 180px; width: 100%;">
+                <canvas id="stationUnderListCanvas" title="Click chart to expand forecast analysis"></canvas>
               </div>
             </div>
           </div>
           
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- EXPANDABLE CHART MODAL -->
+  <div class="modal fade" id="chartExpandModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold" id="expandedChartModalTitle">Station Hydrograph Analysis</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div style="position: relative; height: 420px; width: 100%;">
+            <canvas id="expandedModalCanvas"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -271,15 +298,25 @@
   <script>
     let model, minVals = [], maxVals = [];
     let stationMarkersArray = []; 
+    let activeListChartInstance = null; 
+    let expandedModalChartInstance = null;
     let isMapFullyLoaded = false; 
+    let firebaseThresholds = {};
+    let dynamicStations = [];
+    let liveDataStore = {};
+    let selectedStationIndex = 0;
     
     function toggleLayerControls() {
-      const controlBox = document.getElementById('layer-controls');
-      controlBox.classList.toggle('collapsed');
+      document.getElementById('layer-controls')?.classList.toggle('collapsed');
     }
     
     window.onload = function() {
       loadModel();
+      setupLiveThresholds();
+      setupLiveStations();
+
+      // Bind Chart Expand Listener
+      document.getElementById('stationUnderListCanvas')?.addEventListener('click', openExpandedChartModal);
     };
     
     const firebaseConfig = {
@@ -294,6 +331,89 @@
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
     
+    function setupLiveThresholds() {
+      db.ref('threshold').on('value', snapshot => {
+        firebaseThresholds = snapshot.exists() ? snapshot.val() : {};
+        if (isMapFullyLoaded) updateMarkers();
+      });
+    }
+
+    function setupLiveStations() {
+      db.ref('stations').on('value', snapshot => {
+        if (!snapshot.exists()) {
+          db.ref('pins').once('value', pinSnap => {
+            if (pinSnap.exists()) {
+              const loaded = [];
+              pinSnap.forEach(child => {
+                const p = child.val();
+                if (p.node) {
+                  const nodeKey = p.node;
+                  loaded.push({
+                    id: child.key,
+                    name: (p.station || p.stationName || p.station_name || p.name || p.barangayName || "River Station").trim(),
+                    lat: parseFloat(p.lat ?? p.latitude ?? 18.19),
+                    lng: parseFloat(p.lng ?? p.longitude ?? 120.59),
+                    node: nodeKey
+                  });
+                  subscribeToNodeTelemetry(nodeKey);
+                }
+              });
+              dynamicStations = loaded;
+            } else {
+              dynamicStations = [];
+            }
+            if (isMapFullyLoaded) updateMarkers();
+          });
+        } else {
+          const loaded = [];
+          snapshot.forEach(child => {
+            const st = child.val();
+            const nodeKey = st.node || st.dataNode || "data";
+            const stationTitle = st.station || st.stationName || st.station_name || st.name || "River Station";
+            
+            loaded.push({
+              id: child.key,
+              name: String(stationTitle).trim(),
+              lat: parseFloat(st.lat ?? st.latitude ?? 18.19),
+              lng: parseFloat(st.lng ?? st.longitude ?? 120.59),
+              node: nodeKey
+            });
+            subscribeToNodeTelemetry(nodeKey);
+          });
+          dynamicStations = loaded;
+          if (isMapFullyLoaded) updateMarkers();
+        }
+      });
+    }
+
+    function subscribeToNodeTelemetry(nodeKey) {
+      if (liveDataStore[nodeKey]) return;
+      
+      liveDataStore[nodeKey] = { history: [], current: { level: 0, flow: 0, rain: 0 } };
+      
+      db.ref(nodeKey).orderByKey().limitToLast(240).on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        
+        const historyRecords = [];
+        let latestRecord = null;
+        
+        snapshot.forEach(child => {
+          const val = child.val();
+          historyRecords.push(val);
+          latestRecord = val;
+        });
+        
+        liveDataStore[nodeKey].history = historyRecords;
+        liveDataStore[nodeKey].current = {
+          level: parseFloat(latestRecord.level ?? latestRecord.water ?? latestRecord.water_level ?? 0),
+          flow: parseFloat(latestRecord.flow ?? latestRecord.discharge ?? 0),
+          rain: parseFloat(latestRecord.rain ?? latestRecord.rainfall ?? 0)
+        };
+        
+        if (isMapFullyLoaded) updateMarkers();
+      });
+    }
+
     async function loadModel() {
       try {
         const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
@@ -309,7 +429,6 @@
           weightSpecs: config.weightSpecs,
           weightData: weights
         }));
-        console.log("Model loaded for map overlays.");
         if (isMapFullyLoaded) updateMarkers();
       } catch (err) {
         console.error("Model load error:", err);
@@ -320,17 +439,43 @@
       return row.map((v, i) => (maxVals[i] - minVals[i]) === 0 ? 0 : (v - minVals[i]) / (maxVals[i] - minVals[i]));
     }
     
-    async function getForecast(currentInput) {
-      const horizons = [1, 3, 12, 24];
-      let last = [...currentInput];
-      const predictions = [];
-      if (!model) return [0, 0, 0, 0];
-      for (const h of horizons) {
-        const pred = await model.predict(tf.tensor2d([normalize(last)])).data();
-        predictions.push(pred[0] * 100);
-        last[0] += 0.05; 
+    async function predict24HourWaterLevelForecast(nodeKey, elevation) {
+      const dataStore = liveDataStore[nodeKey];
+      const cur = dataStore ? dataStore.current : { level: 0, rain: 0, flow: 0 };
+      const history = dataStore ? dataStore.history : [];
+      
+      const horizons = [0, 3, 12, 24]; 
+      
+      let historicalTrend = 0;
+      if (history.length >= 2) {
+        const oldest = parseFloat(history[0].level ?? history[0].water ?? cur.level);
+        const newest = cur.level;
+        historicalTrend = (newest - oldest) / history.length;
       }
-      return predictions;
+
+      if (!model || minVals.length === 0) {
+        return horizons.map(h => parseFloat((cur.level + (historicalTrend * h)).toFixed(2)));
+      }
+
+      let lastFeatureState = [cur.level, cur.rain, cur.flow, elevation];
+      const projectedLevels = [];
+
+      for (let i = 0; i < horizons.length; i++) {
+        const stepHours = horizons[i];
+        
+        const predictedRiskProb = tf.tidy(() => {
+          const normInputs = normalize(lastFeatureState);
+          return model.predict(tf.tensor2d([normInputs])).dataSync()[0];
+        });
+
+        const levelDelta = (predictedRiskProb - 0.5) * 0.4 + (historicalTrend * stepHours * 0.1);
+        const nextLevel = Math.max(0, lastFeatureState[0] + levelDelta);
+        
+        projectedLevels.push(parseFloat(nextLevel.toFixed(2)));
+        lastFeatureState[0] = nextLevel;
+      }
+
+      return projectedLevels;
     }
     
     mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
@@ -338,22 +483,39 @@
       container: 'map',
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
       center: [120.587385, 18.187710],
-      zoom: 11,
+      zoom: 9.5,
       pitch: 55
     });
     
+    function getDynamicClassFromThreshold(nodeKey, metricKey, val) {
+      const nodeLimits = firebaseThresholds[nodeKey] || firebaseThresholds['default'] || firebaseThresholds || {};
+      const metricLimits = nodeLimits[metricKey] || nodeLimits[`${metricKey}Threshold`] || {};
+      
+      const criticalLimit = parseFloat(metricLimits.critical ?? metricLimits.danger ?? (metricKey === 'level' ? 4.0 : metricKey === 'rain' ? 15.0 : 50.0));
+      const warningLimit = parseFloat(metricLimits.warning ?? metricLimits.orange ?? (metricKey === 'level' ? 2.5 : metricKey === 'rain' ? 7.5 : 25.0));
+
+      if (val >= criticalLimit) return 'text-danger fw-bold';
+      if (val >= warningLimit) return 'text-warning fw-bold';
+      return 'text-success fw-bold';
+    }
+
+    function getMarkerColorFromThreshold(nodeKey, waterLevel) {
+      const nodeLimits = firebaseThresholds[nodeKey] || firebaseThresholds['default'] || firebaseThresholds || {};
+      const levelLimits = nodeLimits['level'] || nodeLimits['levelThreshold'] || {};
+      
+      const criticalLimit = parseFloat(levelLimits.critical ?? levelLimits.danger ?? 4.0);
+      const warningLimit = parseFloat(levelLimits.warning ?? levelLimits.orange ?? 2.5);
+
+      if (waterLevel >= criticalLimit) return '#dc3545';
+      if (waterLevel >= warningLimit) return '#fd7e14';
+      return '#198754';
+    }
+
     const getRiskCategory = (v) => {
       if(v >= 80) return 'severe';
       if(v >= 60) return 'high';
       if(v >= 30) return 'moderate';
       return 'low';
-    };
-    
-    const getMarkerColorByProb = (v) => {
-      if(v >= 80) return '#dc3545'; 
-      if(v >= 60) return '#fd7e14'; 
-      if(v >= 30) return '#ffc107'; 
-      return '#198754';             
     };
     
     const getFloodColor = (v) => {
@@ -376,7 +538,11 @@
       }
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+      // Dynamic markers and list render BEFORE vector flood map loads
+      if (isMapFullyLoaded) updateMarkers();
       
+      // Load flood-prone layers AFTER list & chart render pipeline initializes
       db.ref('Flooded_Areas').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) return;
@@ -401,6 +567,7 @@
               id: layerId,
               type: 'fill',
               source: sourceId,
+              layout: { 'visibility': 'none' }, // Unchecked / hidden by default
               paint: { 
                 'fill-color': getFloodColor(f.vulnerability || 0), 
                 'fill-opacity': 0.5 
@@ -434,144 +601,6 @@
       });
     });
     
-    map.on('click', async (e) => {
-      document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
-      const { lng, lat } = e.lngLat;
-      const elevation = map.queryTerrainElevation(e.lngLat) || 0;
-      
-      const minElev = 5; 
-      const maxElev = 50; 
-      
-      let calcRisk = 0;
-      if (elevation <= minElev) {
-        calcRisk = 100;
-      } else if (elevation >= maxElev) {
-        calcRisk = 5; 
-      } else {
-        calcRisk = 100 - ((elevation - minElev) / (maxElev - minElev) * 100);
-      }
-      const finalRisk = Math.round(calcRisk);
-      
-      let riskColor, riskLabel, badgeClass;
-      if (finalRisk >= 80) { 
-        riskColor = '#ff0000'; riskLabel = 'Severe'; badgeClass = 'bg-danger'; 
-      } else if (finalRisk >= 60) { 
-        riskColor = '#ffa500'; riskLabel = 'High'; badgeClass = 'bg-warning text-dark'; 
-      } else if (finalRisk >= 30) { 
-        riskColor = '#ffff00'; riskLabel = 'Moderate'; badgeClass = 'bg-warning text-dark'; 
-      } else { 
-        riskColor = '#02fb02'; riskLabel = 'Safe'; badgeClass = 'bg-success'; 
-      }
-      
-      const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality`;
-      
-      let address = "Scanning...";
-      let barangay = "N/A";
-      let municipality = "N/A";
-      
-      try {
-        const resp = await fetch(geoQuery);
-        const data = await resp.json();
-        if (data.features && data.features.length > 0) {
-          address = data.features[0].place_name.split(',')[0];
-          data.features[0].context.forEach(ctx => {
-            if (ctx.id.includes('neighborhood')) barangay = ctx.text;
-            if (ctx.id.includes('place')) municipality = ctx.text;
-          });
-        }
-      } catch (err) { address = "Location unavailable"; }
-      
-      const html = `
-        <div style="padding:10px; min-width: 230px;">
-            <h6 class="fw-bold border-bottom mb-2 pb-1" style="color: #1c96c5;">
-                <i class="bi bi-water me-1"></i> Elevation Analysis
-            </h6>
-            
-            <div class="mb-2">
-                <span class="d-block fw-bold text-dark">${municipality}</span>
-                <span class="badge bg-secondary opacity-75" style="font-size:0.7rem;">Brgy. ${barangay}</span>
-            </div>
-
-            <div class="row g-0 mb-3 border-top pt-2">
-                <div class="col-6 border-end">
-                    <small class="text-muted d-block" style="font-size: 0.6rem;">ALTITUDE</small>
-                    <span class="fw-bold ${elevation < 10 ? 'text-danger' : ''}">${elevation.toFixed(1)}m ASL</span>
-                </div>
-                <div class="col-6 ps-2">
-                    <small class="text-muted d-block" style="font-size: 0.6rem;">RISK LEVEL</small>
-                    <span class="badge ${badgeClass}" style="font-size:0.65rem;">${riskLabel}</span>
-                </div>
-            </div>
-
-            <div class="p-2 rounded border shadow-sm" style="background: #f8f9fa;">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <small class="fw-bold text-uppercase" style="font-size:0.65rem;">Flood Risk Index</small>
-                    <small class="fw-bold" style="color: ${riskColor === '#ffff00' ? '#b8b800' : riskColor};">${finalRisk}%</small>
-                </div>
-                <div class="progress" style="height: 8px;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                         style="width: ${finalRisk}%; background-color: ${riskColor};"></div>
-                </div>
-                <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">*Computed via Spatio-temporal Elevation Data</small>
-            </div>
-        </div>`;
-      
-      new mapboxgl.Popup({ maxWidth: '300px' })
-      .setLngLat(e.lngLat)
-      .setHTML(html)
-      .addTo(map);
-    });
-    
-    const liveDataStore = {
-      data: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
-      data2: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } },
-      data3: { history: [0, 0, 0, 0, 0], current: { level: 0, flow: 0, rain: 0 } }
-    };
-    
-    ['data', 'data2', 'data3'].forEach(nodeKey => {
-      db.ref(nodeKey).orderByKey().limitToLast(5).on('value', snapshot => {
-        if (!snapshot.exists()) return;
-        
-        const entries = [];
-        let latestKey = "";
-        let latestRecord = null;
-        
-        snapshot.forEach(child => {
-          const val = child.val();
-          const key = child.key;
-          entries.push(val);
-          
-          if (key > latestKey) {
-            latestKey = key;
-            latestRecord = val;
-          }
-        });
-        
-        liveDataStore[nodeKey].history = entries.map(e => {
-          if (nodeKey === 'data2') return e.water ?? e.level ?? 0;
-          return e.level ?? e.water ?? 0;
-        });
-        
-        liveDataStore[nodeKey].current = {
-          level: nodeKey === 'data2' ? (latestRecord.water ?? latestRecord.level ?? 0) : (latestRecord.level ?? latestRecord.water ?? 0),
-          flow: latestRecord.flow ?? latestRecord.discharge ?? 0,
-          rain: latestRecord.rain ?? latestRecord.rainfall ?? 0
-        };
-        
-        console.log(`Verified Sync [${nodeKey}] Latest Key ID: ${latestKey} Mapped Current Level: ${liveDataStore[nodeKey].current.level}`);
-        
-        if (isMapFullyLoaded) {
-          updateMarkers();
-        }
-      });
-    });
-    
-    const rivers = [
-    { name: "Baldi River", lat: 18.337086, lng: 120.613098, node: 'data' },
-    { name: "Padsan River", lat: 18.192422, lng: 120.591328, node: 'data2' },
-    { name: "Bislak River", lat: 18.247178, lng: 120.622658, node: 'data3' }
-    ];
-    
     const stationTableBody = document.getElementById('stationTableBody');
     
     async function updateMarkers() {
@@ -580,40 +609,30 @@
       
       if (stationTableBody) stationTableBody.innerHTML = '';
       
-      for (let idx = 0; idx < rivers.length; idx++) {
-        const river = rivers[idx];
-        const histChartId = `riverHist-${idx}`;
-        const probChartId = `riverProb-${idx}`;
+      if (dynamicStations.length === 0 && stationTableBody) {
+        stationTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No river stations available.</td></tr>`;
+        return;
+      }
+      
+      for (let idx = 0; idx < dynamicStations.length; idx++) {
+        const river = dynamicStations[idx];
+        const dataStore = liveDataStore[river.node] || { current: { level: 0, flow: 0, rain: 0 }, history: [] };
+        const cur = dataStore.current;
         
-        const data = liveDataStore[river.node];
-        const cur = data.current;
-        const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
+        const calculatedPinColor = getMarkerColorFromThreshold(river.node, cur.level);
+        const levelColorClass = getDynamicClassFromThreshold(river.node, 'level', cur.level);
+        const rainColorClass = getDynamicClassFromThreshold(river.node, 'rain', cur.rain);
+        const flowColorClass = getDynamicClassFromThreshold(river.node, 'flow', cur.flow);
         
-        let prob = 0;
-        let forecastData = [0, 0, 0, 0];
-        if (model && minVals.length > 0) {
-          forecastData = await getForecast([cur.level, cur.rain, cur.flow, elevation]);
-          prob = Math.round(forecastData[0]);
-        }
-        
-        const calculatedPinColor = getMarkerColorByProb(prob);
-        const riskCategoryName = getRiskCategory(prob).toUpperCase();
-        const sideAnchor = (idx % 2 === 0) ? 'top' : 'bottom';
-        
-        const popup = new mapboxgl.Popup({ 
-          offset: 25,
-          anchor: sideAnchor 
-        });
-        
+        // Clean marker (NO MAP POPUPS)
         const marker = new mapboxgl.Marker({ color: calculatedPinColor })
-        .setLngLat([river.lng, river.lat])
-        .setPopup(popup)
-        .addTo(map);
+          .setLngLat([river.lng, river.lat])
+          .addTo(map);
         
         marker.getElement().addEventListener('click', (e) => {
           e.stopPropagation();
           map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
-          marker.togglePopup();
+          selectStationAndRenderBottomChart(idx);
         });
         
         stationMarkersArray.push(marker);
@@ -623,86 +642,188 @@
           tr.style.cursor = 'pointer';
           tr.innerHTML = `
             <td><strong>${river.name}</strong></td>
-            <td>${cur.level}m</td>
-            <td><span class="badge" style="background-color: ${calculatedPinColor};">${riskCategoryName} (${prob}%)</span></td>
+            <td class="${levelColorClass}">${cur.level.toFixed(2)}m</td>
+            <td class="${rainColorClass}">${cur.rain.toFixed(1)}mm</td>
+            <td class="${flowColorClass}">${cur.flow.toFixed(1)}m³/s</td>
           `;
           tr.onclick = () => {
             map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
-            if (!marker.getPopup().isOpen()) marker.togglePopup();
+            selectStationAndRenderBottomChart(idx);
           };
           stationTableBody.appendChild(tr);
         }
-        
-        popup.on('open', async () => {
-          const currentPopupEl = popup.getElement();
-          document.querySelectorAll('.mapboxgl-popup').forEach(p => {
-            if (p !== currentPopupEl) p.remove();
-          });
-          
-          popup.setHTML(`
-          <div class="popup-chart-container">
-              <h6 class="fw-bold mb-2 text-dark border-bottom pb-1" style="font-size: 0.85rem;">${river.name}</h6>
-              <div class="d-flex justify-content-between mb-2 text-center border-bottom pb-2">
-                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">LEVEL</small><strong style="font-size: 0.75rem;">${cur.level}m</strong></div>
-                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">FLOW</small><strong style="font-size: 0.75rem;">${cur.flow}</strong></div>
-                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">RAIN</small><strong style="font-size: 0.75rem;">${cur.rain}</strong></div>
-                  <div><small class="text-muted d-block" style="font-size: 0.55rem;">PROB</small><strong style="color: ${calculatedPinColor}; font-size: 0.75rem;">${prob}%</strong></div>
-              </div>
-              <span hidden class="chart-label">Daily Historical Metrics</span>
-              <canvas hidden id="${histChartId}" class="popup-chart"></canvas>
-              <div class="mt-2 border-top pt-2">
-                  <span class="chart-label">Hourly Forecast Probability</span>
-                  <canvas id="${probChartId}" class="popup-chart"></canvas>
-              </div>
-          </div>
-        `);
-          
-          setTimeout(() => {
-            const hCtx = document.getElementById(histChartId);
-            if (hCtx) {
-              new Chart(hCtx, {
-                type: 'line',
-                data: {
-                  labels: ["-4h", "-3h", "-2h", "-1h", "Now"],
-                  datasets: [
-                  { label: 'Level', data: data.history, borderColor: '#1f77b4', backgroundColor: 'rgba(31, 119, 180, 0.1)', fill: true, tension: 0.4, pointRadius: 2 },
-                  { label: 'Rain', data: data.history.map(v => v * 15), borderColor: '#2ca02c', borderDash: [3, 3], fill: false, tension: 0.4, pointRadius: 0 }
-                  ]
-                },
-                options: {
-                  plugins: { legend: { display: true, labels: { boxWidth: 8, font: { size: 9 } } } },
-                  maintainAspectRatio: false,
-                  scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 } } } }
-                }
-              });
-            }
-            
-            const pCtx = document.getElementById(probChartId);
-            if (pCtx) {
-              new Chart(pCtx, {
-                type: 'line',
-                data: {
-                  labels: ["Now", "+3h", "+12h", "+24h"],
-                  datasets: [{
-                    label: 'Prob %',
-                    data: forecastData,
-                    borderColor: calculatedPinColor,
-                    backgroundColor: 'rgba(0,0,0,0.03)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 3
-                  }]
-                },
-                options: {
-                  plugins: { legend: { display: false } },
-                  maintainAspectRatio: false,
-                  scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } } }
-                }
-              });
-            }
-          }, 200); 
-        });
       }
+
+      if (dynamicStations.length > 0) {
+        await selectStationAndRenderBottomChart(selectedStationIndex);
+      }
+    }
+
+    async function generateChartDataForStation(idx) {
+      if (idx < 0 || idx >= dynamicStations.length) return null;
+      
+      const river = dynamicStations[idx];
+      const dataStore = liveDataStore[river.node] || { current: { level: 0, flow: 0, rain: 0 }, history: [] };
+      const cur = dataStore.current;
+      const historyData = dataStore.history;
+      const elevation = map.queryTerrainElevation([river.lng, river.lat]) || 0;
+      
+      const sampledHistory = [];
+      const sampledLabels = [];
+      if (historyData.length > 0) {
+        const step = Math.max(1, Math.floor(historyData.length / 6));
+        for (let i = 0; i < historyData.length; i += step) {
+          const item = historyData[i];
+          const lev = parseFloat(item.level ?? item.water ?? item.water_level ?? 0);
+          sampledHistory.push(lev);
+          
+          let hoursAgo = Math.round((historyData.length - i));
+          let label = hoursAgo >= 24 ? `-` + Math.round(hoursAgo / 24) + `d` : `-` + hoursAgo + `h`;
+          sampledLabels.push(label);
+        }
+      }
+      
+      const forecastWaterLevels = await predict24HourWaterLevelForecast(river.node, elevation);
+      const combinedChartLabels = [...sampledLabels, "Now", "+3h", "+12h", "+24h"];
+      const historySeries = [...sampledHistory, cur.level, null, null, null];
+      const forecastSeries = Array(sampledHistory.length).fill(null);
+      forecastSeries.push(...forecastWaterLevels);
+      
+      const calculatedPinColor = getMarkerColorFromThreshold(river.node, cur.level);
+
+      return {
+        river,
+        combinedChartLabels,
+        historySeries,
+        forecastSeries,
+        calculatedPinColor
+      };
+    }
+
+    async function selectStationAndRenderBottomChart(idx) {
+      selectedStationIndex = idx;
+      const chartData = await generateChartDataForStation(idx);
+      if (!chartData) return;
+
+      const { river, combinedChartLabels, historySeries, forecastSeries, calculatedPinColor } = chartData;
+
+      const titleElem = document.getElementById("selectedStationChartTitle");
+      const tagElem = document.getElementById("selectedStationNodeTag");
+      
+      if (titleElem) titleElem.innerHTML = `<i class="bi bi-graph-up me-1 text-primary"></i> ${river.name}`;
+      if (tagElem) tagElem.innerText = `Click to Expand`;
+
+      const pCtx = document.getElementById("stationUnderListCanvas");
+      if (!pCtx) return;
+      
+      if (activeListChartInstance) {
+        activeListChartInstance.destroy();
+      }
+
+      activeListChartInstance = new Chart(pCtx, {
+        type: 'line',
+        data: {
+          labels: combinedChartLabels,
+          datasets: [
+            {
+              label: '10-Day Logs (m)',
+              data: historySeries,
+              borderColor: '#1c96c5',
+              backgroundColor: 'rgba(28, 150, 197, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 2
+            },
+            {
+              label: '24h ML Forecast (m)',
+              data: forecastSeries,
+              borderColor: calculatedPinColor,
+              borderDash: [4, 4],
+              backgroundColor: 'rgba(0,0,0,0.03)',
+              fill: false,
+              tension: 0.4,
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          plugins: { 
+            legend: { 
+              display: true,
+              labels: { boxWidth: 8, font: { size: 9 } }
+            } 
+          },
+          maintainAspectRatio: false,
+          scales: { 
+            x: { grid: { display: false }, ticks: { font: { size: 8 } } }, 
+            y: { ticks: { font: { size: 8 }, callback: v => v + 'm' } } 
+          }
+        }
+      });
+    }
+
+    // Opens a full modal view when clicking the chart under the list
+    async function openExpandedChartModal() {
+      const chartData = await generateChartDataForStation(selectedStationIndex);
+      if (!chartData) return;
+
+      const { river, combinedChartLabels, historySeries, forecastSeries, calculatedPinColor } = chartData;
+
+      document.getElementById("expandedChartModalTitle").innerText = `${river.name} — Full Hydrograph & Forecast Analysis`;
+
+      const modalElem = document.getElementById("chartExpandModal");
+      const modalInstance = new bootstrap.Modal(modalElem);
+      modalInstance.show();
+
+      modalElem.addEventListener('shown.bs.modal', () => {
+        const mCtx = document.getElementById("expandedModalCanvas");
+        if (!mCtx) return;
+
+        if (expandedModalChartInstance) {
+          expandedModalChartInstance.destroy();
+        }
+
+        expandedModalChartInstance = new Chart(mCtx, {
+          type: 'line',
+          data: {
+            labels: combinedChartLabels,
+            datasets: [
+              {
+                label: '10-Day Historical Recorded Logs (m)',
+                data: historySeries,
+                borderColor: '#1c96c5',
+                backgroundColor: 'rgba(28, 150, 197, 0.15)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4
+              },
+              {
+                label: '24-Hour ML Projected Water Level (m)',
+                data: forecastSeries,
+                borderColor: calculatedPinColor,
+                borderDash: [5, 5],
+                backgroundColor: 'rgba(0,0,0,0.02)',
+                fill: false,
+                tension: 0.4,
+                pointRadius: 5
+              }
+            ]
+          },
+          options: {
+            plugins: { 
+              legend: { 
+                display: true,
+                position: 'top'
+              } 
+            },
+            maintainAspectRatio: false,
+            scales: { 
+              x: { ticks: { font: { size: 11 } } }, 
+              y: { ticks: { font: { size: 11 }, callback: v => v + ' m' } } 
+            }
+          }
+        });
+      }, { once: true });
     }
   </script>
 </body>
