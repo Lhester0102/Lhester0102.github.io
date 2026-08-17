@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GDSS</title>
+  <title>GDSS - Flood Map Watch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <link rel="icon" href="images/GDSS.png">
@@ -20,7 +20,7 @@
   
   <style>
     /* Theme Core */
-    body { background: #f4f6f9; overflow-x: hidden; }
+    body { background: #f4f6f9; overflow-x: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     
     /* Responsive Sidebar Styles */
     .sidebar { 
@@ -30,7 +30,6 @@
       overflow-y: auto;
     }
     
-    /* Mobile Sidebar Off-canvas Drawer Styling */
     @media (max-width: 767.98px) {
       .sidebar {
         position: fixed;
@@ -63,13 +62,6 @@
     .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
     
-    .table thead th { 
-      background-color: #212529; 
-      color: white; 
-      font-size: 0.85rem;
-      padding: 12px;
-    }
-    
     @media (min-width: 768px) {
       .sidebar { min-height: 100vh; height: 100vh; }
       .main-content { height: 100vh; overflow-y: auto; }
@@ -89,84 +81,51 @@
     .main-content::-webkit-scrollbar { width: 6px; }
     .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    #map { width: 100%; height: 100%; min-height: 380px; border-radius: 10px; }
+    #map { width: 100%; height: 100%; min-height: 400px; border-radius: 10px; }
     .main-content { min-height: 100vh; }
     
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.02); }
     
-    /* Google Flood Hub Style Legend Overlay */
+    /* High-contrast Yellow Moderate Badges */
+    .bg-yellow-moderate { 
+      background-color: #fde047 !important; 
+      color: #713f12 !important; 
+      border: 1px solid #eab308 !important; 
+      font-weight: 700 !important;
+    }
+
+    /* Flood Legend Overlay */
     #floodHubLegend {
       position: absolute; 
-      bottom: 10px; 
-      left: 10px;
-      background: rgba(255, 255, 255, 0.6); 
+      bottom: 15px; 
+      left: 15px;
+      background: rgba(255, 255, 255, 0.95); 
       backdrop-filter: blur(6px);
-      padding: 12px 16px; 
-      border-radius: 12px; 
+      padding: 10px 14px; 
+      border-radius: 10px; 
       font-size: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
       z-index: 2; 
-      width: 220px;
+      width: 210px;
     }
     
-    @media (max-width: 576px) {
-      #floodHubLegend {
-        bottom: 15px;
-        right: 10px;
-        width: 170px;
-        padding: 8px 12px;
-        font-size: 11px;
-      }
-    }
-    
-    /* Floating Icon-Only Submenu for Mobile Devices */
-    @media (max-width: 767.98px) {
-      .mobile-floating-submenu {
-        position: fixed !important;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1040;
-        background: transparent !important;
-        backdrop-filter: none;
-        padding: 0 !important;
-        box-shadow: none !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-        width: auto !important;
-      }
-      .mobile-floating-submenu .btn {
-        width: 48px !important;
-        height: 48px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0 !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-      }
-      .mobile-floating-submenu .btn span {
-        display: none !important;
-      }
-      .mobile-floating-submenu .btn i {
-        margin: 0 !important;
-        font-size: 1.25rem !important;
-      }
-    }
-    
-    /* Address Suggestion List */
-    .suggestions-list {
-      max-height: 200px;
+    .analytics-panel {
+      height: calc(100vh - 200px);
       overflow-y: auto;
-      z-index: 1060;
-      border-radius: 0 0 8px 8px;
     }
-    .suggestion-item {
-      cursor: pointer;
-      font-size: 0.85rem;
+
+    .dss-section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: #64748b;
     }
-    .suggestion-item:hover {
-      background-color: #f1f3f5;
+    
+    @media (max-width: 991.98px) {
+      .analytics-panel { height: auto; }
+      #map { min-height: 420px; }
     }
   </style>
 </head>
@@ -177,7 +136,7 @@
       <!-- Main Navigation Menu (Sidebar) -->
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         <div class="d-md-none mobile-brand">
-          <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
+          <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
             <small class="text-white-50" style="font-size: 0.7rem;">Map Flood Watch</small>
@@ -205,7 +164,7 @@
             </div>
           </li>
           <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
-          <li class="mb-1"><a class="nav-link text-white " href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
           <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
@@ -217,7 +176,7 @@
       <!-- Main Content Area -->
       <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
         <!-- Top Submenu & Page Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2 p-2 bg-white rounded shadow-sm gap-2">
           <div class="d-flex align-items-center gap-3">
             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
               <i class="bi bi-list"></i>
@@ -237,7 +196,6 @@
                 <i class="bi bi-map-fill text-info"></i> By Map
               </a>
               <a href="floods4.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-list text-info"></i> All Barangays</a>
-              
             </div>
             
             <!-- Mobile Collapsible Submenu Dropdown Button -->
@@ -246,10 +204,9 @@
                 <i class="bi bi-grid-fill me-1"></i> Navigation
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                <li><a class="dropdown-item small" href="floods3.html"><i class="bi bi-geo-alt-fill" me-2 text-info"></i>Flood Pins</a></li>
+                <li><a class="dropdown-item small" href="floods3.html"><i class="bi bi-geo-alt-fill me-2 text-info"></i>Flood Pins</a></li>
                 <li><a class="dropdown-item small active" href="floodsmap.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
                 <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
-                
               </ul>
             </div>
             
@@ -268,130 +225,94 @@
           </div>
         </div>
         
-        <!-- KPI Cards Grid -->
-        <div class="row g-2 g-md-3 mb-2">
+        <!-- Clean KPI Cards Grid -->
+        <div class="row g-2 mb-2">
           <div class="col-6 col-md-3">
-            <div class="card p-2 p-md-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-droplet-fill text-primary fs-5"></i>
-                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Water Level</h6>
-              </div>
-              <h4 id="kpiWater" class="mb-0 fs-5 fs-md-4">0.0 m</h4>
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Water Level</span>
+              <h5 id="kpiWater" class="mb-0 fw-bold text-primary">0.00 m</h5>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card p-2 p-md-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-cloud-rain text-info fs-5"></i>
-                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Rainfall</h6>
-              </div>
-              <h4 id="kpiRain" class="mb-0 fs-5 fs-md-4">0.0 mm</h4>
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Rainfall</span>
+              <h5 id="kpiRain" class="mb-0 fw-bold text-info">0.00 mm</h5>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card p-2 p-md-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-water text-primary fs-5"></i>
-                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Discharge</h6>
-              </div>
-              <h4 id="kpiDischarge" class="mb-0 fs-5 fs-md-4">0.0 m³/s</h4>
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Discharge Flow</span>
+              <h5 id="kpiDischarge" class="mb-0 fw-bold text-success">0.00 m³/s</h5>
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card p-2 p-md-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
-                <h6 class="mb-0 text-truncate" style="font-size:0.85rem;">Flood Risk Status</h6>
-              </div>
-              <h4 id="kpiRisk" class="mb-0 fs-5 fs-md-4">--</h4>
+            <div class="card p-2 text-center h-100">
+              <span class="text-uppercase text-secondary fw-bold" style="font-size: 0.7rem;">Decision Support Status</span>
+              <h5 id="kpiRisk" class="mb-0 fw-bold text-dark">--</h5>
             </div>
           </div>
         </div>
         
-        <!-- Map and Details Panel -->
-        <div class="row g-3">
-          <div class="col-lg-9 d-flex flex-column">
-            <div class="card mb-2" style="height: 480px; position: relative;">
+        <!-- Map and Actionable Decision Support Panel (8 / 4 Grid) -->
+        <div class="row g-2 mb-2 flex-grow-1">
+          <div class="col-12 col-lg-8 d-flex flex-column">
+            <div class="card mb-2" style="height: calc(100vh - 200px); min-height: 400px; position: relative;">
               <div class="card-body p-1 h-100">
                 <div id="map"></div>
               </div>
               
-              <!-- Google Flood Hub Style Legend Overlay -->
+              <!-- Flood Risk Legend Overlay -->
               <div id="floodHubLegend">
-                <div class="fw-bold text-dark border-bottom pb-1 mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.9rem;">
+                <div class="fw-bold text-dark border-bottom pb-1 mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.85rem;">
                   <span><i class="bi bi-shield-shaded text-primary me-1"></i> Flood Risk Forecast</span>
                 </div>
-                <div class="d-flex flex-column gap-1.5" style="font-size: 0.8rem;">
+                <div class="d-flex flex-column gap-1" style="font-size: 0.75rem;">
                   <div class="d-flex align-items-center gap-2">
-                    <span style="display:inline-block; width:12px; height:12px; background:rgba(40,167,69,0.2); border-radius:3px;"></span>
+                    <span style="display:inline-block; width:10px; height:10px; background:rgba(40,167,69,0.3); border: 1px solid #16a34a; border-radius:2px;"></span>
                     <span class="text-dark fw-semibold">Low / Safe (&lt; 20%)</span>
                   </div>
                   <div class="d-flex align-items-center gap-2">
-                    <span style="display:inline-block; width:12px; height:12px; background:rgba(255,193,7,0.8); border-radius:3px;"></span>
+                    <span style="display:inline-block; width:10px; height:10px; background:#eab308; border-radius:2px;"></span>
                     <span class="text-dark fw-semibold">Moderate (20% - 49%)</span>
                   </div>
                   <div class="d-flex align-items-center gap-2">
-                    <span style="display:inline-block; width:12px; height:12px; background:rgba(253,126,20,0.8); border-radius:3px;"></span>
+                    <span style="display:inline-block; width:10px; height:10px; background:rgba(253,126,20,0.8); border-radius:2px;"></span>
                     <span class="text-dark fw-semibold">High (50% - 69%)</span>
                   </div>
                   <div class="d-flex align-items-center gap-2">
-                    <span style="display:inline-block; width:12px; height:12px; background:rgba(220,53,69,0.8); border-radius:3px;"></span>
-                    <span class="text-dark fw-semibold">Severe (&ge; 70%)</span>
+                    <span style="display:inline-block; width:10px; height:10px; background:rgba(220,53,69,0.8); border-radius:2px;"></span>
+                    <span class="text-dark fw-semibold">Critical (&ge; 70%)</span>
                   </div>
                 </div>
               </div>
             </div>
+            
+            <div class="card p-2">
+              <p id="status" class="small text-dark mb-0"><i class="bi bi-info-circle me-1"></i>Ready. Click on any area on the map to trigger decision support analytics.</p>
+            </div>
           </div>
           
-          <div class="col-lg-3">
-            <div class="card p-3 mb-3">
-              <label id="details" class="form-label small text-dark mb-0">Select a location on the map to view detailed risk diagnostics.</label>
-            </div>
-            <div class="card p-3" hidden>
-              <h6 class="mb-1">Model Control</h6>
-              <div class="mb-2">
-                <label class="form-label small text-dark mb-1">Upload Training CSV</label>
-                <input type="file" id="csvFileInput" accept=".csv" class="form-control form-control-sm">
-                <small class="text-dark d-block mt-1" style="font-size:0.65rem;">Expected: water_level, rainfall, discharge, elevation, flood_label</small>
+          <!-- DEDICATED MDRRMO / BDRRMO DECISION SUPPORT PANEL -->
+          <div class="col-12 col-lg-4">
+            <div class="card p-3 shadow-sm analytics-panel" id="detailsCard">
+              <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                <div>
+                  <h6 class="fw-bold text-dark mb-0"><i class="bi bi-shield-check text-primary me-1"></i> Decision Support Matrix</h6>
+                  <small class="text-muted" style="font-size: 0.72rem;">MDRRMO & BDRRMO Action Directives</small>
+                </div>
+                <span class="badge bg-light text-primary border fw-semibold" style="font-size: 0.7rem;">Live Operations</span>
               </div>
-              <button id="trainBtn" class="btn btn-primary w-100 mb-1" disabled><i class="bi bi-cpu"></i> Train Model</button>
-              <button id="saveBtn" class="btn btn-success w-100 mb-1"><i class="bi bi-save"></i> Save Model</button>
-              <button id="loadBtn" class="btn btn-secondary w-100 mb-1"><i class="bi bi-folder"></i> Load Model</button>
               
-              <h6 class="mt-2">Manual Prediction</h6>
-              <input value="00" id="waterLevel" class="form-control mb-1" placeholder="Water Level">
-              <input value="00" id="rainfall" class="form-control mb-1" placeholder="Rainfall">
-              <input value="00" id="discharge" class="form-control mb-1" placeholder="Discharge">
-              <input value="00" id="elevation" class="form-control mb-1" placeholder="Elevation">
-              <button hidden id="predictBtn" class="btn btn-danger w-100"><i class="bi bi-lightning"></i> Predict</button>
+              <div id="details">
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-compass fs-2 d-block mb-2 text-secondary"></i>
+                  <span class="small">Click any location on the map to generate actionable DRRM protocols and field guidance.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </main>
-    </div>
-  </div>
-  
-  <!-- Initial Location Selection Modal -->
-  <div class="modal fade" id="initialLocationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content shadow border-0">
-        <div class="modal-header text-white d-flex align-items-center justify-content-between" style="background-color: #1c96c5;">
-          <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Select Initial Location</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="modalCloseBtn"></button>
-        </div>
-        <div class="modal-body p-3 p-md-4 text-center">
-          <p class="text-secondary mb-4">Choose how you would like to set your map starting position:</p>
-          
-          <div class="position-relative text-start mb-3">
-            <div class="input-group">
-              <input type="text" id="initialAddressInput" class="form-control form-control-lg fs-6" placeholder="e.g. Laoag City, Ilocos Norte" autocomplete="off">
-              <button id="searchAddressBtn" class="btn btn-outline-primary px-3 px-md-4"><i class="bi bi-search"></i> Search</button>
-            </div>
-            <div id="addressSuggestions" class="suggestions-list list-group position-absolute w-100 shadow mt-1" style="display:none;"></div>
-          </div>
-          <small id="locationErrorText" class="text-danger d-block text-start" style="display:none;"></small>
-        </div>
-      </div>
     </div>
   </div>
   
@@ -402,13 +323,26 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script>
-    // Unified State & Mappings
+    const DOM = {
+      kpiWater: document.getElementById("kpiWater"),
+      kpiRain: document.getElementById("kpiRain"),
+      kpiDischarge: document.getElementById("kpiDischarge"),
+      kpiRisk: document.getElementById("kpiRisk"),
+      status: document.getElementById("status"),
+      details: document.getElementById("details"),
+      emails: document.getElementById("emails")
+    };
+
     let model, minVals = [], maxVals = [];
-    let geocoder, locationModal, activeMarker = null;
-    let selectedCoords = null, searchDebounceTimeout = null;
-    let parsedCsvFeatures = [], parsedCsvLabels = [];
+    let geocoder, activeMarker = null;
     let loadedFloodAreasMap = {};
     let currentMunicipality = null, currentDataListener = null;
+    const elevationCache = new Map();
+    
+    let currentFirebaseDate = "";
+    let currentFirebaseTime = "";
+    
+    const activeSensors = { level: 0, rain: 0, flow: 0, elevation: 0 };
     
     const MUNICIPALITY_NODES = {
       'laoag': 'data2',
@@ -419,9 +353,9 @@
     };
     
     const liveDataStore = {
-      data: { level: 0, flow: 0, rain: 0 },
-      data2: { level: 0, flow: 0, rain: 0 },
-      data3: { level: 0, flow: 0, rain: 0 }
+      data: { level: 0, flow: 0, rain: 0, date: "", time: "" },
+      data2: { level: 0, flow: 0, rain: 0, date: "", time: "" },
+      data3: { level: 0, flow: 0, rain: 0, date: "", time: "" }
     };
     
     // Firebase Setup
@@ -447,25 +381,50 @@
       style: 'mapbox://styles/lhester08/cmhqgzq0r004601su4m8i8ov1',
       center: initialCenter,
       zoom: 11,
-      pitch: 65
+      pitch: 50
     });
+
+    // Helper: Convert time string to 12-hour format with AM/PM
+    function formatTo12Hour(timeStr) {
+      if (!timeStr) {
+        const now = new Date();
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+      }
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1].substring(0, 2);
+      const s = parts[2] ? parts[2].substring(0, 2) : '00';
+      if (isNaN(h)) return timeStr;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+    }
+
+    // Helper: Format raw date into readable string
+    function formatReadableDate(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return 'August 2, 2026';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
     
     window.onload = async function() {
-      document.getElementById("emails").innerText = sessionStorage.getItem("userEmail") || "Guest";
-      const modalElement = document.getElementById('initialLocationModal');
-      locationModal = new bootstrap.Modal(modalElement);
-      locationModal.show();
-      
-      modalElement.addEventListener('shown.bs.modal', () => {
-        document.getElementById('initialAddressInput')?.focus();
-      });
+      if (sessionStorage.getItem('loggedIn') !== 'true') {
+        window.location.href = 'log.html';
+      }
+      if (DOM.emails) DOM.emails.innerText = sessionStorage.getItem("userEmail") || "Guest";
       
       updateKPIs();
       await loadModel(); 
       initLiveSensorsAndEvaluation();
     };
     
-    // Tensor Normalization with Memory Protection
     function normalize(row) {
       return row.map((v, i) => {
         const denom = maxVals[i] - minVals[i];
@@ -477,7 +436,7 @@
       const val = parseFloat(vulnerability) || 0;
       if (val >= 70) return 'rgba(220, 53, 69, 0.8)';     
       if (val >= 50) return 'rgba(253, 126, 20, 0.8)';    
-      if (val >= 20) return 'rgba(255, 193, 7, 0.8)';     
+      if (val >= 20) return 'rgba(234, 179, 8, 0.8)';     
       return 'rgba(40, 167, 69, 0.0)';                    
     }
     
@@ -491,54 +450,15 @@
     }
     
     function updateKPIs() {
-      const water = parseFloat(document.getElementById("waterLevel")?.value || 0);
-      const rain = parseFloat(document.getElementById("rainfall")?.value || 0);
-      const discharge = parseFloat(document.getElementById("discharge")?.value || 0);
-      
-      document.getElementById("kpiWater").innerHTML = `${water.toFixed(2)} m`;
-      document.getElementById("kpiRain").innerHTML = `${rain.toFixed(2)} mm`;
-      document.getElementById("kpiDischarge").innerHTML = `${discharge.toFixed(2)} m³/s`;
-      
-      if (activeMarker) {
-        triggerAnalysis(activeMarker.getLngLat());
-      }
-    }
-    
-    // Real-time Batch Map Updates
-    async function updateMapColorCodesBasedOnPredictions() {
-      if (!model || minVals.length === 0 || maxVals.length === 0) return;
-      
-      // Batch prediction tensors inside memory-managed block
-      tf.tidy(() => {
-        Object.entries(loadedFloodAreasMap).forEach(async ([id, areaObj]) => {
-          if (!map.getLayer(areaObj.layerId)) return;
-          
-          const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
-          const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
-          const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
-          
-          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-          const scoreArr = predictionTensor.dataSync(); // Synchronous tensor read for UI iteration
-          const riskScore = Math.round(scoreArr[0] * 100);
-          
-          const newColor = getFloodColor(riskScore);
-          if (areaObj.type === 'municipality') {
-            let lineColor = 'rgba(40, 167, 69, 0.8)';
-            if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
-            else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
-            else if (riskScore >= 20) lineColor = 'rgba(255, 193, 7, 0.8)';
-            map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
-          } else {
-            map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
-          }
-        });
-      });
+      if (DOM.kpiWater) DOM.kpiWater.innerText = `${activeSensors.level.toFixed(2)} m`;
+      if (DOM.kpiRain) DOM.kpiRain.innerText = `${activeSensors.rain.toFixed(2)} mm`;
+      if (DOM.kpiDischarge) DOM.kpiDischarge.innerText = `${activeSensors.flow.toFixed(2)} m³/s`;
     }
     
     function setSensorInputs(level, rain, flow) {
-      if (level != null) document.getElementById('waterLevel').value = level;
-      if (rain != null) document.getElementById('rainfall').value = rain;
-      if (flow != null) document.getElementById('discharge').value = flow;
+      if (level != null) activeSensors.level = parseFloat(level) || 0;
+      if (rain != null) activeSensors.rain = parseFloat(rain) || 0;
+      if (flow != null) activeSensors.flow = parseFloat(flow) || 0;
       updateKPIs();
     }
     
@@ -562,13 +482,15 @@
         if (!snapshot.exists()) return;
         snapshot.forEach(child => {
           const v = child.val();
+          currentFirebaseDate = v.dt ?? v.date ?? "";
+          currentFirebaseTime = v.t ?? v.time ?? "";
           setSensorInputs(
-          v.level ?? v.water ?? v.water_level,
-          v.rain ?? v.rainfall,
-          v.flow ?? v.discharge
+            v.level ?? v.water ?? v.water_level,
+            v.rain ?? v.rainfall,
+            v.flow ?? v.discharge
           );
         });
-        manualPredict();
+        if (activeMarker) triggerAnalysis(activeMarker.getLngLat());
       });
     }
     
@@ -581,37 +503,85 @@
             liveDataStore[nodeKey] = {
               level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
               flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
-              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0)
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0),
+              date: latest.dt ?? latest.date ?? "",
+              time: latest.t ?? latest.time ?? ""
             };
           });
           updateMapColorCodesBasedOnPredictions();
         });
       });
     }
+
+    async function updateMapColorCodesBasedOnPredictions() {
+      if (!model || minVals.length === 0 || maxVals.length === 0) return;
+      
+      tf.tidy(() => {
+        Object.entries(loadedFloodAreasMap).forEach(([id, areaObj]) => {
+          if (!map.getLayer(areaObj.layerId)) return;
+          
+          const nodeKey = getNodeKeyForMunicipality(areaObj.municipalityNote);
+          const telemetry = liveDataStore[nodeKey] || { level: 0, flow: 0, rain: 0 };
+          const normFeatures = normalize([telemetry.level, telemetry.rain, telemetry.flow, areaObj.elevationMean]);
+          
+          const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+          const scoreArr = predictionTensor.dataSync();
+          const riskScore = Math.round(scoreArr[0] * 100);
+          
+          const newColor = getFloodColor(riskScore);
+          if (areaObj.type === 'municipality') {
+            let lineColor = 'rgba(40, 167, 69, 0.8)';
+            if (riskScore >= 70) lineColor = 'rgba(220, 53, 69, 0.8)';
+            else if (riskScore >= 50) lineColor = 'rgba(253, 126, 20, 0.8)';
+            else if (riskScore >= 20) lineColor = 'rgba(234, 179, 8, 0.8)';
+            map.setPaintProperty(areaObj.layerId, 'line-color', lineColor);
+          } else {
+            map.setPaintProperty(areaObj.layerId, 'fill-color', newColor);
+          }
+        });
+      });
+    }
     
     async function getElevationFromCoords(lng, lat) {
-      // Primary: Direct Mapbox GL query
-      const elev = map.queryTerrainElevation([lng, lat]);
-      if (elev !== null && elev !== undefined) return elev;
+      const key = `${lng.toFixed(5)},${lat.toFixed(5)}`;
+      if (elevationCache.has(key)) return elevationCache.get(key);
       
-      // Fallback: Default average elevation
-      return 25.0; 
+      let elevationVal = null;
+      if (map && typeof map.queryTerrainElevation === 'function') {
+        const ele = map.queryTerrainElevation([lng, lat]);
+        if (ele !== null && ele !== undefined && !isNaN(ele)) {
+          elevationVal = parseFloat(ele);
+        }
+      }
+      
+      if (elevationVal === null) {
+        try {
+          const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.elevation && data.elevation.length > 0) {
+            elevationVal = parseFloat(data.elevation[0]);
+          }
+        } catch (e) {}
+      }
+      
+      const finalEle = (elevationVal !== null && !isNaN(elevationVal)) ? elevationVal : 25.0;
+      elevationCache.set(key, finalEle);
+      return finalEle;
     }
     
     async function triggerAnalysis(lngLat, forcedTelemetry = null) {
       const elevation = await getElevationFromCoords(lngLat.lng, lngLat.lat);
-      const elevInput = document.getElementById('elevation');
-      if (elevInput) elevInput.value = Math.round(elevation);
+      activeSensors.elevation = parseFloat(elevation.toFixed(2));
       
-      let currentWater = parseFloat(document.getElementById('waterLevel')?.value || 0);
-      let currentRain = parseFloat(document.getElementById('rainfall')?.value || 0);
-      let currentDischarge = parseFloat(document.getElementById('discharge')?.value || 0);
+      let currentWater = forcedTelemetry ? parseFloat(forcedTelemetry.level) || 0 : activeSensors.level;
+      let currentRain = forcedTelemetry ? parseFloat(forcedTelemetry.rain) || 0 : activeSensors.rain;
+      let currentDischarge = forcedTelemetry ? parseFloat(forcedTelemetry.flow) || 0 : activeSensors.flow;
       
       if (forcedTelemetry) {
-        currentWater = parseFloat(forcedTelemetry.level) || 0;
-        currentRain = parseFloat(forcedTelemetry.rain) || 0;
-        currentDischarge = parseFloat(forcedTelemetry.flow) || 0;
         setSensorInputs(currentWater, currentRain, currentDischarge);
+      } else {
+        updateKPIs();
       }
       
       let finalRisk = 0;
@@ -623,24 +593,130 @@
         });
       }
       
-      // Risk Display Update
-      const kpiRiskEl = document.getElementById("kpiRisk");
-      let riskLabel = "Low", riskColor = "rgba(40, 167, 69, 1)";
-      if (finalRisk >= 70) { riskLabel = "Severe"; riskColor = "rgba(220, 53, 69, 1)"; }
-      else if (finalRisk >= 50) { riskLabel = "High"; riskColor = "rgba(253, 126, 20, 1)"; }
-      else if (finalRisk >= 20) { riskLabel = "Moderate"; riskColor = "rgba(255, 193, 7, 1)"; }
+      const alertMap = { 20: ["Moderate Alert", "#a16207"], 50: ["High Risk Alert", "#ea580c"], 70: ["Critical Risk Alert", "#dc2626"] };
+      const topRiskText = finalRisk < 20 ? ["Safe", "#16a34a"] : (finalRisk < 50 ? alertMap[20] : finalRisk < 70 ? alertMap[50] : alertMap[70]);
+      if (DOM.kpiRisk) DOM.kpiRisk.innerHTML = `<b style="color:${topRiskText[1]}">${finalRisk}% - ${topRiskText[0]}</b>`;
       
-      if (kpiRiskEl) kpiRiskEl.innerHTML = `<b style="color:${riskColor}">${finalRisk}% - ${riskLabel}</b>`;
+      let interpretTitle = "", alertBadgeClass = "", interpretColor = "", mdrrmoDirective = "", bdrrmoDirective = "";
       
-      // Perform Geocoding Lookup
+      if (finalRisk >= 70) {
+        interpretTitle = `Critical Flash Flood Threat (${finalRisk}% Probability)`;
+        alertBadgeClass = "bg-danger text-white";
+        interpretColor = "#dc3545";
+        
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-danger-subtle border border-danger-subtle">
+            <strong class="d-flex align-items-center gap-1 text-danger small fw-bold mb-1">
+              <i class="bi bi-building-exclamation"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Execute <strong>forced preemptive evacuations</strong> across low-lying floodplains immediately.</li>
+              <li>Deploy rescue personnel and watercraft to designated staging areas.</li>
+              <li>Declare emergency response level and coordinate with regional OCD / PDRRMC.</li>
+            </ul>
+          </div>`;
+          
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border border-danger">
+            <strong class="d-flex align-items-center gap-1 text-danger small fw-bold mb-1">
+              <i class="bi bi-megaphone-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Sound local barangay emergency sirens / public address systems.</li>
+              <li>Guide vulnerable sectors (elderly, PWDs, children) directly to primary evacuation centers.</li>
+              <li>Establish safety barricades along overflowing spillways and river banks.</li>
+            </ul>
+          </div>`;
+          
+      } else if (finalRisk >= 50) {
+        interpretTitle = `Elevated Hazard Warning (${finalRisk}% Probability)`;
+        alertBadgeClass = "bg-warning text-dark";
+        interpretColor = "#ea580c";
+        
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-warning-subtle border border-warning-subtle">
+            <strong class="d-flex align-items-center gap-1 text-dark small fw-bold mb-1">
+              <i class="bi bi-building-gear"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Place all municipal Emergency Operations Centers (EOC) on <strong>Standby Alert</strong>.</li>
+              <li>Pre-position relief goods, power generator sets, and transport vehicles.</li>
+              <li>Issue localized travel advisories restricting non-essential transit across flood-prone roads.</li>
+            </ul>
+          </div>`;
+          
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border border-warning">
+            <strong class="d-flex align-items-center gap-1 text-warning-emphasis small fw-bold mb-1">
+              <i class="bi bi-people-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Conduct house-to-house warnings for residents within 50m of the river channel.</li>
+              <li>Ensure evacuation center facilities are unlocked, sanitized, and ready for occupancy.</li>
+              <li>Deploy barangay tanods to monitor water level markers every 15–30 minutes.</li>
+            </ul>
+          </div>`;
+          
+      } else if (finalRisk >= 20) {
+        interpretTitle = `Moderate Precautionary Phase (${finalRisk}% Probability)`;
+        alertBadgeClass = "bg-yellow-moderate";
+        interpretColor = "#a16207";
+        
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded border" style="background-color: #fefce8; border-color: #fef08a !important;">
+            <strong class="d-flex align-items-center gap-1 text-dark small fw-bold mb-1">
+              <i class="bi bi-building-check"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Maintain continuous telemetry polling and meteorological radar tracking.</li>
+              <li>Inform downstream barangays regarding upstream discharge velocity trends.</li>
+            </ul>
+          </div>`;
+          
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border">
+            <strong class="d-flex align-items-center gap-1 text-secondary-emphasis small fw-bold mb-1">
+              <i class="bi bi-eye-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Inspect and clear drainage canals and culverts from debris or blockages.</li>
+              <li>Advise residents to secure livestock and important documents to higher house levels.</li>
+            </ul>
+          </div>`;
+          
+      } else {
+        interpretTitle = `Normal / Stable Hydrology (${finalRisk}% Probability)`;
+        alertBadgeClass = "bg-success text-white";
+        interpretColor = "#16a34a";
+        
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-success-subtle border border-success-subtle">
+            <strong class="d-flex align-items-center gap-1 text-success small fw-bold mb-1">
+              <i class="bi bi-shield-check"></i> Routine Operations:
+            </strong>
+            <p class="mb-0 ps-2 small text-dark" style="font-size: 0.78rem;">
+              Water levels are within normal carrying capacity. Maintain standard continuous telemetry monitoring.
+            </p>
+          </div>`;
+          
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border">
+            <strong class="d-flex align-items-center gap-1 text-muted small fw-bold mb-1">
+              <i class="bi bi-check-circle"></i> Barangay Status:
+            </strong>
+            <p class="mb-0 ps-2 small text-dark" style="font-size: 0.78rem;">
+              Normal community conditions. No emergency countermeasures or evacuations required.
+            </p>
+          </div>`;
+      }
+      
+      let locName = "Selected Coordinate Point";
       try {
         const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,place,locality`;
         const resp = await fetch(geoQuery);
         const data = await resp.json();
         
-        let locName = "Selected Coordinate Point";
         let matchedMunicipality = null;
-        
         if (data.features?.length > 0) {
           const placeName = data.features[0].place_name;
           locName = placeName.split(',')[0];
@@ -658,74 +734,45 @@
         } else {
           detachCurrentDataListener();
         }
-        
-        const infoPanel = document.getElementById('details'); 
-        if (infoPanel) {
-          infoPanel.innerHTML = `
-          <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
-            <h6 class="fw-bold mb-1 border-bottom pb-1" style="color:#1c96c5; font-size: 0.95rem;">System Field Analysis</h6>
-            <small class="d-block mb-2 text-dark" style="font-size: 0.75rem;">${locName}</small>
-            <div class="d-flex justify-content-between"><span class="text-dark">Elevation:</span><span class="fw-semibold">${elevation.toFixed(1)}m</span></div>
-            <div class="d-flex justify-content-between mt-1"><span class="text-dark">Water Level:</span><span class="fw-semibold">${currentWater.toFixed(2)}m</span></div>
-            <div class="mt-2 pt-2 border-top">
-              <span class="text-dark d-block text-uppercase" style="font-size: 0.68rem; font-weight: 700;">Model Assessment</span>
-              <span class="fw-bold d-block" style="color: ${riskColor}; font-size: 0.92rem;">${finalRisk}% - ${riskLabel}</span>
-            </div>
-          </div>`;
-        }
       } catch (err) {
-        console.error("Analysis resolution error:", err);
+        console.error("Geocoding resolution error:", err);
       }
-    }
-    
-    // Model Persistence & Handlers
-    async function autoTrain() {
-      if (parsedCsvFeatures.length === 0) return alert("Please select a valid CSV dataset first.");
+
+      // Display the dynamic telemetry Date & 12-hour Time in the right panel header
+      const displayDate = formatReadableDate(forcedTelemetry ? forcedTelemetry.date : currentFirebaseDate);
+      const displayTime = formatTo12Hour(forcedTelemetry ? forcedTelemetry.time : currentFirebaseTime);
       
-      const splitIndex = Math.floor(parsedCsvFeatures.length * 0.8);
-      let trainX = parsedCsvFeatures.slice(0, splitIndex);
-      let testX  = parsedCsvFeatures.slice(splitIndex);
-      let trainY = parsedCsvLabels.slice(0, splitIndex);
-      let testY  = parsedCsvLabels.slice(splitIndex);
-      
-      tf.tidy(() => {
-        minVals = tf.min(tf.tensor2d(trainX), 0).arraySync();
-        maxVals = tf.max(tf.tensor2d(trainX), 0).arraySync();
-      });
-      
-      trainX = trainX.map(normalize);
-      testX  = testX.map(normalize);
-      
-      const xsTrain = tf.tensor2d(trainX);
-      const ysTrain = tf.tensor2d(trainY, [trainY.length, 1]);
-      const xsTest = tf.tensor2d(testX);
-      const ysTest = tf.tensor2d(testY, [testY.length, 1]);
-      
-      model = tf.sequential();
-      model.add(tf.layers.dense({ inputShape: [4], units: 128, activation: 'relu' }));
-      model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
-      model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
-      model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-      model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
-      model.compile({ optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy'] });
-      
-      await model.fit(xsTrain, ysTrain, {
-        epochs: 150,
-        batchSize: 16,
-        shuffle: true,
-        validationData: [xsTest, ysTest]
-      });
-      
-      // Clean up training tensors
-      xsTrain.dispose(); ysTrain.dispose();
-      xsTest.dispose(); ysTest.dispose();
-      
-      manualPredict();
-    }
-    
-    async function manualPredict() {
-      if (!model) return;
-      updateKPIs();
+      if (DOM.details) {
+        DOM.details.innerHTML = `
+          <div style="font-family: system-ui, -apple-system, sans-serif;">
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+              <span class="fw-bold text-dark text-truncate me-2" style="font-size: 0.95rem;">${locName}</span>
+              <span class="badge ${alertBadgeClass} px-2 py-1">${finalRisk}% Risk</span>
+            </div>
+
+            <!-- Date & 12-Hour Telemetry Timestamp Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded text-dark" style="font-size: 0.76rem;">
+              <span class="fw-semibold"><i class="bi bi-calendar-event text-primary me-1"></i> ${displayDate}</span>
+              <span class="fw-semibold"><i class="bi bi-clock-history text-primary me-1"></i> ${displayTime}</span>
+            </div>
+
+            <div class="mb-3">
+              <span class="dss-section-title d-block mb-1">Decision Support Assessment</span>
+              <div class="fw-bold" style="color: ${interpretColor}; font-size: 0.95rem;">
+                ${interpretTitle}
+              </div>
+              <small class="text-muted d-block" style="font-size: 0.72rem;">Elevation Datum: ${elevation.toFixed(2)} m MSL</small>
+            </div>
+
+            <!-- MDRRMO & BDRRMO DIRECTIVE BLOCKS -->
+            <div class="mb-2">
+              <span class="dss-section-title d-block mb-1">DRRM Action Directives</span>
+              ${mdrrmoDirective}
+              ${bdrrmoDirective}
+            </div>
+          </div>
+        `;
+      }
     }
     
     async function loadModel() {
@@ -740,9 +787,9 @@
         maxVals = config.metadata.maxVals;
         
         model = await tf.loadLayersModel(tf.io.fromMemory(
-        config.modelTopology,
-        config.weightSpecs,
-        weights
+          config.modelTopology,
+          config.weightSpecs,
+          weights
         ));
         
         await updateMapColorCodesBasedOnPredictions();
@@ -751,7 +798,7 @@
       }
     }
     
-    // Event Listeners
+    // Map Event Listeners
     map.on('load', () => {
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       
@@ -771,7 +818,7 @@
         if (!activeMarker) activeMarker = new mapboxgl.Marker({ color: '#1c96c5' }).addTo(map);
         activeMarker.setLngLat(point);
         
-        map.flyTo({ center: point, zoom: 17, pitch: 65 });
+        map.flyTo({ center: point, zoom: 16, pitch: 45 });
         await triggerAnalysis(point);
       });
       
@@ -826,9 +873,6 @@
       document.querySelectorAll('.mapboxgl-popup').forEach(p => p.remove());
       await triggerAnalysis(e.lngLat);
     });
-    
-    document.getElementById('trainBtn').onclick = autoTrain;
-    document.getElementById('predictBtn').onclick = manualPredict;
     
     document.getElementById('logoutLink').addEventListener('click', (e) => {
       e.preventDefault();

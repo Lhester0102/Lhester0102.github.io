@@ -5,7 +5,7 @@
   <title>GDSS | Flood Watch Lists</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <link class="icon" href="GDSS.png">
+  <link rel="icon" href="images/GDSS.png">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -21,6 +21,7 @@
       padding: 0; 
       background: #f4f6f9; 
       overflow: hidden; 
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     
     /* App Viewport Container */
@@ -67,16 +68,21 @@
     }
 
     .main-content::-webkit-scrollbar { width: 6px; }
-    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    .main-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     
     .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
     
     .table thead th { 
-      background-color: #212529; 
+      background-color: #1e293b; 
       color: white; 
-      font-size: 0.85rem;
-      padding: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 14px;
+      white-space: nowrap;
+      border: none;
     }
     
     .mobile-brand {
@@ -90,23 +96,39 @@
     .mobile-brand img { width: 35px; height: 35px; }
     .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
 
-    /* Darker Yellow Custom Badge Styling */
-    .bg-dark-yellow {
-      background-color: #d9a000 !important;
-      color: #ffffff !important;
+    /* High-contrast Yellow Moderate Badges */
+    .bg-yellow-moderate { 
+      background-color: #fde047 !important; 
+      color: #713f12 !important; 
+      border: 1px solid #eab308 !important; 
+      font-weight: 700 !important;
     }
     
-    @media (max-width: 767.98px) {
+    .dss-section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    
+    .analytics-panel {
+      height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    @media (max-width: 991.98px) {
       html, body { overflow: auto; }
       .app-container { height: auto; overflow: visible; }
       .sidebar { height: auto; position: relative; }
       .main-content { height: auto; overflow-y: visible; }
+      .analytics-panel { height: auto; }
     }
     
     canvas { cursor: pointer; transition: transform 0.2s; }
     canvas:hover { transform: scale(1.01); }
     
-    .table-responsive { max-height: 460px; overflow-y: auto; }
+    .table-responsive { max-height: 560px; overflow-y: auto; }
   </style>
 </head>
 
@@ -116,7 +138,7 @@
       <!-- Fixed Navigation Sidebar -->
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         <div class="d-md-none mobile-brand">
-          <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
+          <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
             <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
@@ -144,7 +166,7 @@
             </div>
           </li>
           <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
-          <li class="mb-1"><a class="nav-link text-white " href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
           <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
@@ -153,16 +175,16 @@
         </ul>
       </nav>
       
-         <!-- Main Content Area -->
+      <!-- Main Content Area -->
       <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
         <!-- Top Submenu & Page Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2 p-2 bg-white rounded shadow-sm gap-2">
           <div class="d-flex align-items-center gap-3">
             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
               <i class="bi bi-list"></i>
             </button>
             <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-map me-2"></i>Map Flood Watch</h5>
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-list-columns-reverse me-2"></i>Flood Watch Inventory</h5>
             </div>
           </div>
           
@@ -172,11 +194,10 @@
               <a href="floods3.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                 <i class="bi bi-geo-alt-fill"></i> By Pins
               </a>
-              <a href="floodsmap.html" class="p-2 btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
+              <a href="floodsmap.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                 <i class="bi bi-map-fill text-info"></i> By Map
               </a>
-              <a href="floods4.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-list text-info"></i> All Barangays</a>
-              
+              <a href="floods4.html" class="p-2 btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-list text-info"></i> All Barangays</a>
             </div>
             
             <!-- Mobile Collapsible Submenu Dropdown Button -->
@@ -185,14 +206,12 @@
                 <i class="bi bi-grid-fill me-1"></i> Navigation
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                <li><a class="dropdown-item small" href="floods3.html"><i class="bi bi-geo-alt-fill" me-2 text-info"></i>Flood Pins</a></li>
+                <li><a class="dropdown-item small" href="floods3.html"><i class="bi bi-geo-alt-fill me-2 text-info"></i>Flood Pins</a></li>
                 <li><a class="dropdown-item small" href="floodsmap.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
                 <li><a class="dropdown-item small active" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
-                
               </ul>
             </div>
 
-            
             <!-- User Account Dropdown -->
             <div class="dropdown">
               <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
@@ -209,692 +228,764 @@
         </div>
         
         <div class="container-fluid px-0">
-          <div class="row g-3">
+          <!-- 8 / 4 Grid Layout (matching newindex3 standard) -->
+          <div class="row g-2">
             
-            <!-- LEFT PANEL -->
-            <div class="col-12 col-lg-9 d-flex flex-column">
-              
+            <!-- LEFT PANEL (TABLE INVENTORY) -->
+            <div class="col-12 col-lg-8 d-flex flex-column">
               <div class="card mb-2" style="min-height: 500px; min-width: 0;">
-                
-                <!-- HEADER -->
-                <div class="card-header bg-dark text-white py-2">
+                <!-- FILTER HEADER -->
+                <div class="card-header bg-white border-bottom py-2">
                   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-lg-auto">
+                      <select id="municipalityFilter" class="form-select form-select-sm fw-semibold" style="max-width: 220px;">
+                        <option value="All">All Municipalities</option>
+                      </select>
                     
-                    <div class="d-flex flex-wrap align-items-center gap-3 w-100 w-lg-auto">
-                      
-                      <select id="municipalityFilter"
-                      class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                      style="max-width: 230px;">
-                      <option value="All">All Municipalities</option>
-                    </select>
-                    
-                    <div style="max-width: 320px;" class="flex-grow-1">
-                      <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-white text-dark">
-                          <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" id="barangaySearchInput"
-                        class="form-control"
-                        placeholder="Search barangay...">
+                      <div style="max-width: 300px;" class="flex-grow-1">
+                        <div class="input-group input-group-sm">
+                          <span class="input-group-text bg-light text-muted">
+                            <i class="bi bi-search"></i>
+                          </span>
+                          <input type="text" id="barangaySearchInput" class="form-control" placeholder="Search barangay...">
+                        </div>
                       </div>
-                    </div>
                     
-                    <select id="rowLimitSelect"
-                    class="form-select form-select-sm bg-white border-white text-dark fw-semibold"
-                    style="max-width: 110px;">
-                    <option value="5">5 Rows</option>
-                    <option value="10" selected>10 Rows</option>
-                    <option value="25">25 Rows</option>
-                    <option value="All">All Rows</option>
-                  </select>
-                  
+                      <select id="rowLimitSelect" class="form-select form-select-sm fw-semibold" style="max-width: 110px;">
+                        <option value="5">5 Rows</option>
+                        <option value="10" selected>10 Rows</option>
+                        <option value="25">25 Rows</option>
+                        <option value="All">All Rows</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+            
+                <!-- TABLE -->
+                <div class="card-body p-0 ms-0 table-responsive">
+                  <table class="table table-hover align-middle mb-0 w-100" style="table-layout: fixed;">
+                    <thead class="sticky-top">
+                      <tr>
+                        <th class="ps-3" style="width: 28%;">Barangay</th>
+                        <!-- Telemetry arranged as Level, Rain, Discharge -->
+                        <th style="width: 14%;">Level</th>
+                        <th style="width: 14%;">Rain</th>
+                        <th style="width: 14%;">Discharge</th>
+                        <th style="width: 14%;">Elevation</th>
+                        <th style="width: 16%;">Risk Level</th>
+                      </tr>
+                    </thead>
+                    <tbody id="riverTableBody">
+                      <tr>
+                        <td colspan="6" class="text-center text-secondary py-5">
+                          <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                          Synchronizing tracking telemetry registries...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-            
-            <!-- TABLE -->
-            <div class="card-body p-0 ms-0 table-responsive" style="max-height: 570px;">
-              <table class="table mt-1 table-hover align-middle mb-0 w-100" style="table-layout: fixed;">
-                
-                <thead class="table-primary text-white sticky-top">
-                  <tr>
-                    <th class="ps-3" style="width: 22%;">Barangay</th>
-                    <th style="width: 12%;">Water Level</th>
-                    <th style="width: 12%;">Rainfall</th>
-                    <th style="width: 12%;">Discharge</th>
-                    <th style="width: 20%;">Calculated Elevation</th>
-                    <th style="width: 22%;">Risk Classification</th>
-                  </tr>
-                </thead>
-                
-                <tbody id="riverTableBody">
-                  <tr>
-                    <td colspan="6" class="text-center text-dark py-5">
-                      <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-                      Synchronizing tracking telemetry registries...
-                    </td>
-                  </tr>
-                </tbody>
-                
-              </table>
-            </div>
-            
-          </div>
           
-          <div class="card mb-1 mt-1 p-2">
-            <p id="status" class="small text-dark mb-0">
-              Initializing system modules...
-            </p>
-          </div>
-          
-        </div>
+              <div class="card p-2">
+                <p id="status" class="small text-dark mb-0">
+                  <i class="bi bi-info-circle me-1"></i>Initializing system modules...
+                </p>
+              </div>
+            </div>
         
-        <!-- RIGHT PANEL -->
-        <div class="col-12 col-lg-3">
+            <!-- RIGHT PANEL (DEDICATED MDRRMO / BDRRMO DECISION SUPPORT MATRIX) -->
+            <div class="col-12 col-lg-4">
+              <div class="card p-3 shadow-sm analytics-panel" id="detailsContainer">
+                <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-shield-check text-primary me-1"></i> Decision Support Matrix</h6>
+                    <small class="text-muted" style="font-size: 0.72rem;">MDRRMO & BDRRMO Action Directives</small>
+                  </div>
+                  <span class="badge bg-light text-primary border fw-semibold" style="font-size: 0.7rem;">Live Operations</span>
+                </div>
+                
+                <div id="details">
+                  <div class="text-center text-muted py-5 small">
+                    <i class="bi bi-compass d-block mb-2 fs-2 text-secondary"></i>
+                    Click any barangay row to generate actionable DRRM protocols and 24-hour forecast trends.
+                  </div>
+                </div>
+              </div>
           
-          <div class="card p-3 shadow-sm" id="detailsContainer">
-            <div id="details">
-              <div class="text-center text-dark py-4 small">
-                <i class="bi bi-info-circle d-block mb-2 fs-4 text-dark"></i>
-                Select a river station to view analytics.
+              <div class="card p-3 mt-3" hidden>
+                <input id="waterLevel" class="form-control mb-1" value="1.1">
+                <input id="rainfall" class="form-control mb-1" value="0.1">
+                <input id="discharge" class="form-control mb-1" value="12">
+                <input id="elevation" class="form-control mb-2" value="25">
+                <button hidden id="predictBtn" class="btn btn-danger w-100">Predict</button>
               </div>
             </div>
           </div>
-          
-          <div class="card p-3 mt-3" hidden>
-            
-            <input id="waterLevel" class="form-control mb-1" value="1.1">
-            <input id="rainfall" class="form-control mb-1" value="0.1">
-            <input id="discharge" class="form-control mb-1" value="12">
-            <input id="elevation" class="form-control mb-2" value="25">
-            
-            <button hidden id="predictBtn" class="btn btn-danger w-100">
-              Predict
-            </button>
-          </div>
-          
         </div>
-        
-      </div>
+      </main>
     </div>
-  </main>
-</div>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-<script>
-  let model, minVals=[], maxVals=[];
-  let parsedCsvFeatures = [], parsedCsvLabels = [];
-  let currentMunicipality = null;
-  let currentDataListener = null;
+  <script>
+    let model, minVals=[], maxVals=[];
+    let currentMunicipality = null;
+    let currentDataListener = null;
   
-  let allRawPins = []; 
-  let rivers = [];     
-  const liveDataStore = {
-    data: { level: 1.1, flow: 12.0, rain: 0.1 },
-    data2: { level: 1.1, flow: 12.0, rain: 0.1 },
-    data3: { level: 1.1, flow: 12.0, rain: 0.1 }
-  };
+    let allRawPins = []; 
+    let rivers = [];     
+    const liveDataStore = {
+      data: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" },
+      data2: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" },
+      data3: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" }
+    };
   
-  const firebaseConfig = {
-    apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-    authDomain: "flooded-95eeb.firebaseapp.com",
-    projectId: "flooded-95eeb",
-    storageBucket: "flooded-95eeb.firebasestorage.app",
-    messagingSenderId: "142547476223",
-    appId: "1:142547476223:web:70de7014c664e26d0636ca"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storageRef = firebase.storage().ref();
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storageRef = firebase.storage().ref();
   
-  window.onload = async function() {
-    if (sessionStorage.getItem('loggedIn') !== 'true') {
-      window.location.href = 'log.html';
+    // Helper: Convert time string to 12-hour format with AM/PM
+    function formatTo12Hour(timeStr) {
+      if (!timeStr) {
+        const now = new Date();
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+      }
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1].substring(0, 2);
+      const s = parts[2] ? parts[2].substring(0, 2) : '00';
+      if (isNaN(h)) return timeStr;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
     }
-    
-    const emailElem = document.getElementById("emails");
-    if (emailElem) {
-      emailElem.innerHTML = sessionStorage.getItem("userEmail") || "User Loading...";
+
+    // Helper: Format raw date string into readable format
+    function formatReadableDate(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return 'August 2, 2026';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
+
+    window.onload = async function() {
+      if (sessionStorage.getItem('loggedIn') !== 'true') {
+        window.location.href = 'log.html';
+      }
     
-    document.getElementById('status').innerHTML = '<span class="loading-spinner"></span> Initializing system modules - Loading registry lists...';
+      const emailElem = document.getElementById("emails");
+      if (emailElem) {
+        emailElem.innerHTML = sessionStorage.getItem("userEmail") || "User Loading...";
+      }
     
-    await loadModel(); 
-    await fetchAllPinsMetadata(); 
-    setupRiverStations();
+      document.getElementById('status').innerHTML = '<span class="loading-spinner"></span> Initializing system modules - Loading registry lists...';
     
-    const barangayInput = document.getElementById('barangaySearchInput');
-    if (barangayInput) barangayInput.addEventListener('input', updateRiverTable);
+      await loadModel(); 
+      await fetchAllPinsMetadata(); 
+      setupRiverStations();
     
-    const municipalityFilter = document.getElementById('municipalityFilter');
-    if (municipalityFilter) {
-      municipalityFilter.addEventListener('change', async function() {
-        const selected = this.value;
-        if (selected === 'All') {
-          document.getElementById('status').innerHTML = `Please select a specific municipality. Loading all at once is disabled to prevent API errors.`;
-          rivers = [];
-          updateRiverTable();
-          return;
-        }
+      const barangayInput = document.getElementById('barangaySearchInput');
+      if (barangayInput) barangayInput.addEventListener('input', updateRiverTable);
+    
+      const municipalityFilter = document.getElementById('municipalityFilter');
+      if (municipalityFilter) {
+        municipalityFilter.addEventListener('change', async function() {
+          const selected = this.value;
+          if (selected === 'All') {
+            document.getElementById('status').innerHTML = `Please select a specific municipality. Loading all at once is disabled to prevent API errors.`;
+            rivers = [];
+            updateRiverTable();
+            return;
+          }
         
-        await loadMunicipalityElevations(selected);
+          await loadMunicipalityElevations(selected);
+        });
+      }
+    
+      const rowLimitSelect = document.getElementById('rowLimitSelect');
+      if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
+    
+      if (municipalityFilter) {
+        municipalityFilter.value = "Laoag City";
+        await loadMunicipalityElevations("Laoag City");
+      }
+    }
+  
+    function detachCurrentDataListener() {
+      if (currentDataListener && currentDataListener.off) {
+        currentDataListener.off('value');
+      }
+      currentDataListener = null;
+    }
+  
+    function processMunicipalitySnapshot(snapshot, sourceName) {
+      if (!snapshot.exists()) return;
+      snapshot.forEach(child => {
+        const v = child.val();
+        const level = v.level ?? v.water ?? v.water_level ?? null;
+        const rain = v.rain ?? v.rainfall ?? null;
+        const flow = v.flow ?? v.discharge ?? null;
+      });
+      document.getElementById('status').innerHTML = `✓ ${sourceName} telemetry synced.`;
+    }
+  
+    function subscribeToMunicipalityData(municipality) {
+      if (!municipality || currentMunicipality === municipality) return;
+      detachCurrentDataListener();
+      currentMunicipality = municipality;
+    
+      let refPath = 'data';
+      if (municipality === 'Laoag City') refPath = 'data2';
+      else if (municipality === 'Bacarra') refPath = 'data3';
+    
+      const ref = db.ref(refPath).orderByKey().limitToLast(1);
+      currentDataListener = ref;
+      ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, refPath));
+    }
+  
+    function populateMunicipalityDropdown() {
+      const select = document.getElementById('municipalityFilter');
+      if (!select) return;
+    
+      const uniqueMunicipalities = [...new Set(allRawPins.map(r => r.municipality))].sort();
+    
+      select.innerHTML = '<option value="All">Select Municipality...</option>';
+      uniqueMunicipalities.forEach(muni => {
+        const opt = document.createElement('option');
+        opt.value = muni;
+        opt.textContent = muni;
+        select.appendChild(opt);
       });
     }
-    
-    const rowLimitSelect = document.getElementById('rowLimitSelect');
-    if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
-    
-    if (municipalityFilter) {
-      municipalityFilter.value = "Laoag City";
-      await loadMunicipalityElevations("Laoag City");
-    }
-  }
   
-  function detachCurrentDataListener() {
-    if (currentDataListener && currentDataListener.off) {
-      currentDataListener.off('value');
-    }
-    currentDataListener = null;
-  }
-  
-  function processMunicipalitySnapshot(snapshot, sourceName) {
-    if (!snapshot.exists()) return;
-    snapshot.forEach(child => {
-      const v = child.val();
-      const level = v.level ?? v.water ?? v.water_level ?? null;
-      const rain = v.rain ?? v.rainfall ?? null;
-      const flow = v.flow ?? v.discharge ?? null;
-    });
-    document.getElementById('status').innerHTML = `${sourceName} matrix updates synced successfully.`;
-    manualPredict();
-  }
-  
-  function subscribeToMunicipalityData(municipality) {
-    if (!municipality || currentMunicipality === municipality) return;
-    detachCurrentDataListener();
-    currentMunicipality = municipality;
-    
-    let refPath = 'data';
-    if (municipality === 'Laoag City') refPath = 'data2';
-    else if (municipality === 'Bacarra') refPath = 'data3';
-    
-    const ref = db.ref(refPath).orderByKey().limitToLast(1);
-    currentDataListener = ref;
-    ref.on('value', snapshot => processMunicipalitySnapshot(snapshot, refPath));
-  }
-  
-  function populateMunicipalityDropdown() {
-    const select = document.getElementById('municipalityFilter');
-    if (!select) return;
-    
-    const uniqueMunicipalities = [...new Set(allRawPins.map(r => r.municipality))].sort();
-    
-    select.innerHTML = '<option value="All">Select Municipality...</option>';
-    uniqueMunicipalities.forEach(muni => {
-      const opt = document.createElement('option');
-      opt.value = muni;
-      opt.textContent = muni;
-      select.appendChild(opt);
-    });
-  }
-  
-  async function fetchAllPinsMetadata() {
-    try {
-      const snapshot = await db.ref('pins').once('value');
-      if (snapshot.exists()) {
-        const loadedPins = [];
-        const seenBarangays = new Set();
-        
-        snapshot.forEach(childSnapshot => {
-          const pinConfig = childSnapshot.val();
-          if (pinConfig.node && pinConfig.latitude && pinConfig.longitude) {
-            const nameKey = (pinConfig.name || "Unknown").trim();
-            const lowerKey = nameKey.toLowerCase();
-            const muniKey = pinConfig.municipality || "Laoag City";
-            const uniquelyIdentified = `${muniKey.toLowerCase()}-${lowerKey}`;
-            
-            if (!seenBarangays.has(uniquelyIdentified)) {
-              seenBarangays.add(uniquelyIdentified);
-              
-              loadedPins.push({
-                brgyId: childSnapshot.key, 
-                name: nameKey,
-                municipality: muniKey,
-                lat: parseFloat(pinConfig.latitude),
-                lng: parseFloat(pinConfig.longitude),
-                elevation: 12.5, 
-                node: pinConfig.node 
-              });
-            }
-          }
-        });
-        
-        allRawPins = loadedPins;
-        populateMunicipalityDropdown();
-      }
-    } catch (error) {
-      console.error("Error fetching pins metadata:", error);
-      document.getElementById('status').innerHTML = `Error: ${error.message}`;
-    }
-  }
-  
-  async function loadMunicipalityElevations(municipalityName) {
-    let selectedRivers = allRawPins.filter(river => river.municipality === municipalityName);
-    
-    if (selectedRivers.length === 0) {
-      rivers = [];
-      updateRiverTable();
-      return;
-    }
-    
-    document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} ${municipalityName} barangays...`;
-    
-    const chunkSize = 40; 
-    const chunks = [];
-    for (let i = 0; i < selectedRivers.length; i += chunkSize) {
-      chunks.push(selectedRivers.slice(i, i + chunkSize));
-    }
-    
-    let allElevations = [];
-    
-    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-      const chunk = chunks[chunkIndex];
-      const lats = chunk.map(r => r.lat).join(',');
-      const lngs = chunk.map(r => r.lng).join(',');
-      
+    async function fetchAllPinsMetadata() {
       try {
-        document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation batch ${chunkIndex + 1}/${chunks.length} for ${municipalityName}...`;
+        const snapshot = await db.ref('pins').once('value');
+        if (snapshot.exists()) {
+          const loadedPins = [];
+          const seenBarangays = new Set();
         
-        const response = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`);
-        const data = await response.json();
+          snapshot.forEach(childSnapshot => {
+            const pinConfig = childSnapshot.val();
+            if (pinConfig.node && pinConfig.latitude && pinConfig.longitude) {
+              const nameKey = (pinConfig.name || "Unknown").trim();
+              const lowerKey = nameKey.toLowerCase();
+              const muniKey = pinConfig.municipality || "Laoag City";
+              const uniquelyIdentified = `${muniKey.toLowerCase()}-${lowerKey}`;
+            
+              if (!seenBarangays.has(uniquelyIdentified)) {
+                seenBarangays.add(uniquelyIdentified);
+              
+                loadedPins.push({
+                  brgyId: childSnapshot.key, 
+                  name: nameKey,
+                  municipality: muniKey,
+                  lat: parseFloat(pinConfig.latitude),
+                  lng: parseFloat(pinConfig.longitude),
+                  elevation: 12.5, 
+                  node: pinConfig.node 
+                });
+              }
+            }
+          });
         
-        if (data && data.elevation) {
-          allElevations = [...allElevations, ...data.elevation];
-        } else {
+          allRawPins = loadedPins;
+          populateMunicipalityDropdown();
+        }
+      } catch (error) {
+        console.error("Error fetching pins metadata:", error);
+        document.getElementById('status').innerHTML = `Error: ${error.message}`;
+      }
+    }
+  
+    async function loadMunicipalityElevations(municipalityName) {
+      let selectedRivers = allRawPins.filter(river => river.municipality === municipalityName);
+    
+      if (selectedRivers.length === 0) {
+        rivers = [];
+        updateRiverTable();
+        return;
+      }
+    
+      document.getElementById('status').innerHTML = `<span class="loading-spinner"></span> Fetching elevation for ${selectedRivers.length} ${municipalityName} barangays...`;
+    
+      const chunkSize = 40; 
+      const chunks = [];
+      for (let i = 0; i < selectedRivers.length; i += chunkSize) {
+        chunks.push(selectedRivers.slice(i, i + chunkSize));
+      }
+    
+      let allElevations = [];
+    
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        const chunk = chunks[chunkIndex];
+        const lats = chunk.map(r => r.lat).join(',');
+        const lngs = chunk.map(r => r.lng).join(',');
+      
+        try {
+          const response = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`);
+          const data = await response.json();
+        
+          if (data && data.elevation) {
+            allElevations = [...allElevations, ...data.elevation];
+          } else {
+            allElevations = [...allElevations, ...chunk.map(() => 12.5)];
+          }
+        
+          await new Promise(resolve => setTimeout(resolve, 150)); 
+        } catch (apiErr) {
+          console.error(`API error for batch ${chunkIndex + 1}:`, apiErr);
           allElevations = [...allElevations, ...chunk.map(() => 12.5)];
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 200)); 
-        
-      } catch (apiErr) {
-        console.error(`API error for batch ${chunkIndex + 1}:`, apiErr);
-        allElevations = [...allElevations, ...chunk.map(() => 12.5)];
       }
-    }
     
-    selectedRivers.forEach((river, index) => {
-      if (allElevations[index] !== null && allElevations[index] !== undefined) {
-        river.elevation = allElevations[index];
-      }
-    });
-    
-    document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${municipalityName}.`;
-    
-    rivers = selectedRivers;
-    updateRiverTable();
-  }
-  
-  function setupRiverStations() {
-    ['data', 'data2', 'data3'].forEach(nodeKey => {
-      db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
-        if (!snapshot.exists()) return;
-        snapshot.forEach(child => {
-          const latest = child.val();
-          liveDataStore[nodeKey] = {
-            level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 1.1),
-            flow: parseFloat(latest.flow ?? latest.discharge ?? 12.0),
-            rain: parseFloat(latest.rain ?? latest.rainfall ?? 0.1)
-          };
-        });
-        updateRiverTable();
-      });
-    });
-  }
-  
-  function updateRiverTable() {
-    const tableBody = document.getElementById('riverTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    if (rivers.length === 0) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="6" class="text-center py-5 text-dark small">
-            <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-dark"></i>
-            Select a specific municipality above to load data.
-          </td>
-        </tr>`;
-      return;
-    }
-    
-    const barangayInput = document.getElementById('barangaySearchInput');
-    const filterQuery = barangayInput ? barangayInput.value.toLowerCase().trim() : '';
-    const selectedLimit = document.getElementById('rowLimitSelect').value;
-    
-    let processedList = rivers.filter(river => 
-    river.name.toLowerCase().includes(filterQuery)
-    );
-    
-    processedList = processedList.map(river => {
-      let riskScore = 0;
-      const telemetry = liveDataStore[river.node];
-      
-      if (telemetry && model && minVals.length > 0 && maxVals.length > 0) {
-        try {
-          const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, river.elevation];
-          const normFeatures = normalize(rawFeatures);
-          
-          riskScore = tf.tidy(() => {
-            const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
-            return predictionTensor.dataSync()[0] * 100;
-          });
-        } catch (err) {
-          console.error("Tensor matrix calculations error:", err);
+      selectedRivers.forEach((river, index) => {
+        if (allElevations[index] !== null && allElevations[index] !== undefined) {
+          river.elevation = allElevations[index];
         }
-      }
-      return { ...river, computedRisk: riskScore };
-    });
+      });
     
-    processedList.sort((a, b) => {
-      if (b.computedRisk !== a.computedRisk) {
-        return b.computedRisk - a.computedRisk;
-      }
-      return a.name.localeCompare(b.name);
-    });
-    
-    if (selectedLimit !== 'All') {
-      const limitCount = parseInt(selectedLimit, 10);
-      processedList = processedList.slice(0, limitCount);
+      document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${municipalityName}.`;
+      rivers = selectedRivers;
+      updateRiverTable();
     }
-    
-    for (const river of processedList) {
-      const telemetry = liveDataStore[river.node];
-      if (!telemetry) continue;
-      
-      const elevation = river.elevation;
-      const riskScore = river.computedRisk;
-      let badgeStyle = 'bg-success';
-      
-      if (riskScore >= 70) {
-        badgeStyle = 'bg-danger';
-      } else if (riskScore >= 50) {
-        badgeStyle = 'bg-warning text-dark';
-      } else if (riskScore >= 20) {
-        badgeStyle = 'bg-dark-yellow';
-      }
-      
-      const tr = document.createElement('tr');
-      tr.style.cursor = 'pointer';
-      
-      tr.onclick = () => {
-        triggerStationAnalysis(river, riskScore);
-      };
-      
-      tr.innerHTML = `
-        <td class="ps-3">
-          <div class="fw-bold text-dark">${river.name}</div>
-          <small class="text-dark" style="font-size:0.95rem;">
-            <span class="fw-bold text-primary">${river.municipality}</span>
-          </small>
-         </td>
-         <td>
-          <span class="text-dark fw-bold">
-            ${telemetry.level.toFixed(2)}m
-          </span>
-         </td>
-         <td>
-          <span class="text-dark fw-bold">
-            ${telemetry.rain.toFixed(1)} mm
-          </span>
-         </td>
-         <td>
-          <span class="text-dark fw-bold">
-            ${telemetry.flow.toFixed(1)} m³/s
-          </span>
-         </td>
-         <td>
-          <span class="text-dark fw-bold">
-            ${elevation.toFixed(1)}m
-          </span>
-         </td>
-         <td>
-          <span class="badge ${badgeStyle} px-2 py-1" style="font-size:0.8rem;">
-            ${riskScore.toFixed(2)}%
-          </span>
-         </td>
-      `;
-      
-      tableBody.appendChild(tr);
-    }
-    
-    if (processedList.length === 0) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="6" class="text-center py-5 text-dark small">
-            <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-dark"></i>
-            No barangays match your selected criteria.
-          </td>
-        </tr>`;
-    }
-  }
   
-  async function triggerStationAnalysis(river, riskScore) {
-    const telemetry = liveDataStore[river.node];
-    const elevation = river.elevation;
-    
-    const currentWater = telemetry.level;
-    const currentRain = telemetry.rain;
-    const currentDischarge = telemetry.flow;
-    
-    document.getElementById('waterLevel').value = currentWater;
-    document.getElementById('rainfall').value = currentRain;
-    document.getElementById('discharge').value = currentDischarge;
-    document.getElementById('elevation').value = elevation;
-    
-    // Standardized Risk Classification Logic
-    let interpretText = "Low / Safe Scenario";
-    let alertBadgeClass = "bg-success";
-    let interpretColor = "#198754";
-    let recommendation = "Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.";
-    
-    if (riskScore >= 70) {
-      interpretText = `Alert Level 3 - Red Warning (${riskScore.toFixed(1)}% Risk)`;
-      alertBadgeClass = "bg-danger";
-      interpretColor = "#dc3545"; 
-      recommendation = `<strong>CRITICAL HAZARD (Forced Evacuation):</strong> Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding. Move to designated high-ground evacuation centers immediately. Do not walk or drive through moving floodwaters.`;
-    } else if (riskScore >= 50) {
-      interpretText = `Alert Level 2 - Orange Advisory (${riskScore.toFixed(1)}% Risk)`;
-      alertBadgeClass = "bg-warning text-dark";
-      interpretColor = "#fd7e14"; 
-      recommendation = `<strong>HIGH VULNERABILITY (Pre-emptive Evacuation):</strong> River water levels approaching dangerous bank limits. Local government units and residents in low-lying areas should execute pre-emptive evacuation, secure emergency kits, transfer electrical assets to higher floors, and monitor advisories.`;
-    } else if (riskScore >= 20) {
-      interpretText = `Alert Level 1 - Yellow Advisory (${riskScore.toFixed(1)}% Risk)`;
-      alertBadgeClass = "bg-dark-yellow";
-      interpretColor = "#d9a000"; 
-      recommendation = `<strong>MODERATE / MONITORING PHASE:</strong> Rising water trends observed upstream. Prepare family emergency kits, clear community drainage pathways, and prepare livestock or vehicles for relocation if heavy rainfall persists.`;
+    function setupRiverStations() {
+      ['data', 'data2', 'data3'].forEach(nodeKey => {
+        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
+          if (!snapshot.exists()) return;
+          snapshot.forEach(child => {
+            const latest = child.val();
+            liveDataStore[nodeKey] = {
+              level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 1.1),
+              flow: parseFloat(latest.flow ?? latest.discharge ?? 12.0),
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0.1),
+              date: latest.dt ?? latest.date ?? "",
+              time: latest.t ?? latest.time ?? ""
+            };
+          });
+          updateRiverTable();
+        });
+      });
     }
+  
+    function updateRiverTable() {
+      const tableBody = document.getElementById('riverTableBody');
+      if (!tableBody) return;
     
-    let waterInterpretText = "Normal";
-    let waterInterpretColor = "#198754"; 
-    if (currentWater >= 5.0) { waterInterpretText = "Critical Level"; waterInterpretColor = "#dc3545"; }
-    else if (currentWater >= 4.0) { waterInterpretText = "Alarm Level"; waterInterpretColor = "#fd7e14"; }
-    else if (currentWater >= 2.5) { waterInterpretText = "Alert Level"; waterInterpretColor = "#d9a000"; }
+      tableBody.innerHTML = '';
     
-    const probChartId = `sidePanelForecastTrendCanvas`;
-    const infoPanel = document.getElementById('details'); 
+      if (rivers.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-5 text-dark small">
+              <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-secondary"></i>
+              Select a specific municipality above to load inventory.
+            </td>
+          </tr>`;
+        return;
+      }
     
-    if (infoPanel) {
-      infoPanel.innerHTML = `
-        <div style="font-family: system-ui, sans-serif;">
-          <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-2">
-            <h6 class="fw-bold mb-0 text-primary" style="font-size: 0.95rem;">System Field Analysis</h6>
-            <span class="badge ${alertBadgeClass}" style="font-size:0.6rem;">Standard Hazard Metric</span>
-          </div>
-          <div class="mb-2 bg-light p-2 rounded border">
-            <span class="d-block text-dark fw-bold" style="font-size:0.8rem;">${river.name}, ${river.municipality}</span>
-          </div>
+      const barangayInput = document.getElementById('barangaySearchInput');
+      const filterQuery = barangayInput ? barangayInput.value.toLowerCase().trim() : '';
+      const selectedLimit = document.getElementById('rowLimitSelect').value;
+    
+      let processedList = rivers.filter(river => 
+        river.name.toLowerCase().includes(filterQuery)
+      );
+    
+      processedList = processedList.map(river => {
+        let riskScore = 0;
+        const telemetry = liveDataStore[river.node];
       
-          <div style="font-size: 0.75rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-dark">Elevation:</span>
-            <span class="fw-semibold">${elevation.toFixed(1)}m MSL</span>
-          </div>
-          <div style="font-size: 0.75rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-dark">Water Level:</span>
-            <span class="fw-semibold">${currentWater.toFixed(2)}m <small style="color: ${waterInterpretColor}; font-weight:700;">(${waterInterpretText})</small></span>
-          </div>
-          <div style="font-size: 0.75rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-dark">Rainfall:</span>
-            <span class="fw-semibold">${currentRain.toFixed(1)} mm</span>
-          </div>
-          <div style="font-size: 0.75rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-dark">Discharge:</span>
-            <span class="fw-semibold">${currentDischarge.toFixed(1)} m³/s</span>
-          </div>
+        if (telemetry && model && minVals.length > 0 && maxVals.length > 0) {
+          try {
+            const rawFeatures = [telemetry.level, telemetry.rain, telemetry.flow, river.elevation];
+            const normFeatures = normalize(rawFeatures);
           
-          <div class="mt-2 pt-1 border-top">
-            <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing:0.5px;">Model Interpretation</span>
-            <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.88rem;">${interpretText}</span>
-          </div>
-          
-          <div class="mt-2 bg-white border p-2 rounded shadow-sm">
-            <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing:0.5px;">Actionable Recommendation</span>
-            <p class="mb-0 text-dark small mt-1" style="text-align: justify; line-height:1.3; font-size: 0.78rem;">${recommendation}</p>
-          </div>
-
-          <div class="mt-3 pt-2 border-top">
-            <span class="text-dark d-block text-uppercase mb-2 fw-bold" style="font-size: 0.65rem;"><i class="bi bi-graph-up me-1"></i>24-Hour Forecast Probability</span>
-            <div style="height: 105px; width: 100%;"><canvas id="${probChartId}"></canvas></div>
-          </div>
-        </div>
-      `;
-      
-      const forecastData = await getForecast([currentWater, currentRain, currentDischarge, elevation]);
-      
-      setTimeout(() => {
-        const pCtx = document.getElementById(probChartId);
-        if (!pCtx) return;
-        new Chart(pCtx, {
-          type: 'line',
-          data: {
-            labels: ["Now", "+3h", "+12h", "+24h"],
-            datasets: [{
-              data: forecastData,
-              borderColor: interpretColor,
-              backgroundColor: 'rgba(0, 0, 0, 0.02)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 3
-            }]
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            maintainAspectRatio: false,
-            scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 8 } } },
-              y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } }
-            }
+            riskScore = tf.tidy(() => {
+              const predictionTensor = model.predict(tf.tensor2d([normFeatures]));
+              return predictionTensor.dataSync()[0] * 100;
+            });
+          } catch (err) {
+            console.error("Tensor matrix calculations error:", err);
           }
-        });
-      }, 80);
-    }
-    
-    let municipality = river.municipality;
-    if (municipality) subscribeToMunicipalityData(municipality);
-  }
-  
-  async function getForecast(currentInput) {
-    const horizons = [1, 3, 12, 24];
-    let last = [...currentInput];
-    const predictions = [];
-    if (!model) return [0, 0, 0, 0];
-    for (const h of horizons) {
-      const pred = tf.tidy(() => {
-        return model.predict(tf.tensor2d([normalize(last)])).dataSync()[0];
+        }
+        return { ...river, computedRisk: riskScore };
       });
-      predictions.push(pred * 100);
-      last[0] += 0.05; 
-    }
-    return predictions;
-  }
-  
-  function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
-  
-  function manualPredict(){
-    if(!model) return;
-    const input = [
-    parseFloat(document.getElementById('waterLevel').value), 
-    parseFloat(document.getElementById('rainfall').value), 
-    parseFloat(document.getElementById('discharge').value), 
-    parseFloat(document.getElementById('elevation').value)
-    ];
-    const horizons = [1, 3, 12, 24];
-    let last = [...input];
-    const predictions = [];
-    for(const h of horizons){
-      const pred = tf.tidy(() => {
-        return model.predict(tf.tensor2d([normalize(last)])).dataSync()[0];
-      });
-      predictions.push(pred * 100);
-      last[0] += 0.05; 
-    }
-  }
-  
-  async function loadModel() {
-    const status = document.getElementById("status");
-    try {
-      const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
-      const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
-      
-      const config = await (await fetch(jsonUrl)).json();
-      const weights = await (await fetch(weightsUrl)).arrayBuffer();
-      
-      minVals = config.metadata.minVals;
-      maxVals = config.metadata.maxVals;
-      
-      model = await tf.loadLayersModel(tf.io.fromMemory(config.modelTopology, config.weightSpecs, weights));
-      status.innerHTML = "✓ Model loaded successfully.";
-    } catch (err) {
-      status.innerHTML = "Using default risk calculations. Model not available.";
-      console.error(err);
-    }
-  }
-  
-  document.getElementById('logoutLink').addEventListener('click', function (e) {
-    e.preventDefault();
     
-    Swal.fire({
-      title: 'Logout?',
-      text: 'Are you sure you want to log out?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, Logout',
-      cancelButtonText: 'No'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        sessionStorage.clear();
-        
-        Swal.fire({
-          title: 'Logged Out',
-          text: 'You have been logged out successfully.',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
-        }).then(() => {
-          window.location.href = 'log.html';
-        });
+      processedList.sort((a, b) => {
+        if (b.computedRisk !== a.computedRisk) {
+          return b.computedRisk - a.computedRisk;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    
+      if (selectedLimit !== 'All') {
+        const limitCount = parseInt(selectedLimit, 10);
+        processedList = processedList.slice(0, limitCount);
       }
+    
+      for (const river of processedList) {
+        const telemetry = liveDataStore[river.node];
+        if (!telemetry) continue;
+      
+        const elevation = river.elevation;
+        const riskScore = river.computedRisk;
+        let badgeStyle = 'bg-success text-white';
+      
+        if (riskScore >= 70) {
+          badgeStyle = 'bg-danger text-white';
+        } else if (riskScore >= 50) {
+          badgeStyle = 'bg-warning text-dark';
+        } else if (riskScore >= 20) {
+          badgeStyle = 'bg-yellow-moderate';
+        }
+      
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+      
+        tr.onclick = () => {
+          triggerStationAnalysis(river, riskScore);
+        };
+      
+        tr.innerHTML = `
+          <td class="ps-3">
+            <div class="fw-bold text-dark">${river.name}</div>
+            <small class="text-secondary" style="font-size:0.75rem;">
+              <span class="fw-semibold text-primary">${river.municipality}</span>
+            </small>
+          </td>
+          <!-- Telemetry Sequence: Level, Rain, Discharge (2 Decimals Precision) -->
+          <td>
+            <span class="text-dark fw-bold">
+              ${telemetry.level.toFixed(2)} m
+            </span>
+          </td>
+          <td>
+            <span class="text-dark fw-bold">
+              ${telemetry.rain.toFixed(2)} mm
+            </span>
+          </td>
+          <td>
+            <span class="text-dark fw-bold">
+              ${telemetry.flow.toFixed(2)} m³/s
+            </span>
+          </td>
+          <td>
+            <span class="text-dark fw-bold">
+              ${elevation.toFixed(2)} m
+            </span>
+          </td>
+          <td>
+            <span class="badge ${badgeStyle} px-2 py-1" style="font-size:0.8rem;">
+              ${riskScore.toFixed(2)}%
+            </span>
+          </td>
+        `;
+      
+        tableBody.appendChild(tr);
+      }
+    
+      if (processedList.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-5 text-dark small">
+              <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-secondary"></i>
+              No barangays match your selected criteria.
+            </td>
+          </tr>`;
+      }
+    }
+  
+    async function triggerStationAnalysis(river, riskScore) {
+      const telemetry = liveDataStore[river.node];
+      const elevation = river.elevation;
+    
+      const currentWater = telemetry.level;
+      const currentRain = telemetry.rain;
+      const currentDischarge = telemetry.flow;
+    
+      document.getElementById('waterLevel').value = currentWater;
+      document.getElementById('rainfall').value = currentRain;
+      document.getElementById('discharge').value = currentDischarge;
+      document.getElementById('elevation').value = elevation;
+    
+      let interpretTitle = "", alertBadgeClass = "", interpretColor = "", mdrrmoDirective = "", bdrrmoDirective = "";
+    
+      if (riskScore >= 70) {
+        interpretTitle = `Critical Flash Flood Threat (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-danger text-white";
+        interpretColor = "#dc3545";
+      
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-danger-subtle border border-danger-subtle">
+            <strong class="d-flex align-items-center gap-1 text-danger small fw-bold mb-1">
+              <i class="bi bi-building-exclamation"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Execute <strong>forced preemptive evacuations</strong> across low-lying floodplains immediately.</li>
+              <li>Deploy rescue personnel and watercraft to designated staging areas.</li>
+              <li>Declare emergency response level and coordinate with regional OCD / PDRRMC.</li>
+            </ul>
+          </div>`;
+        
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border border-danger">
+            <strong class="d-flex align-items-center gap-1 text-danger small fw-bold mb-1">
+              <i class="bi bi-megaphone-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Sound local barangay emergency sirens / public address systems.</li>
+              <li>Guide vulnerable sectors (elderly, PWDs, children) directly to primary evacuation centers.</li>
+              <li>Establish safety barricades along overflowing spillways and river banks.</li>
+            </ul>
+          </div>`;
+        
+      } else if (riskScore >= 50) {
+        interpretTitle = `Elevated Hazard Warning (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-warning text-dark";
+        interpretColor = "#ea580c";
+      
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-warning-subtle border border-warning-subtle">
+            <strong class="d-flex align-items-center gap-1 text-dark small fw-bold mb-1">
+              <i class="bi bi-building-gear"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Place all municipal Emergency Operations Centers (EOC) on <strong>Standby Alert</strong>.</li>
+              <li>Pre-position relief goods, power generator sets, and transport vehicles.</li>
+              <li>Issue localized travel advisories restricting non-essential transit across flood-prone roads.</li>
+            </ul>
+          </div>`;
+        
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border border-warning">
+            <strong class="d-flex align-items-center gap-1 text-warning-emphasis small fw-bold mb-1">
+              <i class="bi bi-people-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Conduct house-to-house warnings for residents within 50m of the river channel.</li>
+              <li>Ensure evacuation center facilities are unlocked, sanitized, and ready for occupancy.</li>
+              <li>Deploy barangay tanods to monitor water level markers every 15–30 minutes.</li>
+            </ul>
+          </div>`;
+        
+      } else if (riskScore >= 20) {
+        interpretTitle = `Moderate Precautionary Phase (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-yellow-moderate";
+        interpretColor = "#a16207";
+      
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded border" style="background-color: #fefce8; border-color: #fef08a !important;">
+            <strong class="d-flex align-items-center gap-1 text-dark small fw-bold mb-1">
+              <i class="bi bi-building-check"></i> MDRRMO Command Protocol:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Maintain continuous telemetry polling and meteorological radar tracking.</li>
+              <li>Inform downstream barangays regarding upstream discharge velocity trends.</li>
+            </ul>
+          </div>`;
+        
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border">
+            <strong class="d-flex align-items-center gap-1 text-secondary-emphasis small fw-bold mb-1">
+              <i class="bi bi-eye-fill"></i> BDRRMO Ground Operations:
+            </strong>
+            <ul class="mb-0 ps-3 small text-dark" style="font-size: 0.78rem;">
+              <li>Inspect and clear drainage canals and culverts from debris or blockages.</li>
+              <li>Advise residents to secure livestock and important documents to higher house levels.</li>
+            </ul>
+          </div>`;
+        
+      } else {
+        interpretTitle = `Normal / Stable Hydrology (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-success text-white";
+        interpretColor = "#16a34a";
+      
+        mdrrmoDirective = `
+          <div class="p-2 mb-2 rounded bg-success-subtle border border-success-subtle">
+            <strong class="d-flex align-items-center gap-1 text-success small fw-bold mb-1">
+              <i class="bi bi-shield-check"></i> Routine Operations:
+            </strong>
+            <p class="mb-0 ps-2 small text-dark" style="font-size: 0.78rem;">
+              Water levels are within normal carrying capacity. Maintain standard continuous telemetry monitoring.
+            </p>
+          </div>`;
+        
+        bdrrmoDirective = `
+          <div class="p-2 rounded bg-light border">
+            <strong class="d-flex align-items-center gap-1 text-muted small fw-bold mb-1">
+              <i class="bi bi-check-circle"></i> Barangay Status:
+            </strong>
+            <p class="mb-0 ps-2 small text-dark" style="font-size: 0.78rem;">
+              Normal community conditions. No emergency countermeasures or evacuations required.
+            </p>
+          </div>`;
+      }
+    
+      const displayDate = formatReadableDate(telemetry.date);
+      const displayTime = formatTo12Hour(telemetry.time);
+      const probChartId = `sidePanelForecastTrendCanvas`;
+      const infoPanel = document.getElementById('details'); 
+    
+      if (infoPanel) {
+        infoPanel.innerHTML = `
+          <div style="font-family: system-ui, sans-serif;">
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+              <span class="fw-bold text-dark text-truncate me-2" style="font-size: 0.95rem;">${river.name}</span>
+              <span class="badge ${alertBadgeClass} px-2 py-1">${riskScore.toFixed(1)}% Risk</span>
+            </div>
+
+            <!-- Date & 12-Hour Telemetry Timestamp Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded text-dark" style="font-size: 0.76rem;">
+              <span class="fw-semibold"><i class="bi bi-calendar-event text-primary me-1"></i> ${displayDate}</span>
+              <span class="fw-semibold"><i class="bi bi-clock-history text-primary me-1"></i> ${displayTime}</span>
+            </div>
+
+            <div class="mb-3">
+              <span class="dss-section-title d-block mb-1">Decision Support Assessment</span>
+              <div class="fw-bold" style="color: ${interpretColor}; font-size: 0.95rem;">
+                ${interpretTitle}
+              </div>
+              <small class="text-muted d-block" style="font-size: 0.72rem;">Elevation Datum: ${elevation.toFixed(2)} m MSL</small>
+            </div>
+
+            <!-- MDRRMO & BDRRMO DIRECTIVE BLOCKS -->
+            <div class="mb-3">
+              <span class="dss-section-title d-block mb-1">DRRM Action Directives</span>
+              ${mdrrmoDirective}
+              ${bdrrmoDirective}
+            </div>
+
+            <!-- 24-HOUR FORECAST PROBABILITY CHART -->
+            <div class="mt-2 pt-2 border-top">
+              <span class="dss-section-title d-block mb-2"><i class="bi bi-graph-up me-1"></i>24-Hour Forecast Probability</span>
+              <div style="height: 100px; width: 100%;"><canvas id="${probChartId}"></canvas></div>
+            </div>
+          </div>
+        `;
+      
+        const forecastData = await getForecast([currentWater, currentRain, currentDischarge, elevation]);
+      
+        setTimeout(() => {
+          const pCtx = document.getElementById(probChartId);
+          if (!pCtx) return;
+          new Chart(pCtx, {
+            type: 'line',
+            data: {
+              labels: ["Now", "+3h", "+12h", "+24h"],
+              datasets: [{
+                data: forecastData,
+                borderColor: interpretColor,
+                backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3
+              }]
+            },
+            options: {
+              plugins: { legend: { display: false } },
+              maintainAspectRatio: false,
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 8 } } },
+                y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } } }
+              }
+            }
+          });
+        }, 80);
+      }
+    
+      let municipality = river.municipality;
+      if (municipality) subscribeToMunicipalityData(municipality);
+    }
+  
+    async function getForecast(currentInput) {
+      const horizons = [1, 3, 12, 24];
+      let last = [...currentInput];
+      const predictions = [];
+      if (!model) return [0, 0, 0, 0];
+      for (const h of horizons) {
+        const pred = tf.tidy(() => {
+          return model.predict(tf.tensor2d([normalize(last)])).dataSync()[0];
+        });
+        predictions.push(pred * 100);
+        last[0] += 0.05; 
+      }
+      return predictions;
+    }
+  
+    function normalize(row){ return row.map((v,i)=> (maxVals[i]-minVals[i])===0?0:(v-minVals[i])/(maxVals[i]-minVals[i])); }
+  
+    async function loadModel() {
+      const status = document.getElementById("status");
+      try {
+        const jsonUrl = await storageRef.child('models/flood_model.json').getDownloadURL();
+        const weightsUrl = await storageRef.child('models/flood_weights.bin').getDownloadURL();
+      
+        const config = await (await fetch(jsonUrl)).json();
+        const weights = await (await fetch(weightsUrl)).arrayBuffer();
+      
+        minVals = config.metadata.minVals;
+        maxVals = config.metadata.maxVals;
+      
+        model = await tf.loadLayersModel(tf.io.fromMemory(config.modelTopology, config.weightSpecs, weights));
+        status.innerHTML = "✓ Model loaded successfully.";
+      } catch (err) {
+        status.innerHTML = "Using default risk calculations. Model not available.";
+        console.error(err);
+      }
+    }
+  
+    document.getElementById('logoutLink').addEventListener('click', function (e) {
+      e.preventDefault();
+    
+      Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          sessionStorage.clear();
+        
+          Swal.fire({
+            title: 'Logged Out',
+            text: 'You have been logged out successfully.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = 'log.html';
+          });
+        }
+      });
     });
-  });
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="menu.js"></script>
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="menu.js"></script>
 </body>
 </html>

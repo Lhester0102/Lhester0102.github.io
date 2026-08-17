@@ -11,132 +11,103 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
   
   <style>
-    /* Theme Core Layout Styling */
-    body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; }
+    body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; font-family: system-ui, -apple-system, sans-serif; }
     
-    /* Sidebar Navigation Styling */
+    /* Sidebar Navigation */
     .sidebar { 
       background-color: #1c96c5; 
       transition: all 0.3s;
       z-index: 1050;
       overflow-y: auto;
     }
-    
     .nav-link { 
-      color: rgba(255,255,255,0.8); 
+      color: rgba(255,255,255,0.85); 
       transition: 0.2s; 
-      border-radius: 5px; 
+      border-radius: 6px; 
       margin-bottom: 2px; 
     }
+    .nav-link:hover { background-color: rgba(0,0,0,0.15); color: #fff; }
+    .nav-link.active { background-color: #212529 !important; color: white !important; font-weight: 500; }
     
-    .nav-link:hover { 
-      background-color: #212529; 
-      color: #fff; 
+    /* Card & Container Layouts */
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); overflow: hidden; }
+    .table-container { min-height: 500px; max-height: calc(100vh - 210px); overflow-y: auto; }
+    
+    /* High Contrast & Clean Table Design */
+    .custom-table { border-collapse: separate; border-spacing: 0 8px; }
+    .custom-table thead th { 
+      background-color: #1e293b; 
+      color: #ffffff; 
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 14px 16px;
+      border: none;
+      white-space: nowrap;
     }
-    
-    .nav-link.active { 
-      background-color: #212529 !important; 
-      color: white !important; 
-    }
-    
-    /* Card & Core UI Elements */
-    .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
-    .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
-    
-    /* Table Styling & Moderate Text Labels */
-    .table { border-collapse: separate; border-spacing: 0 8px; }
-    .table thead th { 
-      background-color: #212529; 
-      color: white; 
-      font-size: 0.9rem;
-      padding: 12px;
-      border-bottom: none;
-    }
-    .table tbody td { 
-      font-size: 0.9rem; 
-      vertical-align: middle; 
-      padding: 10px 12px; 
-      border-top: none;
-      border-bottom: none;
-    }
-    
-    /* Rounded Rectangle Container Styling for Each Table Row */
-    .table tbody tr.clickable-row {
+    .custom-table tbody tr.clickable-row {
       cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      transition: all 0.15s ease-in-out;
+      background: #ffffff;
     }
-    .table tbody tr.clickable-row td:first-child {
+    .custom-table tbody tr.clickable-row td {
+      font-size: 0.9rem;
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .custom-table tbody tr.clickable-row td:first-child {
       border-top-left-radius: 10px;
       border-bottom-left-radius: 10px;
+      border-left: 1px solid #e2e8f0;
     }
-    .table tbody tr.clickable-row td:last-child {
+    .custom-table tbody tr.clickable-row td:last-child {
       border-top-right-radius: 10px;
       border-bottom-right-radius: 10px;
+      border-right: 1px solid #e2e8f0;
     }
-    .table tbody tr.clickable-row:hover {
+    .custom-table tbody tr.clickable-row:hover {
+      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
     
-    /* Threshold Status Color Coding for Table Rows */
-    .row-status-critical { background-color: rgba(220, 53, 69, 0.15) !important; }
-    .row-status-alert { background-color: rgba(255, 193, 7, 0.18) !important; }
-    .row-status-normal { background-color: rgba(25, 135, 84, 0.08) !important; }
+    /* Row Warning States with readable borders */
+    .row-status-critical { background-color: #fff1f2 !important; }
+    .row-status-alert { background-color: #fffbeb !important; }
+    .row-status-normal { background-color: #ffffff !important; }
     
-    /* Standard Telemetry Badges Styling */
-    .badge-telemetry {
-      font-size: 0.85rem;
-      padding: 0.45rem 0.65rem;
-      border-radius: 6px;
-      font-weight: 600;
-      color: #fff !important;
-    }
-    .badge-normal { background-color: #198754 !important; color: #fff !important; } /* Green */
-    .badge-alert  { background-color: #ffc107 !important; color: #212529 !important; } /* Yellow */
-    .badge-critical { background-color: #dc3545 !important; color: #fff !important; } /* Red */
-    
-    .table-container { min-height: 500px; max-height: calc(100vh - 220px); overflow-y: auto; }
-    
-    /* Enlarged Modal Map Styling */
-    #modalMap {
-      width: 100%;
-      height: 520px;
+    /* High-Readability Telemetry Chips */
+    .telemetry-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 11px;
       border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     
-    /* Mapbox Popup Container Formatting to prevent text overflow */
-    .mapboxgl-popup {
-      max-width: 340px !important;
-      z-index: 10;
-    }
-    .mapboxgl-popup-content {
-      padding: 12px 14px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      font-family: inherit;
-    }
+    /* Strong Text & Contrast Badges */
+    .badge-normal { background: #dcfce7 !important; color: #14532d !important; border: 1px solid #86efac; }
+    .badge-alert  { background: #fef3c7 !important; color: #78350f !important; border: 1px solid #fcd34d; }
+    .badge-critical { background: #fee2e2 !important; color: #7f1d1d !important; border: 1px solid #fca5a5; }
     
-    /* Responsive Adjustments */
+    #modalMap { width: 100%; height: 500px; border-radius: 8px; }
+    .mapboxgl-popup { max-width: 340px !important; z-index: 10; }
+    .mapboxgl-popup-content { padding: 12px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+    
     @media (min-width: 768px) {
       .sidebar { min-height: 100vh; height: 100vh; }
       .main-content { height: 100vh; overflow-y: auto; }
     }
-    
-    .mobile-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 15px;
-    }
+    .mobile-brand { display: flex; align-items: center; gap: 10px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
     .mobile-brand img { width: 35px; height: 35px; }
-    .mobile-brand h6 { margin: 0; font-size: 0.95rem; font-weight: bold; }
-    .main-content::-webkit-scrollbar { width: 6px; }
-    .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-    .table-container::-webkit-scrollbar { width: 4px; }
-    .table-container::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+    .main-content::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
   </style>
 </head>
 
@@ -146,13 +117,12 @@
     <div class="row">
       
       <!-- Main Navigation Sidebar -->
-      <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
-        
+      <nav class="col-lg-2 col-md-3 text-white p-2 sidebar collapse d-md-block" id="sidebarMenu">
         <div class="d-md-none mobile-brand">
           <img src="images/gds.png" class="rounded-circle border border-light" alt="Logo">
           <div>
-            <h6 class="text-white">Geospatial DSS</h6>
-            <small class="text-white-50" style="font-size: 0.8rem;">Dashboard Matrix</small>
+            <h6 class="text-white mb-0">Geospatial DSS</h6>
+            <small class="text-white-50" style="font-size: 0.75rem;">Dashboard Matrix</small>
           </div>
           <button class="btn btn-link text-white ms-auto p-0" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
             <i class="bi bi-x-lg"></i>
@@ -166,7 +136,7 @@
         
         <ul class="nav flex-column">
           <li class="mb-1"><a class="nav-link text-white" href="dash.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-          <li class="mb-1"><a class="nav-link text-white active" href="rivers.html"><i class="bi bi-map me-2"></i>River Stations</a></li>
+          <li class="mb-1"><a class="nav-link active" href="rivers.html"><i class="bi bi-map me-2"></i>River Stations</a></li>
           <li class="nav-item">
             <a class="nav-link text-white" data-bs-toggle="collapse" href="#manageMenu">
               <i class="bi bi-gear me-2"></i> Manage <i class="bi bi-chevron-down float-end"></i>
@@ -193,18 +163,18 @@
         
         <!-- Header Bar -->
         <div class="d-flex justify-content-between align-items-center mt-2 mb-2 p-2 bg-white rounded shadow-sm">
-          <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-2">
             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
               <i class="bi bi-list"></i>
             </button>
-            <div class="d-flex align-items-baseline gap-2">
-              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-router-fill"></i>River Stations</h5>
-              <span id="lastUpdated" class="text-dark small"></span>
+            <div>
+              <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-broadcast-pin text-primary me-2"></i>River Stations & Telemetry</h5>
+              <span class="text-secondary small fw-medium">Live sensor interval configurations & incoming river streams</span>
             </div>
           </div>
           
           <div class="dropdown">
-            <button class="btn dropdown-toggle border shadow-sm d-flex align-items-center gap-2 px-3 py-2 small" type="button" data-bs-toggle="dropdown">
+            <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
               <i class="bi bi-person-circle"></i>
               <span id="emails">User Loading...</span>
             </button>
@@ -216,27 +186,27 @@
           </div>
         </div>
         
-        <!-- Integrated Stations List and Interval Settings Card -->
-        <div class="card shadow-sm table-card mb-4">
-          <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between">
-            <span style="font-size: 1.1rem;"><i class="bi bi-cpu me-2"></i>Stations Lists and interval Settings</span>
+        <!-- Stations List and Interval Settings Card -->
+        <div class="card shadow-sm mb-2">
+          <div class="card-header bg-white border-bottom py-3 px-3 d-flex align-items-center justify-content-between">
+            <span class="fw-bold text-dark fs-6"><i class="bi bi-sliders2-vertical me-2 text-primary"></i>Stations & Telemetry Overview</span>
             <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-light text-dark shadow-sm fw-normal small" id="activeStationCount">0 Live Stations</span>
-              <button class="btn btn-sm btn-light fw-bold text-primary d-flex align-items-center gap-1 shadow-sm" onclick="openAddStationModal()">
-                <i class="bi bi-plus-circle-fill"></i> Add River Station
+              <span class="badge bg-light text-dark border px-2 py-1 fw-bold" id="activeStationCount">0 Live Stations</span>
+              <button class="btn btn-sm btn-primary d-flex align-items-center gap-1 shadow-sm px-3 fw-bold" onclick="openAddStationModal()">
+                <i class="bi bi-plus-circle-fill"></i> Add Station
               </button>
             </div>
           </div>
           
-          <div class="card-body p-3 bg-white border-bottom">
+          <div class="card-body p-2 bg-light border-bottom">
             <div class="row g-2 align-items-center">
               <div class="col-md-4 col-12">
-                <select id="filterStation" class="form-select form-select-sm">
+                <select id="filterStation" class="form-select form-select-sm fw-medium">
                   <option value="">All Stations</option>
                 </select>
               </div>
               <div class="col-md-3 col-6">
-                <select id="filterRowLimit" class="form-select form-select-sm">
+                <select id="filterRowLimit" class="form-select form-select-sm fw-medium">
                   <option value="5">5 Rows</option>
                   <option value="10" selected>10 Rows</option>
                   <option value="25">25 Rows</option>
@@ -244,28 +214,31 @@
                 </select>
               </div>
               <div class="col-md-5 col-6 d-flex gap-2">
-                <button id="btnApplyFilters" class="btn btn-sm btn-primary flex-fill fw-bold">Apply Filters</button>
-                <button id="btnResetFilters" class="btn btn-sm btn-light border flex-fill">Clear</button>
+                <button id="btnApplyFilters" class="btn btn-sm btn-primary flex-fill fw-bold"><i class="bi bi-funnel me-1"></i>Apply</button>
+                <button id="btnResetFilters" class="btn btn-sm btn-outline-secondary flex-fill fw-semibold"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
               </div>
             </div>
           </div>
           
           <div class="card-body p-2 table-container">
-            <table class="table table-hover mb-0 align-middle">
-              <thead class="sticky-top bg-white shadow-sm" style="z-index: 1;">
+            <table class="table custom-table mb-0 align-middle">
+              <thead class="sticky-top">
                 <tr>
-                  <th class="ps-3">River Station Details</th>
-                  <th class="text-center">Date</th>
-                  <th class="text-center">Time</th>
-                  <th class="text-center">Live Telemetry Data</th>
-                  <th class="text-center" style="width: 200px;">Interval (Mins & Secs)</th>
-                  <th class="text-center">Power Status</th>
-                  <th class="text-center pe-3" style="width: 100px;">Actions</th>
+                  <th class="ps-4">Station Name</th>
+                  <th class="text-center">Timestamp</th>
+                  <!-- Live Telemetry Data arranged as: Level -> Rain -> Discharge -->
+                  <th class="text-center">Live Telemetry (Level, Rain, Discharge)</th>
+                  <th class="text-center" style="width: 190px;">Interval (Mins / Secs)</th>
+                  <th class="text-center">Power</th>
+                  <th class="text-center pe-3" style="width: 90px;">Action</th>
                 </tr>
               </thead>
               <tbody id="flood-data-table">
                 <tr>
-                  <td colspan="7" class="text-center py-4 text-muted small">Connecting to Firebase Stream Hub...</td>
+                  <td colspan="6" class="text-center py-5 text-secondary fw-semibold">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Connecting to Firebase Stream Hub...
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -276,15 +249,15 @@
     </div>
   </div>
   
-  <!-- Interactive Row Detail Modal with Enlarged Map Location Pin -->
+  <!-- Interactive Row Detail Modal -->
   <div class="modal fade" id="stationModal" tabindex="-1" aria-labelledby="stationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content border-0 shadow">
         <div class="modal-header bg-primary text-white">
-          <h6 class="modal-title fw-bold" id="stationModalLabel"><i class="bi bi-geo-alt-fill me-2"></i>Station Details</h6>
+          <h6 class="modal-title fw-bold" id="stationModalLabel"><i class="bi bi-router-fill me-2"></i>Station Details</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body p-3">
+        <div class="modal-body p-2">
           <div class="card border p-2 h-100">
             <h6 class="fw-bold text-dark border-bottom pb-2 small"><i class="bi bi-map me-1 text-primary"></i> GPS Location Map</h6>
             <div id="modalMap"></div>
@@ -304,84 +277,83 @@
         </div>
         <form id="addStationForm">
           <input type="hidden" id="editStationKey">
-          <div class="modal-body p-3">
+          <div class="modal-body p-2">
             
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="newStationName" class="form-label small fw-bold">Station Name</label>
-                <input type="text" class="form-control form-control-sm" id="newStationName" placeholder="e.g., Station Alpha" required>
+              <div class="col-md-6 mb-2">
+                <label for="newStationName" class="form-label small fw-bold text-dark">Station Name</label>
+                <input type="text" class="form-control form-control-sm fw-medium" id="newStationName" placeholder="e.g., Station Alpha" required>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="newStationInterval" class="form-label small fw-bold">Interval (Seconds)</label>
-                <input type="number" class="form-control form-control-sm" id="newStationInterval" placeholder="e.g., 90" value="90" min="1" required>
+              <div class="col-md-6 mb-2">
+                <label for="newStationInterval" class="form-label small fw-bold text-dark">Interval (Seconds)</label>
+                <input type="number" class="form-control form-control-sm fw-medium" id="newStationInterval" placeholder="e.g., 90" value="90" min="1" required>
               </div>
             </div>
             
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="newStationLat" class="form-label small fw-bold">Latitude</label>
-                <input type="number" step="any" class="form-control form-control-sm" id="newStationLat" placeholder="e.g., 18.187710" required>
+              <div class="col-md-6 mb-2">
+                <label for="newStationLat" class="form-label small fw-bold text-dark">Latitude</label>
+                <input type="number" step="any" class="form-control form-control-sm fw-medium" id="newStationLat" placeholder="e.g., 18.187710" required>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="newStationLng" class="form-label small fw-bold">Longitude</label>
-                <input type="number" step="any" class="form-control form-control-sm" id="newStationLng" placeholder="e.g., 120.587385" required>
+              <div class="col-md-6 mb-2">
+                <label for="newStationLng" class="form-label small fw-bold text-dark">Longitude</label>
+                <input type="number" step="any" class="form-control form-control-sm fw-medium" id="newStationLng" placeholder="e.g., 120.587385" required>
               </div>
             </div>
             
-            <!-- Dynamic Node Field Container -->
-            <div class="mb-3" id="nodeFieldContainer"></div>
-
+            <div class="mb-2" id="nodeFieldContainer"></div>
+            
             <hr class="my-2">
-            <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-sliders me-1 text-primary"></i> Station Threshold Settings (stations/{id}/threshold)</h6>
+            <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-sliders me-1 text-primary"></i> Station Threshold Settings</h6>
             
             <div class="row g-2">
               <div class="col-md-4">
-                <label class="form-label small fw-semibold mb-1">Water Level (m)</label>
+                <label class="form-label small fw-bold text-dark mb-1">Water Level (m)</label>
                 <div class="input-group input-group-sm mb-1">
-                  <span class="input-group-text" style="width: 65px;">Level</span>
-                  <input type="number" step="any" class="form-control" id="threshLevel" placeholder="5" value="5">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">Level</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshLevel" placeholder="5" value="5">
                 </div>
                 <div class="input-group input-group-sm">
-                  <span class="input-group-text" style="width: 65px;">High</span>
-                  <input type="number" step="any" class="form-control" id="threshLevelHigh" placeholder="10" value="10">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshLevelHigh" placeholder="10" value="10">
                 </div>
               </div>
               
               <div class="col-md-4">
-                <label class="form-label small fw-semibold mb-1">Water Flow (m³/s)</label>
+                <label class="form-label small fw-bold text-dark mb-1">Rainfall (mm)</label>
                 <div class="input-group input-group-sm mb-1">
-                  <span class="input-group-text" style="width: 65px;">Flow</span>
-                  <input type="number" step="any" class="form-control" id="threshFlow" placeholder="50" value="50">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">Rain</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshRain" placeholder="10" value="10">
                 </div>
                 <div class="input-group input-group-sm">
-                  <span class="input-group-text" style="width: 65px;">High</span>
-                  <input type="number" step="any" class="form-control" id="threshFlowHigh" placeholder="150" value="150">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshRainHigh" placeholder="30" value="30">
                 </div>
               </div>
-
+              
               <div class="col-md-4">
-                <label class="form-label small fw-semibold mb-1">Rainfall (mm)</label>
+                <label class="form-label small fw-bold text-dark mb-1">Water Flow (m³/s)</label>
                 <div class="input-group input-group-sm mb-1">
-                  <span class="input-group-text" style="width: 65px;">Rain</span>
-                  <input type="number" step="any" class="form-control" id="threshRain" placeholder="10" value="10">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">Flow</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshFlow" placeholder="50" value="50">
                 </div>
                 <div class="input-group input-group-sm">
-                  <span class="input-group-text" style="width: 65px;">High</span>
-                  <input type="number" step="any" class="form-control" id="threshRainHigh" placeholder="30" value="30">
+                  <span class="input-group-text fw-semibold" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control fw-medium" id="threshFlowHigh" placeholder="150" value="150">
                 </div>
               </div>
             </div>
-
+            
           </div>
           <div class="modal-footer bg-light py-2">
-            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-sm btn-secondary fw-semibold" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-sm btn-primary fw-bold" id="saveStationBtnText">Save Station</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-    
+  
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -408,7 +380,6 @@
       document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin Operator";
     };
     
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
       authDomain: "flooded-95eeb.firebaseapp.com",
@@ -421,27 +392,25 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Dynamic UI Node Field Rendering
     function renderNodeInput(value = '') {
       const container = document.getElementById('nodeFieldContainer');
       container.innerHTML = `
-        <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
-        <input type="text" class="form-control form-control-sm" id="newStationNode" placeholder="e.g., data4" value="${value}" required>
+        <label for="newStationNode" class="form-label small fw-bold text-dark">Node Name</label>
+        <input type="text" class="form-control form-control-sm fw-medium" id="newStationNode" placeholder="e.g., data4" value="${value}" required>
       `;
     }
     
     function renderNodeDropdown(selectedVal = '') {
       const container = document.getElementById('nodeFieldContainer');
       container.innerHTML = `
-        <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
-        <select class="form-select form-select-sm" id="newStationNode" required>
+        <label for="newStationNode" class="form-label small fw-bold text-dark">Node Name</label>
+        <select class="form-select form-select-sm fw-medium" id="newStationNode" required>
           <option value="">Select Node Name</option>
         </select>
       `;
       loadNodesDropdownOptions(selectedVal);
     }
     
-    // Fetch node names dynamically from nodes->id->name
     function loadNodesDropdownOptions(selectedVal = '') {
       db.ref('nodes').on('value', snapshot => {
         const nodeSelect = document.getElementById('newStationNode');
@@ -476,7 +445,6 @@
       });
     }
     
-    // Helper: Reverse Geocoding Address Details via Mapbox API
     async function getAddressFromCoords(lng, lat) {
       try {
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
@@ -491,36 +459,30 @@
       return "Address unavailable";
     }
     
-    // NOAH Elevation Threshold Evaluator
     function getNOAHElevationBadge(elevationVal) {
       if (elevationVal === null || elevationVal === undefined || isNaN(elevationVal)) {
         return { label: 'N/A', badgeClass: 'bg-secondary text-white' };
       }
       
       const ele = parseFloat(elevationVal);
-      const formatted = `${ele.toFixed(1)} m MSL`;
+      const formatted = `${ele.toFixed(2)} m MSL`;
       
       if (ele <= 20) {
-        return { label: `${formatted} (High Risk / Critical Low Elevation)`, badgeClass: 'badge-critical' }; 
+        return { label: `${formatted} (High Risk / Critical Elevation)`, badgeClass: 'badge-critical' }; 
       } else if (ele <= 30) {
-        return { label: `${formatted} (Medium Risk / Alarm Low Elevation)`, badgeClass: 'badge-alarm' }; 
+        return { label: `${formatted} (Medium Risk / Warning Elevation)`, badgeClass: 'badge-alert' }; 
       } else if (ele <= 50) {
         return { label: `${formatted} (Low Risk / Alert Elevation)`, badgeClass: 'badge-alert' }; 
       }
-      return { label: `${formatted} (Safe / High Ground)`, badgeClass: 'badge-normal' }; 
+      return { label: `${formatted} (Safe Elevation)`, badgeClass: 'badge-normal' }; 
     }
     
-    // Helper: Get Elevation in MSL via DEM API / Mapbox DEM query
     async function getElevationMSLData(lng, lat, mapInstance) {
       let rawElevation = null;
-      
       if (mapInstance && typeof mapInstance.queryTerrainElevation === 'function') {
         const ele = mapInstance.queryTerrainElevation([lng, lat]);
-        if (ele !== null && ele !== undefined) {
-          rawElevation = parseFloat(ele);
-        }
+        if (ele !== null && ele !== undefined) rawElevation = parseFloat(ele);
       }
-      
       if (rawElevation === null) {
         try {
           const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
@@ -533,27 +495,14 @@
           console.error("Elevation API Error:", err);
         }
       }
-      
       return getNOAHElevationBadge(rawElevation);
     }
     
-    // Evaluators targeting stations -> {id} -> threshold directly (using level, flow, rain for normal basis)
     function getLevelBadgeClass(val, station) {
       const v = parseFloat(val) || 0;
       const t = station.threshold || {};
       const high = parseFloat(t.levelHigh ?? t.level_high ?? 10);
       const normal = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? 5);
-      
-      if (v >= high) return 'badge-critical';
-      if (v >= normal) return 'badge-alert';
-      return 'badge-normal';
-    }
-    
-    function getFlowBadgeClass(val, station) {
-      const v = parseFloat(val) || 0;
-      const t = station.threshold || {};
-      const high = parseFloat(t.flowHigh ?? t.flow_high ?? 150);
-      const normal = parseFloat(t.flow ?? t.flowNormal ?? t.flow_normal ?? 50);
       
       if (v >= high) return 'badge-critical';
       if (v >= normal) return 'badge-alert';
@@ -571,30 +520,33 @@
       return 'badge-normal';
     }
     
+    function getFlowBadgeClass(val, station) {
+      const v = parseFloat(val) || 0;
+      const t = station.threshold || {};
+      const high = parseFloat(t.flowHigh ?? t.flow_high ?? 150);
+      const normal = parseFloat(t.flow ?? t.flowNormal ?? t.flow_normal ?? 50);
+      
+      if (v >= high) return 'badge-critical';
+      if (v >= normal) return 'badge-alert';
+      return 'badge-normal';
+    }
+    
     function getThresholdRowClass(level, station) {
       const currentLevel = parseFloat(level) || 0;
       const t = station.threshold || {};
       const highThreshold = parseFloat(t.levelHigh ?? t.level_high ?? Infinity);
       const normalThreshold = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? Infinity);
       
-      if (currentLevel >= highThreshold) {
-        return 'row-status-critical';
-      } else if (currentLevel >= normalThreshold) {
-        return 'row-status-alert';
-      }
+      if (currentLevel >= highThreshold) return 'row-status-critical';
+      if (currentLevel >= normalThreshold) return 'row-status-alert';
       return 'row-status-normal';
     }
     
-    // Seconds to Minutes & Seconds conversion object
     function getMinSecObj(totalSeconds) {
       const sec = parseInt(totalSeconds, 10) || 0;
-      return {
-        m: Math.floor(sec / 60),
-        s: sec % 60
-      };
+      return { m: Math.floor(sec / 60), s: sec % 60 };
     }
     
-    // Helper to format Date from Firebase to MM-DD-YYYY
     function formatDateToMMDDYYYY(dateStr) {
       if (!dateStr || dateStr === 'N/A') return '';
       const d = new Date(dateStr);
@@ -605,7 +557,6 @@
       return `${month}-${day}-${year}`;
     }
     
-    // Helper to format Time from Firebase to 12-hour format with AM/PM
     function formatTimeTo12Hour(timeStr) {
       if (!timeStr || timeStr === 'N/A') return '';
       const parts = timeStr.trim().split(':');
@@ -616,8 +567,7 @@
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
       hours = hours ? hours : 12; 
-      const formattedHours = String(hours).padStart(2, '0');
-      return `${formattedHours}:${minutes} ${ampm}`;
+      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
     }
     
     function formatField(f) {
@@ -626,8 +576,6 @@
     
     const stationsRef = db.ref('stations');
     const rowLimitSelect = document.getElementById('filterRowLimit');
-    
-    // Listen to data nodes and dynamic telemetry nodes
     const activeDataNodes = new Set(['data', 'data2', 'data3']);
     
     function attachNodeListener(nodeKey) {
@@ -704,7 +652,7 @@
       document.getElementById('activeStationCount').innerText = `${allReports.length} Live Stations`;
       
       if (displayData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-dark small">No stations found matching filters.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-secondary fw-semibold">No stations found matching filters.</td></tr>';
         return;
       }
       
@@ -713,11 +661,10 @@
         const intervalVal = item.interval || 15;
         const timeObj = getMinSecObj(intervalVal);
         
-        // Power status represented visually with Bootstrap Toggle Icons
         const isOnline = item.status == 1;
         const powerIconHTML = isOnline 
         ? `<i class="bi bi-toggle-on text-success fs-3" title="Power: ON"></i>` 
-        : `<i class="bi bi-toggle-off text-secondary fs-3" title="Power: OFF"></i>`;
+        : `<i class="bi bi-toggle-off text-muted fs-3" title="Power: OFF"></i>`;
         
         const telemetryNode = item.node || 'data';
         attachNodeListener(telemetryNode);
@@ -725,62 +672,65 @@
         const dateStr = formatDateToMMDDYYYY(formatField(sensor.date));
         const timeStr = formatTimeTo12Hour(formatField(sensor.time));
         
-        // Calculate thresholds background classes referencing stations->{id}->threshold
+        // 2 decimal points precision formatting
+        const decLevel = Number(sensor.level || 0).toFixed(2);
+        const decRain = Number(sensor.rain || 0).toFixed(2);
+        const decDischarge = Number(sensor.flow || 0).toFixed(2);
+        
         const thresholdRowClass = getThresholdRowClass(sensor.level, item);
         const levelClass = getLevelBadgeClass(sensor.level, item);
-        const flowClass = getFlowBadgeClass(sensor.flow, item);
         const rainClass = getRainBadgeClass(sensor.rain, item);
+        const flowClass = getFlowBadgeClass(sensor.flow, item);
         
         const rowHTML = `
         <tr class="${thresholdRowClass} clickable-row" onclick="openStationModal('${item.__key}')">
-            <td class="ps-3"> 
-              <div class="fw-bold text-dark" style="font-size: 1rem;"><i class="bi bi-router-fill"></i>${stationStr}</div>
+            <td class="ps-4"> 
+              <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                <i class="bi bi-router-fill text-primary me-1"></i>${stationStr}
+              </div>
             </td>
             <td class="text-center">
-              <span class="badge bg-white text-dark border shadow-sm fs-6 px-3 py-2 fw-medium">
-                <i class="bi bi-calendar3 me-1 text-primary"></i>${dateStr}
-              </span>
+              <div class="fw-bold text-dark" style="font-size: 0.85rem;">${dateStr || '—'}</div>
+              <div class="text-muted fw-medium" style="font-size: 0.75rem;">${timeStr || '—'}</div>
             </td>
-            <td class="text-center">
-              <span class="badge bg-white text-dark border shadow-sm fs-6 px-3 py-2 fw-medium">
-                <i class="bi bi-clock me-1 text-primary"></i>${timeStr}
-              </span>
-            </td>
+            
+            <!-- Live Telemetry: Water Level (droplets) -> Rain -> Discharge/Flow (water) -->
             <td class="text-center">
               <div class="d-flex justify-content-center gap-2">
-                <span class="badge ${levelClass} badge-telemetry shadow-sm">
-                  <i class="bi bi-droplet-fill me-1"></i>${(sensor.level || 0).toFixed(1)}m
+                <span class="telemetry-chip ${levelClass}" title="Water Level">
+                  <i class="bi bi-droplet-fill me-1"></i>${decLevel} m
                 </span>
-                <span class="badge ${flowClass} badge-telemetry shadow-sm">
-                  <i class="bi bi-tsunami me-1"></i>${(sensor.flow || 0).toFixed(1)} m³/s
+                <span class="telemetry-chip ${rainClass}" title="Rainfall">
+                  <i class="bi bi-cloud-rain-fill me-1"></i>${decRain} mm
                 </span>
-                <span class="badge ${rainClass} badge-telemetry shadow-sm">
-                  <i class="bi bi-cloud-drizzle-fill me-1"></i>${(sensor.rain || 0).toFixed(1)} mm
+                <span class="telemetry-chip ${flowClass}" title="Discharge / Water Flow Rate">
+                  <i class="bi bi-water me-1"></i>${decDischarge} m³/s
                 </span>
               </div>
             </td>
+
             <td class="text-center" onclick="event.stopPropagation();">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                  <div class="input-group input-group-sm" style="width: 75px;">
+                  <div class="input-group input-group-sm" style="width: 70px;">
                     <input type="number" 
                            id="min_${item.__key}" 
-                           class="form-control form-control-sm bg-white fw-bold text-center px-1" 
+                           class="form-control form-control-sm bg-white text-center fw-bold text-dark px-1 border-secondary-subtle" 
                            value="${timeObj.m}" 
                            min="0"
                            ${isDisabled}
                            onchange="handleMinSecChange('${item.__source}', '${item.__key}')">
-                    <span class="input-group-text px-1 bg-light text-muted small">m</span>
+                    <span class="input-group-text px-1 bg-light fw-bold text-dark" style="font-size: 0.75rem;">m</span>
                   </div>
-                  <div class="input-group input-group-sm" style="width: 75px;">
+                  <div class="input-group input-group-sm" style="width: 70px;">
                     <input type="number" 
                            id="sec_${item.__key}" 
-                           class="form-control form-control-sm bg-white fw-bold text-center px-1" 
+                           class="form-control form-control-sm bg-white text-center fw-bold text-dark px-1 border-secondary-subtle" 
                            value="${timeObj.s}" 
                            min="0"
                            max="59"
                            ${isDisabled}
                            onchange="handleMinSecChange('${item.__source}', '${item.__key}')">
-                    <span class="input-group-text px-1 bg-light text-muted small">s</span>
+                    <span class="input-group-text px-1 bg-light fw-bold text-dark" style="font-size: 0.75rem;">s</span>
                   </div>
                 </div>
             </td>
@@ -788,7 +738,7 @@
               ${powerIconHTML}
             </td>
             <td class="text-center pe-3" onclick="event.stopPropagation();">
-              <button class="btn btn-sm btn-outline-primary py-0 px-2 shadow-sm" onclick="openEditStationModal('${item.__key}')" title="Edit Station">
+              <button class="btn btn-sm btn-outline-primary py-1 px-2 fw-semibold" onclick="openEditStationModal('${item.__key}')" title="Edit Station">
                 <i class="bi bi-pencil-fill"></i>
               </button>
             </td>
@@ -805,7 +755,7 @@
       const lng = parseFloat(station.lng ?? station.longitude ?? station.lon ?? 120.587385);
       const stationName = station.station || station.city || "River Station";
       
-      document.getElementById('stationModalLabel').innerHTML = `<i class="bi bi-geo-alt-fill me-2"></i> ${stationName} Details`;
+      document.getElementById('stationModalLabel').innerHTML = `<i class="bi bi-router-fill me-2"></i> ${stationName} Details`;
       
       const modalElement = document.getElementById('stationModal');
       const bsModal = new bootstrap.Modal(modalElement);
@@ -826,15 +776,12 @@
         });
         
         modalMapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        
-        modalMapInstance.on('load', () => {
-          modalMapInstance.resize();
-        });
+        modalMapInstance.on('load', () => modalMapInstance.resize());
         
         const initialPopupHTML = `
           <div class="p-1">
             <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-router-fill me-1"></i>${stationName}</h6>
-            <div class="small text-muted mb-1"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+            <div class="small text-muted mb-1"><i class="bi bi-router-fill me-1 text-primary"></i>${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
             <div class="small text-secondary">Click pin to load NOAH elevation details...</div>
           </div>
         `;
@@ -860,26 +807,26 @@
           popupInstance.setHTML(`
             <div class="p-2 text-center" style="min-width: 220px;">
               <div class="spinner-border spinner-border-sm text-primary mb-1" role="status"></div>
-              <div class="small fw-medium text-dark">Evaluating NOAH Elevation & Address...</div>
+              <div class="small fw-bold text-dark">Evaluating NOAH Elevation & Address...</div>
             </div>
           `);
           
           const [addressDetail, eleNOAH] = await Promise.all([
-            getAddressFromCoords(lng, lat),
-            getElevationMSLData(lng, lat, modalMapInstance)
+          getAddressFromCoords(lng, lat),
+          getElevationMSLData(lng, lat, modalMapInstance)
           ]);
           
           const detailedPopupHTML = `
             <div class="p-1" style="width: 100%;">
               <h6 class="fw-bold mb-2 text-primary border-bottom pb-1 text-break">
-                <i class="bi bi-geo-alt-fill me-1 text-danger"></i>${stationName}
+                <i class="bi bi-router-fill me-1 text-primary"></i>${stationName}
               </h6>
               <div class="d-flex flex-column gap-2 small text-dark">
                 <div><strong>Coordinates:</strong> ${lat.toFixed(6)}°, ${lng.toFixed(6)}°</div>
                 <div><strong>Address Details:</strong> <div class="text-secondary text-break mt-0.5">${addressDetail}</div></div>
                 <div>
                   <strong>Elevation (NOAH):</strong><br>
-                  <span class="badge ${eleNOAH.badgeClass} px-2 py-1.5 mt-1 fs-6 rounded shadow-sm text-wrap d-inline-block text-start w-100" style="line-height: 1.3;">
+                  <span class="badge ${eleNOAH.badgeClass} px-2 py-1.5 mt-1 fs-6 rounded shadow-sm text-wrap d-inline-block text-start w-100 fw-bold" style="line-height: 1.3;">
                     <i class="bi bi-layers-fill me-1"></i>${eleNOAH.label}
                   </span>
                 </div>
@@ -916,15 +863,13 @@
       document.getElementById('stationModalTitleText').innerText = 'Add New River Station';
       document.getElementById('saveStationBtnText').innerText = 'Save Station';
       
-      // Default thresholds for new station (level, flow, rain)
       document.getElementById('threshLevel').value = 5;
       document.getElementById('threshLevelHigh').value = 10;
-      document.getElementById('threshFlow').value = 50;
-      document.getElementById('threshFlowHigh').value = 150;
       document.getElementById('threshRain').value = 10;
       document.getElementById('threshRainHigh').value = 30;
+      document.getElementById('threshFlow').value = 50;
+      document.getElementById('threshFlowHigh').value = 150;
       
-      // Render text input for Node when Adding
       renderNodeInput();
       
       const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
@@ -941,16 +886,14 @@
       document.getElementById('newStationLat').value = station.lat || station.latitude || '';
       document.getElementById('newStationLng').value = station.lng || station.longitude || '';
       
-      // Populate threshold inputs directly from stations/{id}/threshold using level, flow, and rain
       const t = station.threshold || {};
       document.getElementById('threshLevel').value = t.level ?? t.levelNormal ?? t.level_normal ?? 5;
       document.getElementById('threshLevelHigh').value = t.levelHigh ?? t.level_high ?? 10;
-      document.getElementById('threshFlow').value = t.flow ?? t.flowNormal ?? t.flow_normal ?? 50;
-      document.getElementById('threshFlowHigh').value = t.flowHigh ?? t.flow_high ?? 150;
       document.getElementById('threshRain').value = t.rain ?? t.rainNormal ?? t.rain_normal ?? 10;
       document.getElementById('threshRainHigh').value = t.rainHigh ?? t.rain_high ?? 30;
+      document.getElementById('threshFlow').value = t.flow ?? t.flowNormal ?? t.flow_normal ?? 50;
+      document.getElementById('threshFlowHigh').value = t.flowHigh ?? t.flow_high ?? 150;
       
-      // Render dropdown for Node when Editing
       renderNodeDropdown(station.node || '');
       
       document.getElementById('stationModalTitleText').innerText = 'Edit River Station';
@@ -960,7 +903,6 @@
       myModal.show();
     }
     
-    // Handle form submission to add/edit river station and sync nodes
     document.getElementById('addStationForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -971,14 +913,13 @@
       const longitude = parseFloat(document.getElementById('newStationLng').value);
       const nodeName = document.getElementById('newStationNode').value.trim();
       
-      // Construct threshold object using level, flow, and rain keys
       const thresholdData = {
         level: parseFloat(document.getElementById('threshLevel').value) || 5,
         levelHigh: parseFloat(document.getElementById('threshLevelHigh').value) || 10,
-        flow: parseFloat(document.getElementById('threshFlow').value) || 50,
-        flowHigh: parseFloat(document.getElementById('threshFlowHigh').value) || 150,
         rain: parseFloat(document.getElementById('threshRain').value) || 10,
-        rainHigh: parseFloat(document.getElementById('threshRainHigh').value) || 30
+        rainHigh: parseFloat(document.getElementById('threshRainHigh').value) || 30,
+        flow: parseFloat(document.getElementById('threshFlow').value) || 50,
+        flowHigh: parseFloat(document.getElementById('threshFlowHigh').value) || 150
       };
       
       const now = new Date();
@@ -1006,7 +947,7 @@
         date: dateToday,
         flow: 0.00,
         level: 0.00,
-        rain: 0,
+        rain: 0.00,
         station: stationName,
         time: timeToday
       };
@@ -1051,7 +992,6 @@
       });
     });
     
-    // Snapshot Listener for Stations Node
     stationsRef.on('value', (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -1078,7 +1018,6 @@
     
     document.getElementById('logoutLink').addEventListener('click', function (e) {
       e.preventDefault();
-      
       Swal.fire({
         title: 'Logout?',
         text: 'Are you sure you want to log out?',
