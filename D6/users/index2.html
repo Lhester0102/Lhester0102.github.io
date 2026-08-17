@@ -147,7 +147,7 @@
       <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
         
         <div class="d-md-none mobile-brand">
-          <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+          <img src="GDSS.png" class="rounded-circle border border-light" alt="Logo">
           <div>
             <h6 class="text-white">Geospatial DSS</h6>
           </div>
@@ -183,13 +183,14 @@
           </div>
         </div>
         
+        <!-- ADJUSTED SIDE-BY-SIDE GRID LAYOUT (Expanded Right Panel) -->
         <div class="row g-2" style="height: 88%;">
-          <!-- Map Column -->
-          <div class="col-lg-8 map-col">
+          <!-- Map Column (7 Columns) -->
+          <div class="col-lg-7 col-xl-7 map-col">
             <div class="card h-100 p-1 position-relative">
               <div id="map"></div>
               
-              <!-- FLOOD PRONE RISKS Collapsible Control Box (UNCHECKED BY DEFAULT) -->
+              <!-- FLOOD PRONE RISKS Collapsible Control Box -->
               <div id="layer-controls">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="fw-bold mb-0 text-dark collapse-target" style="font-size: 14px; letter-spacing: 0.5px;">FLOOD PRONE RISKS</h6>
@@ -232,9 +233,9 @@
             </div>
           </div>
           
-          <!-- Table and Chart Column -->
-          <div class="col-lg-4 table-col">
-            <div class="card p-3 shadow-sm mb-2" style="max-height: 55%; overflow: hidden; display: flex; flex-direction: column;">
+          <!-- Table and Chart Column (Expanded to 5 Columns) -->
+          <div class="col-lg-5 col-xl-5 table-col">
+            <div class="card p-3 shadow-sm mb-2" style="max-height: 52%; overflow: hidden; display: flex; flex-direction: column;">
               <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-table me-2"></i>River Stations List</h6>
               <div class="table-responsive flex-grow-1" style="overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
@@ -301,7 +302,7 @@
     let activeListChartInstance = null; 
     let expandedModalChartInstance = null;
     let isMapFullyLoaded = false; 
-    let firebaseThresholds = {};
+    let globalThresholds = {};
     let dynamicStations = [];
     let liveDataStore = {};
     let selectedStationIndex = 0;
@@ -315,7 +316,6 @@
       setupLiveThresholds();
       setupLiveStations();
 
-      // Bind Chart Expand Listener
       document.getElementById('stationUnderListCanvas')?.addEventListener('click', openExpandedChartModal);
     };
     
@@ -333,7 +333,7 @@
     
     function setupLiveThresholds() {
       db.ref('threshold').on('value', snapshot => {
-        firebaseThresholds = snapshot.exists() ? snapshot.val() : {};
+        globalThresholds = snapshot.exists() ? snapshot.val() : {};
         if (isMapFullyLoaded) updateMarkers();
       });
     }
@@ -353,7 +353,8 @@
                     name: (p.station || p.stationName || p.station_name || p.name || p.barangayName || "River Station").trim(),
                     lat: parseFloat(p.lat ?? p.latitude ?? 18.19),
                     lng: parseFloat(p.lng ?? p.longitude ?? 120.59),
-                    node: nodeKey
+                    node: nodeKey,
+                    threshold: p.threshold || null
                   });
                   subscribeToNodeTelemetry(nodeKey);
                 }
@@ -376,7 +377,8 @@
               name: String(stationTitle).trim(),
               lat: parseFloat(st.lat ?? st.latitude ?? 18.19),
               lng: parseFloat(st.lng ?? st.longitude ?? 120.59),
-              node: nodeKey
+              node: nodeKey,
+              threshold: st.threshold || null
             });
             subscribeToNodeTelemetry(nodeKey);
           });
@@ -487,27 +489,33 @@
       pitch: 55
     });
     
-    function getDynamicClassFromThreshold(nodeKey, metricKey, val) {
-      const nodeLimits = firebaseThresholds[nodeKey] || firebaseThresholds['default'] || firebaseThresholds || {};
-      const metricLimits = nodeLimits[metricKey] || nodeLimits[`${metricKey}Threshold`] || {};
-      
-      const criticalLimit = parseFloat(metricLimits.critical ?? metricLimits.danger ?? (metricKey === 'level' ? 4.0 : metricKey === 'rain' ? 15.0 : 50.0));
-      const warningLimit = parseFloat(metricLimits.warning ?? metricLimits.orange ?? (metricKey === 'level' ? 2.5 : metricKey === 'rain' ? 7.5 : 25.0));
+    function getDynamicClassFromThreshold(station, metricKey, val) {
+      const t = station?.threshold || globalThresholds || {};
+      let warning = 2.5, critical = 4.0;
 
-      if (val >= criticalLimit) return 'text-danger fw-bold';
-      if (val >= warningLimit) return 'text-warning fw-bold';
+      if (metricKey === 'level') {
+        warning = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? globalThresholds.level ?? 2.5);
+        critical = parseFloat(t.levelHigh ?? t.level_high ?? globalThresholds.level_high ?? 4.0);
+      } else if (metricKey === 'rain') {
+        warning = parseFloat(t.rain ?? t.rainNormal ?? t.rain_normal ?? globalThresholds.rain ?? 10.0);
+        critical = parseFloat(t.rainHigh ?? t.rain_high ?? globalThresholds.rain_high ?? 30.0);
+      } else if (metricKey === 'flow') {
+        warning = parseFloat(t.flow ?? t.flowNormal ?? t.flow_normal ?? globalThresholds.flow ?? 50.0);
+        critical = parseFloat(t.flowHigh ?? t.flow_high ?? globalThresholds.flow_high ?? 150.0);
+      }
+
+      if (val >= critical) return 'text-danger fw-bold';
+      if (val >= warning) return 'text-warning fw-bold';
       return 'text-success fw-bold';
     }
 
-    function getMarkerColorFromThreshold(nodeKey, waterLevel) {
-      const nodeLimits = firebaseThresholds[nodeKey] || firebaseThresholds['default'] || firebaseThresholds || {};
-      const levelLimits = nodeLimits['level'] || nodeLimits['levelThreshold'] || {};
-      
-      const criticalLimit = parseFloat(levelLimits.critical ?? levelLimits.danger ?? 4.0);
-      const warningLimit = parseFloat(levelLimits.warning ?? levelLimits.orange ?? 2.5);
+    function getMarkerColorFromThreshold(station, waterLevel) {
+      const t = station?.threshold || globalThresholds || {};
+      const warning = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? globalThresholds.level ?? 2.5);
+      const critical = parseFloat(t.levelHigh ?? t.level_high ?? globalThresholds.level_high ?? 4.0);
 
-      if (waterLevel >= criticalLimit) return '#dc3545';
-      if (waterLevel >= warningLimit) return '#fd7e14';
+      if (waterLevel >= critical) return '#dc3545';
+      if (waterLevel >= warning) return '#fd7e14';
       return '#198754';
     }
 
@@ -539,10 +547,8 @@
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
       map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 
-      // Dynamic markers and list render BEFORE vector flood map loads
       if (isMapFullyLoaded) updateMarkers();
       
-      // Load flood-prone layers AFTER list & chart render pipeline initializes
       db.ref('Flooded_Areas').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) return;
@@ -567,7 +573,7 @@
               id: layerId,
               type: 'fill',
               source: sourceId,
-              layout: { 'visibility': 'none' }, // Unchecked / hidden by default
+              layout: { 'visibility': 'none' },
               paint: { 
                 'fill-color': getFloodColor(f.vulnerability || 0), 
                 'fill-opacity': 0.5 
@@ -619,12 +625,11 @@
         const dataStore = liveDataStore[river.node] || { current: { level: 0, flow: 0, rain: 0 }, history: [] };
         const cur = dataStore.current;
         
-        const calculatedPinColor = getMarkerColorFromThreshold(river.node, cur.level);
-        const levelColorClass = getDynamicClassFromThreshold(river.node, 'level', cur.level);
-        const rainColorClass = getDynamicClassFromThreshold(river.node, 'rain', cur.rain);
-        const flowColorClass = getDynamicClassFromThreshold(river.node, 'flow', cur.flow);
+        const calculatedPinColor = getMarkerColorFromThreshold(river, cur.level);
+        const levelColorClass = getDynamicClassFromThreshold(river, 'level', cur.level);
+        const rainColorClass = getDynamicClassFromThreshold(river, 'rain', cur.rain);
+        const flowColorClass = getDynamicClassFromThreshold(river, 'flow', cur.flow);
         
-        // Clean marker (NO MAP POPUPS)
         const marker = new mapboxgl.Marker({ color: calculatedPinColor })
           .setLngLat([river.lng, river.lat])
           .addTo(map);
@@ -689,7 +694,7 @@
       const forecastSeries = Array(sampledHistory.length).fill(null);
       forecastSeries.push(...forecastWaterLevels);
       
-      const calculatedPinColor = getMarkerColorFromThreshold(river.node, cur.level);
+      const calculatedPinColor = getMarkerColorFromThreshold(river, cur.level);
 
       return {
         river,
@@ -762,7 +767,6 @@
       });
     }
 
-    // Opens a full modal view when clicking the chart under the list
     async function openExpandedChartModal() {
       const chartData = await generateChartDataForStation(selectedStationIndex);
       if (!chartData) return;

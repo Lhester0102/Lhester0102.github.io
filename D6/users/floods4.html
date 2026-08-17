@@ -5,7 +5,7 @@
   <title>GDSS - Flood Watch Lists</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <link class="icon" href="GDSS.png">
+  <link rel="icon" href="GDSS.png">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -15,7 +15,7 @@
   
   <style>
     /* Theme Core */
-    body { background: #f4f6f9; }
+    body { background: #f4f6f9; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     
     /* Sidebar Styles */
     .sidebar { 
@@ -45,10 +45,23 @@
     .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
     
     .table thead th { 
-      background-color: #212529; 
+      background-color: #1e293b; 
       color: white; 
-      font-size: 0.85rem;
-      padding: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 14px;
+      white-space: nowrap;
+      border: none;
+    }
+    
+    /* High-contrast Yellow Moderate Badges */
+    .bg-yellow-moderate { 
+      background-color: #fde047 !important; 
+      color: #713f12 !important; 
+      border: 1px solid #eab308 !important; 
+      font-weight: 700 !important;
     }
     
     /* Responsiveness Desktop layout adjustments */
@@ -80,22 +93,79 @@
     
     /* Responsive Table Wrapper */
     .table-responsive-custom {
-      max-height: 570px;
+      max-height: 560px;
       overflow-y: auto;
       overflow-x: auto;
     }
     
     .table-responsive-custom table {
-      min-width: 650px; /* Ensures minimum width so data columns stay readable on mobile */
+      min-width: 650px;
     }
     
-    #map-legend {
-      background: rgba(254, 254, 254, 1); padding: 12px; border-radius: 10px; font-size: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; width: 100%;
-      margin-top: 2px; margin-bottom: 12px;
+    .analytics-panel {
+      height: calc(100vh - 120px);
+      overflow-y: auto;
     }
-    .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
-    .legend-color { width: 18px; height: 9px; border-radius: 2px; margin-right: 8px; }
+    
+    .dss-section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    
+    /* Illustrated Human Action Cards */
+    .human-action-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+      transition: all 0.15s ease-in-out;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .human-action-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+    .human-action-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.35rem;
+    }
+    
+    /* Dynamic Threshold Colored KPI Badges in Table */
+    .badge-kpi-metric {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .kpi-metric-normal {
+      background-color: #f0fdf4 !important;
+      color: #15803d !important;
+      border: 1px solid #bbf7d0 !important;
+    }
+    .kpi-metric-moderate {
+      background-color: #fefce8 !important;
+      color: #a16207 !important;
+      border: 1px solid #fef08a !important;
+    }
+    .kpi-metric-critical {
+      background-color: #fef2f2 !important;
+      color: #b91c1c !important;
+      border: 1px solid #fecaca !important;
+    }
     
     .loading-spinner {
       display: inline-block;
@@ -112,6 +182,10 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    
+    @media (max-width: 991.98px) {
+      .analytics-panel { height: auto; }
+    }
   </style>
 </head>
 
@@ -119,7 +193,7 @@
   <!-- Offcanvas Navigation Sidebar for Mobile Devices -->
   <div class="offcanvas offcanvas-start sidebar text-white p-3 d-md-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
     <div class="mobile-brand">
-      <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+      <img src="GDSS.png" class="rounded-circle border border-light" alt="Logo">
       <div>
         <h6 class="text-white mb-0">Geospatial DSS</h6>
         <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
@@ -135,29 +209,29 @@
   
   <div class="container-fluid">
     <div class="row">
-      <!-- Desktop Sidebar -->
+      <!-- Desktop Sidebar - Retained original main menu -->
       <nav class="col-md-3 col-lg-2 text-white p-3 sidebar sidebar-desktop d-none d-md-block">
         <div class="text-center mb-4">
-          <img src="gds.png" class="rounded-circle w-50 mb-2 border shadow-sm" alt="Logo">
+          <img src="gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
           <h6 class="fw-bold mb-0">Geospatial DSS</h6>
         </div>
         <ul class="nav flex-column">
-          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white active" href="floods3.html"><i class="bi bi-tsunami me-2"></i> Flood Watch</a></li>
+          <li class="mb-1"><a class="nav-link text-white" href="index2.html"><i class="bi bi-moisture me-2"></i> Stations on Map</a></li>
           <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
         </ul>
       </nav>
       
       <!-- Main Content Container -->
       <main class="col-12 col-md-9 col-lg-10 ms-sm-auto px-2 px-md-3 main-content">
-        <!-- Top Responsive Navigation Header -->
+        <!-- Top Responsive Navigation Header - Retained original submenus -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 mt-2 mb-3 p-2 p-md-3 bg-white rounded shadow-sm">
           <div class="d-flex align-items-center gap-2">
             <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
               <i class="bi bi-list"></i>
             </button>
             <div class="d-flex align-items-center gap-2">
-              <h5 class="mb-0 fw-bold text-dark fs-6 fs-md-5"><i class="bi bi-houses-fill me-1"></i>Municipality and Barangay Lists</h5>
+              <h5 class="mb-0 fw-bold text-dark fs-6 fs-md-5"><i class="bi bi-houses-fill me-1 text-primary"></i>Municipality and Barangay Lists</h5>
             </div>
           </div>
           <!-- Submenu Quick Links -->
@@ -171,28 +245,28 @@
         <div class="container-fluid p-0">
           <div class="row g-3">
             
-            <!-- LEFT PANEL TABLE & FILTERS -->
-            <div class="col-12 col-lg-8 col-xl-9 d-flex flex-column">
+            <!-- LEFT PANEL TABLE & FILTERS (8 / 4 Grid Layout) -->
+            <div class="col-12 col-lg-7 col-xl-8 d-flex flex-column">
               <div class="card mb-2">
                 
-                <!-- HEADER FILTERS (RESPONSIVE GRID / FLEXBOX) -->
-                <div class="card-header bg-dark text-white py-2 px-2 px-md-3">
+                <!-- HEADER FILTERS (RESPONSIVE GRID) -->
+                <div class="card-header bg-white border-bottom py-2 px-2 px-md-3">
                   <div class="row g-2 align-items-center">
                     <div class="col-12 col-sm-5 col-md-4">
-                      <select id="municipalityFilter" class="form-select form-select-sm bg-white border-white text-dark fw-semibold w-100">
+                      <select id="municipalityFilter" class="form-select form-select-sm fw-semibold w-100">
                         <option value="All">All Municipalities</option>
                       </select>
                     </div>
                     <div class="col-8 col-sm-5 col-md-5">
                       <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-white text-dark">
+                        <span class="input-group-text bg-light text-muted">
                           <i class="bi bi-search"></i>
                         </span>
                         <input type="text" id="barangaySearchInput" class="form-control" placeholder="Search barangay...">
                       </div>
                     </div>
                     <div class="col-4 col-sm-2 col-md-3">
-                      <select id="rowLimitSelect" class="form-select form-select-sm bg-white border-white text-dark fw-semibold w-100">
+                      <select id="rowLimitSelect" class="form-select form-select-sm fw-semibold w-100">
                         <option value="5">5 Rows</option>
                         <option value="10" selected>10 Rows</option>
                         <option value="25">25 Rows</option>
@@ -202,22 +276,22 @@
                   </div>
                 </div>
                 
-                <!-- RESPONSIVE DATA TABLE CONTAINER -->
+                <!-- RESPONSIVE DATA TABLE CONTAINER (Arranged: Level, Rain, Discharge, Elevation, Risk) -->
                 <div class="card-body p-0 table-responsive-custom">
                   <table class="table mt-0 table-hover align-middle mb-0 w-100">
-                    <thead class="table-primary text-white sticky-top">
+                    <thead class="sticky-top">
                       <tr>
-                        <th class="ps-3" style="width: 25%;">Barangay</th>
-                        <th style="width: 15%;">Water Level</th>
+                        <th class="ps-3" style="width: 26%;">Barangay</th>
+                        <th style="width: 15%;">Level</th>
                         <th style="width: 15%;">Rainfall</th>
                         <th style="width: 15%;">Discharge</th>
-                        <th style="width: 15%;">Elevation</th>
-                        <th style="width: 15%;">Risk Score</th>
+                        <th style="width: 14%;">Elevation</th>
+                        <th style="width: 15%;">Risk Level</th>
                       </tr>
                     </thead>
                     <tbody id="riverTableBody">
                       <tr>
-                        <td colspan="6" class="text-center text-muted py-5">
+                        <td colspan="6" class="text-center text-secondary py-5">
                           <div class="loading-spinner"></div>
                           Loading Laoag City data...
                         </td>
@@ -228,27 +302,27 @@
               </div>
               
               <div class="card mb-3 p-2">
-                <p id="status" class="small text-muted mb-0">
-                  Initializing system modules...
+                <p id="status" class="small text-dark mb-0">
+                  <i class="bi bi-info-circle me-1"></i>Initializing system modules...
                 </p>
               </div>
             </div>
             
-            <!-- RIGHT PANEL - MAP LEGEND & DETAILS -->
-            <div class="col-12 col-lg-4 col-xl-3">
-              <div id="map-legend">
-                <h6 class="fw-bold mb-2 border-bottom pb-1" style="font-size: 11px;">FLOOD RISK INDEX</h6>
-                <div class="legend-item"><div class="legend-color" style="background: red;"></div><span>Severe (80+)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: orange;"></div><span>High (60-79)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: yellow;"></div><span>Moderate (30-59)</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: lightgreen;"></div><span>Safe (&lt; 30)</span></div>
-              </div>
-              
-              <div class="card p-3 mb-3" id="detailsContainer">
+            <!-- RIGHT PANEL - HUMAN SAFETY ACTIONS & DECISION SUPPORT -->
+            <div class="col-12 col-lg-5 col-xl-4">
+              <div class="card p-3 shadow-sm analytics-panel" id="detailsContainer">
+                <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-arms-up text-primary me-1"></i> Human Safety Guide</h6>
+                    <small class="text-muted" style="font-size: 0.72rem;">Individual & Family Action Protocols</small>
+                  </div>
+                  <span class="badge bg-light text-primary border fw-semibold" style="font-size: 0.7rem;">Live Public Feed</span>
+                </div>
+                
                 <div id="details">
-                  <div class="text-center text-muted py-4 small">
-                    <i class="bi bi-info-circle d-block mb-2 fs-4 text-secondary"></i>
-                    Select a barangay to view flood risk analytics.
+                  <div class="text-center text-muted py-5 small">
+                    <i class="bi bi-compass d-block mb-2 fs-2 text-secondary"></i>
+                    Select any barangay in the table to view illustrated human safety directives and 24-hour forecast trends.
                   </div>
                 </div>
               </div>
@@ -278,14 +352,14 @@
     let parsedCsvFeatures = [], parsedCsvLabels = [];
     let currentMunicipality = null;
     let currentDataListener = null;
+    let thresholdData = { level: 2.5, level_high: 4.0, rain: 40.0, rain_high: 80.0, flow: 60.0, flow_high: 125.0 };
     
-    // Core structural telemetry registry storage arrays
-    let allRawPins = []; // Holds all pins fetched from Firebase
-    let rivers = [];     // Holds the currently active and processed municipality data
+    let allRawPins = []; 
+    let rivers = [];     
     const liveDataStore = {
-      data: { level: 1.1, flow: 12.0, rain: 0.1 },
-      data2: { level: 1.1, flow: 12.0, rain: 0.1 },
-      data3: { level: 1.1, flow: 12.0, rain: 0.1 }
+      data: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" },
+      data2: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" },
+      data3: { level: 1.1, flow: 12.0, rain: 0.1, date: "", time: "" }
     };
     
     const firebaseConfig = {
@@ -300,14 +374,73 @@
     const db = firebase.database();
     const storageRef = firebase.storage().ref();
     
+    // Helper: Convert time string to 12-hour format with AM/PM
+    function formatTo12Hour(timeStr) {
+      if (!timeStr) {
+        const now = new Date();
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+      }
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1].substring(0, 2);
+      const s = parts[2] ? parts[2].substring(0, 2) : '00';
+      if (isNaN(h)) return timeStr;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+    }
+    
+    // Helper: Format raw date into readable string
+    function formatReadableDate(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return 'August 2, 2026';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    
+    // Helper: Determine threshold color class for specific metric values
+    function getMetricThresholdClass(type, value) {
+      const val = parseFloat(value) || 0;
+      let warning = 2.5, critical = 4.0;
+      if (type === 'water') {
+        warning = parseFloat(thresholdData.level) || 2.5;
+        critical = parseFloat(thresholdData.level_high) || 4.0;
+      } else if (type === 'rain') {
+        warning = parseFloat(thresholdData.rain) || 40.0;
+        critical = parseFloat(thresholdData.rain_high) || 80.0;
+      } else if (type === 'flow') {
+        warning = parseFloat(thresholdData.flow) || 60.0;
+        critical = parseFloat(thresholdData.flow_high) || 125.0;
+      }
+      
+      if (val >= critical) return 'kpi-metric-critical';
+      if (val >= warning) return 'kpi-metric-moderate';
+      return 'kpi-metric-normal';
+    }
+    
+    function listenToThresholds() {
+      db.ref('threshold').on('value', snapshot => {
+        if (snapshot.exists()) {
+          thresholdData = { ...thresholdData, ...snapshot.val() };
+          updateRiverTable();
+        }
+      });
+    }
+    
     window.onload = async function() {
       document.getElementById('status').innerHTML = '<span class="loading-spinner"></span> Initializing system modules - Loading registry lists...';
       
+      listenToThresholds();
       await loadModel(); 
-      await fetchAllPinsMetadata(); // 1. Just load basic names and municipalities
+      await fetchAllPinsMetadata(); 
       setupRiverStations();
       
-      // ATTACH EVENT LISTENERS
       const barangayInput = document.getElementById('barangaySearchInput');
       if (barangayInput) barangayInput.addEventListener('input', updateRiverTable);
       
@@ -321,8 +454,6 @@
             updateRiverTable();
             return;
           }
-          
-          // Load elevation data specifically for the selected municipality
           await loadMunicipalityElevations(selected);
         });
       }
@@ -330,12 +461,11 @@
       const rowLimitSelect = document.getElementById('rowLimitSelect');
       if (rowLimitSelect) rowLimitSelect.addEventListener('change', updateRiverTable);
       
-      // Trigger initial load for Laoag City by default safely
       if (municipalityFilter) {
         municipalityFilter.value = "Laoag City";
         await loadMunicipalityElevations("Laoag City");
       }
-    }
+    };
     
     function detachCurrentDataListener() {
       if (currentDataListener && currentDataListener.off) {
@@ -346,13 +476,7 @@
     
     function processMunicipalitySnapshot(snapshot, sourceName) {
       if (!snapshot.exists()) return;
-      snapshot.forEach(child => {
-        const v = child.val();
-        const level = v.level ?? v.water ?? v.water_level ?? null;
-        const rain = v.rain ?? v.rainfall ?? null;
-        const flow = v.flow ?? v.discharge ?? null;
-      });
-      document.getElementById('status').innerHTML = `${sourceName} matrix updates synced successfully.`;
+      document.getElementById('status').innerHTML = `✓ ${sourceName} telemetry matrix updates synced.`;
       manualPredict();
     }
     
@@ -362,7 +486,7 @@
       currentMunicipality = municipality;
       
       let refPath = 'data';
-      if (municipality === 'Laoag City') refPath = 'data2';
+      if (municipality === 'Laoag City' || municipality === 'Laoag') refPath = 'data2';
       else if (municipality === 'Bacarra') refPath = 'data3';
       
       const ref = db.ref(refPath).orderByKey().limitToLast(1);
@@ -385,7 +509,6 @@
       });
     }
     
-    // FETCH ALL PINS FROM FIREBASE WITHOUT CALLING ELEVATION API
     async function fetchAllPinsMetadata() {
       try {
         const snapshot = await db.ref('pins').once('value');
@@ -410,7 +533,7 @@
                   municipality: muniKey,
                   lat: parseFloat(pinConfig.latitude),
                   lng: parseFloat(pinConfig.longitude),
-                  elevation: 12.5, // fallback structural placeholder
+                  elevation: 12.5,
                   node: pinConfig.node 
                 });
               }
@@ -426,7 +549,6 @@
       }
     }
     
-    // FETCH ACCURATE ELEVATIONS ON-DEMAND PER CHOSEN MUNICIPALITY
     async function loadMunicipalityElevations(municipalityName) {
       let selectedRivers = allRawPins.filter(river => river.municipality === municipalityName);
       
@@ -463,8 +585,7 @@
             allElevations = [...allElevations, ...chunk.map(() => 12.5)];
           }
           
-          await new Promise(resolve => setTimeout(resolve, 200));
-          
+          await new Promise(resolve => setTimeout(resolve, 150));
         } catch (apiErr) {
           console.error(`API error for batch ${chunkIndex + 1}:`, apiErr);
           allElevations = [...allElevations, ...chunk.map(() => 12.5)];
@@ -478,7 +599,6 @@
       });
       
       document.getElementById('status').innerHTML = `✓ Loaded ${selectedRivers.length} barangays in ${municipalityName}.`;
-      
       rivers = selectedRivers;
       updateRiverTable();
     }
@@ -492,7 +612,9 @@
             liveDataStore[nodeKey] = {
               level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 1.1),
               flow: parseFloat(latest.flow ?? latest.discharge ?? 12.0),
-              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0.1)
+              rain: parseFloat(latest.rain ?? latest.rainfall ?? 0.1),
+              date: latest.dt ?? latest.date ?? "",
+              time: latest.t ?? latest.time ?? ""
             };
           });
           updateRiverTable();
@@ -509,7 +631,7 @@
       if (rivers.length === 0) {
         tableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-5 text-muted small">
+          <td colspan="6" class="text-center py-5 text-dark small">
             <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-secondary"></i>
             Select a specific municipality above to load data.
           </td>
@@ -563,13 +685,20 @@
         
         const elevation = river.elevation;
         const riskScore = river.computedRisk;
-        let badgeStyle = 'bg-success';
+        let badgeStyle = 'bg-success text-white';
         
         if (riskScore >= 70) {
-          badgeStyle = 'bg-danger';
-        } else if (riskScore >= 40) {
+          badgeStyle = 'bg-danger text-white';
+        } else if (riskScore >= 50) {
           badgeStyle = 'bg-warning text-dark';
+        } else if (riskScore >= 20) {
+          badgeStyle = 'bg-yellow-moderate';
         }
+        
+        // Apply threshold color classes for the telemetry cells
+        const waterClass = getMetricThresholdClass('water', telemetry.level);
+        const rainClass = getMetricThresholdClass('rain', telemetry.rain);
+        const flowClass = getMetricThresholdClass('flow', telemetry.flow);
         
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
@@ -581,29 +710,29 @@
         tr.innerHTML = `
         <td class="ps-3">
           <div class="fw-bold text-dark">${river.name}</div>
-          <small class="text-muted" style="font-size:0.68rem;">
+          <small class="text-secondary" style="font-size:0.75rem;">
             <span class="fw-semibold text-primary">${river.municipality}</span>
           </small>
          </td>
          <td>
-          <code class="text-dark font-monospace fw-bold">
-            ${telemetry.level.toFixed(2)}m
-          </code>
-         </td>
-         <td>
-          <span class="text-secondary">
-            ${telemetry.rain.toFixed(1)} mm
+          <span class="badge-kpi-metric ${waterClass}">
+            ${telemetry.level.toFixed(2)} m
           </span>
          </td>
          <td>
-          <span class="text-secondary">
-            ${telemetry.flow.toFixed(1)} m³/s
+          <span class="badge-kpi-metric ${rainClass}">
+            ${telemetry.rain.toFixed(2)} mm
           </span>
          </td>
          <td>
-          <small class="text-muted fw-semibold">
-            ${elevation.toFixed(1)}m
-          </small>
+          <span class="badge-kpi-metric ${flowClass}">
+            ${telemetry.flow.toFixed(2)} m³/s
+          </span>
+         </td>
+         <td>
+          <span class="text-dark fw-bold">
+            ${elevation.toFixed(2)} m
+          </span>
          </td>
          <td>
           <span class="badge ${badgeStyle} px-2 py-1" style="font-size:0.8rem;">
@@ -618,7 +747,7 @@
       if (processedList.length === 0) {
         tableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-5 text-muted small">
+          <td colspan="6" class="text-center py-5 text-dark small">
             <i class="bi bi-exclamation-circle d-block mb-2 fs-4 text-secondary"></i>
             No barangays match your selected criteria.
           </td>
@@ -639,66 +768,191 @@
       document.getElementById('discharge').value = currentDischarge;
       document.getElementById('elevation').value = elevation;
       
-      let interpretText = "Low Risk Scenario";
-      let interpretColor = "#198754"; 
-      let recommendation = "The area displays low vulnerability under current metrics. Maintain standard community awareness.";
+      let interpretTitle = "", alertBadgeClass = "", interpretColor = "", humanRecommendationsHTML = "";
       
       if (riskScore >= 70) {
-        interpretText = "Severe Flood Risk";
-        interpretColor = "#dc3545"; 
-        recommendation = `CRITICAL: High threat detected! Prepare immediate high-ground evacuation protocols.`;
-      } else if (riskScore >= 40) {
-        interpretText = "Moderate Flood Risk";
-        interpretColor = "#fd7e14"; 
-        recommendation = `CAUTION: Moderate vulnerability observed. Secure low-lying equipment and prepare sandbag lines.`;
+        interpretTitle = `Critical Flash Flood Threat (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-danger text-white";
+        interpretColor = "#dc3545";
+        
+        humanRecommendationsHTML = `
+          <!-- Action 1: Evacuate on Foot/Vehicle to High Ground -->
+          <div class="human-action-card border-danger-subtle bg-danger-subtle">
+            <div class="human-action-icon bg-danger text-white">
+              <i class="bi bi-person-walking"></i>
+            </div>
+            <div>
+              <strong class="d-block text-danger small fw-bold">Evacuate Immediately to High Ground</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Guide your family, children, and elderly directly to designated evacuation centers now.</p>
+            </div>
+          </div>
+
+          <!-- Action 2: Do Not Walk or Drive Through Floodwaters -->
+          <div class="human-action-card border-danger-subtle bg-white">
+            <div class="human-action-icon bg-danger text-white">
+              <i class="bi bi-sign-stop-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-danger small fw-bold">Do Not Walk or Drive in Floodwaters</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Never cross flowing rivers or flooded streets on foot or motorcycle. Turn around, don't drown.</p>
+            </div>
+          </div>
+
+          <!-- Action 3: Turn Off Circuit Breakers and Gas -->
+          <div class="human-action-card border-danger-subtle bg-white">
+            <div class="human-action-icon bg-secondary text-white">
+              <i class="bi bi-power"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Turn Off Main Breakers & Gas Tanks</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Switch off electricity at the main breaker and tightly close LPG valves before leaving home.</p>
+            </div>
+          </div>`;
+        
+      } else if (riskScore >= 50) {
+        interpretTitle = `Elevated Flood Warning (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-warning text-dark";
+        interpretColor = "#ea580c";
+        
+        humanRecommendationsHTML = `
+          <!-- Action 1: Grab Emergency Go-Bag -->
+          <div class="human-action-card border-warning-subtle bg-warning-subtle">
+            <div class="human-action-icon bg-warning text-dark">
+              <i class="bi bi-backpack-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Prepare Your Emergency Go-Bag</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Pack bottled water, dry food, flashlights, essential medicines, and waterproofed IDs.</p>
+            </div>
+          </div>
+
+          <!-- Action 2: Move Possessions to Upper Floor -->
+          <div class="human-action-card border-warning-subtle bg-white">
+            <div class="human-action-icon bg-warning text-dark">
+              <i class="bi bi-arrow-up-circle-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Elevate Home Assets & Appliances</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Transfer electronic devices, cooking supplies, and beds to the second floor or higher furniture.</p>
+            </div>
+          </div>
+
+          <!-- Action 3: Assist Vulnerable Family Members -->
+          <div class="human-action-card border-warning-subtle bg-white">
+            <div class="human-action-icon bg-primary text-white">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Assist Elderly, Children & PWDs</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Ensure vulnerable household members are prepared for early preemptive evacuation.</p>
+            </div>
+          </div>`;
+        
+      } else if (riskScore >= 20) {
+        interpretTitle = `Moderate Flood Precaution (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-yellow-moderate";
+        interpretColor = "#a16207";
+        
+        humanRecommendationsHTML = `
+          <!-- Action 1: Listen to Announcements -->
+          <div class="human-action-card border" style="background-color: #fefce8;">
+            <div class="human-action-icon bg-warning text-dark">
+              <i class="bi bi-megaphone-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Monitor Local Community Broadcasts</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Stay tuned to local barangay radio, mobile advisory alerts, and social media announcements.</p>
+            </div>
+          </div>
+
+          <!-- Action 2: Clean House Drainages -->
+          <div class="human-action-card border bg-white">
+            <div class="human-action-icon bg-info text-white">
+              <i class="bi bi-tools"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Clear Home Gutters & Yard Canals</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Remove leaves and trash from yard drains and gutters to allow continuous rainwater discharge.</p>
+            </div>
+          </div>
+
+          <!-- Action 3: Charge Flashlights and Phones -->
+          <div class="human-action-card border bg-white">
+            <div class="human-action-icon bg-secondary text-white">
+              <i class="bi bi-battery-charging"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Fully Charge Phones & Powerbanks</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Charge mobile devices and emergency flashlights in case of power interruption.</p>
+            </div>
+          </div>`;
+        
+      } else {
+        interpretTitle = `Normal / Safe Conditions (${riskScore.toFixed(1)}% Probability)`;
+        alertBadgeClass = "bg-success text-white";
+        interpretColor = "#16a34a";
+        
+        humanRecommendationsHTML = `
+          <!-- Action 1: Safe Status -->
+          <div class="human-action-card border-success-subtle bg-success-subtle">
+            <div class="human-action-icon bg-success text-white">
+              <i class="bi bi-house-check-fill"></i>
+            </div>
+            <div>
+              <strong class="d-block text-success small fw-bold">No Immediate Flood Hazard</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">River water and rainfall levels are normal. Continue daily activities safely.</p>
+            </div>
+          </div>
+
+          <!-- Action 2: Routine Check -->
+          <div class="human-action-card border bg-white">
+            <div class="human-action-icon bg-light text-muted border">
+              <i class="bi bi-shield-check text-secondary"></i>
+            </div>
+            <div>
+              <strong class="d-block text-dark small fw-bold">Maintain Routine Preparedness</strong>
+              <p class="mb-0 text-dark" style="font-size: 0.76rem;">Keep your household emergency kit stocked and check local weather forecasts periodically.</p>
+            </div>
+          </div>`;
       }
       
-      let waterInterpretText = "Normal";
-      let waterInterpretColor = "#198754"; 
-      if (currentWater > 5.0) { waterInterpretText = "Critical"; waterInterpretColor = "#dc3545"; }
-      else if (currentWater > 2.5) { waterInterpretText = "Elevated"; waterInterpretColor = "#fd7e14"; }
-      
+      const displayDate = formatReadableDate(telemetry.date);
+      const displayTime = formatTo12Hour(telemetry.time);
       const probChartId = `sidePanelForecastTrendCanvas`;
       const infoPanel = document.getElementById('details'); 
       
       if (infoPanel) {
         infoPanel.innerHTML = `
         <div style="font-family: system-ui, sans-serif;">
-          <h6 class="fw-bold mb-1 border-bottom pb-2 text-primary" style="font-size: 0.95rem;">Flood Risk Analysis</h6>
-          <div class="mb-1 bg-light p-1 rounded border">
-            <span class="d-block text-uppercase text-muted fw-bold" style="font-size:0.6rem;">Location: ${river.name}, ${river.municipality}</span>
-          </div>
-      
-          <div style="font-size: 0.6rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-muted">Elevation:</span>
-            <span class="fw-semibold">${elevation.toFixed(1)}m</span>
-          </div>
-          <div style="font-size: 0.6rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-muted">Water Level:</span>
-            <span class="fw-semibold">${currentWater.toFixed(2)}m <small style="color: ${waterInterpretColor};">(${waterInterpretText})</small></span>
-          </div>
-          <div style="font-size: 0.6rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-muted">Rainfall:</span>
-            <span class="fw-semibold">${currentRain.toFixed(1)} mm</span>
-          </div>
-          <div style="font-size: 0.6rem;" class="d-flex justify-content-between mb-1 small border-bottom pb-1">
-            <span class="text-muted">Discharge:</span>
-            <span class="fw-semibold">${currentDischarge.toFixed(1)} m³/s</span>
-          </div>
-          
-          <div class="mt-1 pt-1">
-            <span class="text-muted d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700;">Risk Assessment</span>
-            <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.95rem;">${interpretText} (${riskScore.toFixed(2)}%)</span>
-          </div>
-          
-          <div class="mt-2 bg-white border p-2 rounded shadow-sm">
-            <span class="text-muted d-block text-uppercase" style="font-size: 0.60rem; font-weight: 700;">Recommendation</span>
-            <p class="mb-0 text-dark small mt-1" style="text-align: justify; line-height:1.25;">${recommendation}</p>
+          <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+            <span class="fw-bold text-dark text-truncate me-2" style="font-size: 0.95rem;">${river.name}</span>
+            <span class="badge ${alertBadgeClass} px-2 py-1">${riskScore.toFixed(1)}% Risk</span>
           </div>
 
-          <div class="mt-3 pt-2 border-top">
-            <span class="text-muted d-block text-uppercase mb-2 fw-bold" style="font-size: 0.65rem;"><i class="bi bi-graph-up me-1"></i>24-Hour Forecast</span>
-            <div style="height: 105px; width: 100%;"><canvas id="${probChartId}"></canvas></div>
+          <!-- Date & 12-Hour Telemetry Timestamp Header -->
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded text-dark" style="font-size: 0.76rem;">
+            <span class="fw-semibold"><i class="bi bi-calendar-event text-primary me-1"></i> ${displayDate}</span>
+            <span class="fw-semibold"><i class="bi bi-clock-history text-primary me-1"></i> ${displayTime}</span>
+          </div>
+
+          <div class="mb-3">
+            <span class="dss-section-title d-block mb-1">Local Risk Assessment</span>
+            <div class="fw-bold" style="color: ${interpretColor}; font-size: 0.95rem;">
+              ${interpretTitle}
+            </div>
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Ground Elevation: ${elevation.toFixed(2)} m MSL</small>
+          </div>
+
+          <!-- ILLUSTRATED HUMAN ACTIONS -->
+          <div class="mb-3">
+            <span class="dss-section-title d-block mb-2">Recommended Human Actions</span>
+            ${humanRecommendationsHTML}
+          </div>
+
+          <!-- 24-HOUR FORECAST PROBABILITY CHART -->
+          <div class="mt-2 pt-2 border-top">
+            <span class="dss-section-title d-block mb-2"><i class="bi bi-graph-up me-1"></i>24-Hour Forecast Probability</span>
+            <div style="height: 100px; width: 100%;"><canvas id="${probChartId}"></canvas></div>
           </div>
         </div>
       `;
@@ -715,7 +969,7 @@
               datasets: [{
                 data: forecastData,
                 borderColor: interpretColor,
-                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                backgroundColor: 'rgba(0, 0, 0, 0.03)',
                 fill: true,
                 tension: 0.4,
                 pointRadius: 3
@@ -757,10 +1011,10 @@
     function manualPredict(){
       if(!model) return;
       const input = [
-      parseFloat(document.getElementById('waterLevel').value), 
-      parseFloat(document.getElementById('rainfall').value), 
-      parseFloat(document.getElementById('discharge').value), 
-      parseFloat(document.getElementById('elevation').value)
+      parseFloat(document.getElementById('waterLevel').value) || 0, 
+      parseFloat(document.getElementById('rainfall').value) || 0, 
+      parseFloat(document.getElementById('discharge').value) || 0, 
+      parseFloat(document.getElementById('elevation').value) || 0
       ];
       const horizons = [1, 3, 12, 24];
       let last = [...input];

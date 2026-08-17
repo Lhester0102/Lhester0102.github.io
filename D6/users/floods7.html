@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Flash Flood DSS - Pro</title>
+    <title>Flash Flood DSS - Location Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="icon" href="GDSS.png">
@@ -27,6 +27,7 @@
             padding: 0; 
             background: #f4f6f9; 
             overflow-x: hidden; 
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
         
         /* Layout Structure */
@@ -95,13 +96,13 @@
         }
         
         .main-content::-webkit-scrollbar { width: 6px; }
-        .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        .main-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
         
         .table thead th { 
-            background-color: #212529; 
+            background-color: #1e293b; 
             color: white; 
             font-size: 0.85rem;
             padding: 12px;
@@ -118,10 +119,12 @@
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.9rem; font-weight: bold; }
         
-        /* Custom Badge Styling */
-        .bg-dark-yellow {
-            background-color: #d9a000 !important;
-            color: #ffffff !important;
+        /* High-contrast Yellow Moderate Badges */
+        .bg-yellow-moderate { 
+            background-color: #fde047 !important; 
+            color: #713f12 !important; 
+            border: 1px solid #eab308 !important; 
+            font-weight: 700 !important;
         }
         
         /* Geocoder Search Bar Container */
@@ -136,38 +139,60 @@
             border-radius: 8px;
         }
         
-        /* KPI Cards Grid */
+        /* Dynamic Threshold Colored KPI Cards */
         .kpi-card {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
             border-radius: 12px;
-            padding: 10px 6px;
+            padding: 12px 6px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
         }
         .kpi-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            border-color: #1c96c5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.06);
         }
         .kpi-icon {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             line-height: 1;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .kpi-title {
             font-weight: 700;
-            font-size: 0.78rem;
-            color: #212529;
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 2px;
         }
         .kpi-value {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 800;
-            color: #198754;
             line-height: 1.1;
         }
+
+        /* Threshold Color States for KPI Cards */
+        .kpi-normal {
+            background-color: #f0fdf4 !important;
+            border: 1px solid #bbf7d0 !important;
+        }
+        .kpi-normal .kpi-value { color: #15803d !important; }
+        .kpi-normal .kpi-icon { color: #16a34a !important; }
+
+        .kpi-moderate {
+            background-color: #fefce8 !important;
+            border: 1px solid #fef08a !important;
+        }
+        .kpi-moderate .kpi-value { color: #a16207 !important; }
+        .kpi-moderate .kpi-icon { color: #ca8a04 !important; }
+
+        .kpi-critical {
+            background-color: #fef2f2 !important;
+            border: 1px solid #fecaca !important;
+        }
+        .kpi-critical .kpi-value { color: #b91c1c !important; }
+        .kpi-critical .kpi-icon { color: #dc2626 !important; }
         
         /* Scrollable Right Panel Viewport */
         .analysis-scroll-panel {
@@ -175,7 +200,7 @@
             overflow-y: auto;
         }
         .analysis-scroll-panel::-webkit-scrollbar { width: 5px; }
-        .analysis-scroll-panel::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+        .analysis-scroll-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
         @media (max-width: 767.98px) {
             html, body { overflow: auto; }
@@ -186,31 +211,64 @@
         canvas { cursor: pointer; transition: transform 0.2s; }
         canvas:hover { transform: scale(1.02); }
         
-        /* Instruction Modal Text Alignment */
-        .swal2-html-container ul { text-align: left !important; }
+        .dss-section-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        /* Illustrated Human Action Cards */
+        .human-action-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .human-action-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        .human-action-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.35rem;
+        }
         
-        /* Barangay Below Search Styling */
+        /* Barangay List Scroll */
         .brgy-badge {
             font-size: 0.75rem;
             padding: 4px 8px;
             border-radius: 6px;
         }
         .brgy-list-scroll {
-            max-height: 180px;
+            max-height: 200px;
             overflow-y: auto;
         }
         .brgy-list-scroll::-webkit-scrollbar { width: 4px; }
-        .brgy-list-scroll::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+        .brgy-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 
 <body>
     <div class="container-fluid p-0 app-container">
         <div class="row g-0 w-100">
-            <!-- Navigation Sidebar Menu -->
+            <!-- Navigation Sidebar Menu - Retained original main menus -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
-                    <img src="gds.png" class="rounded-circle border border-light" alt="Logo">
+                    <img src="GDSS.png" class="rounded-circle border border-light" alt="Logo">
                     <div>
                         <h6 class="text-white">Geospatial DSS</h6>
                         <small class="text-white-50" style="font-size: 0.7rem;">Flood Watch Lists</small>
@@ -232,7 +290,7 @@
             
             <!-- Main Content Area -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-2 px-md-3 main-content">
-                <!-- Submenu Header Control Strip -->
+                <!-- Submenu Header Control Strip - Retained original submenus -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center my-2 p-2 bg-white rounded shadow-sm gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle navigation">
@@ -250,45 +308,45 @@
                     </div>
                 </div>
                 
-                <!-- SIDE-BY-SIDE SPLIT -->
-                <div class="row g-3 mb-3">
+                <!-- SIDE-BY-SIDE SPLIT (8 / 4 Grid Layout) -->
+                <div class="row g-2 mb-3">
                     <!-- LEFT COLUMN: ADDRESS SEARCH, KPIs & PREDICTED BARANGAYS -->
-                    <div class="col-lg-6 d-flex flex-column gap-3">
+                    <div class="col-lg-7 col-xl-8 d-flex flex-column gap-2">
                         <!-- ADDRESS & LOCATION SEARCH CONTAINER -->
                         <div class="card p-3 shadow-sm">
-                            <label class="form-label fw-bold text-dark mb-1">
-                                <i class="bi bi-geo-alt-fill text-primary me-1"></i> Address & Location Search
+                            <label class="form-label fw-bold text-dark mb-1 small">
+                                <i class="bi bi-search text-primary me-1"></i> Address & Location Search
                             </label>
                             <div id="geocoderContainer"></div>
                         </div>
                         
-                        <!-- KPI METRICS SUMMARY GRID -->
+                        <!-- KPI METRICS SUMMARY GRID (Dynamic Threshold Color Coded) -->
                         <div class="row g-2">
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <div class="kpi-card shadow-sm" onclick="openKpiModal('water')">
-                                    <div class="kpi-icon text-primary"><i class="bi bi-droplet-fill"></i></div>
+                            <div class="col-6 col-sm-3">
+                                <div class="kpi-card shadow-sm" id="kpiCardWater" onclick="openKpiModal('water')">
+                                    <div class="kpi-icon"><i class="bi bi-droplet-fill"></i></div>
                                     <div class="kpi-title">Water Level</div>
-                                    <div id="kpiWater" class="kpi-value">0 m</div>
+                                    <div id="kpiWater" class="kpi-value">0.00 m</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <div class="kpi-card shadow-sm" onclick="openKpiModal('rain')">
-                                    <div class="kpi-icon text-info"><i class="bi bi-cloud-rain-heavy-fill"></i></div>
+                            <div class="col-6 col-sm-3">
+                                <div class="kpi-card shadow-sm" id="kpiCardRain" onclick="openKpiModal('rain')">
+                                    <div class="kpi-icon"><i class="bi bi-cloud-rain-heavy-fill"></i></div>
                                     <div class="kpi-title">Rainfall</div>
-                                    <div id="kpiRain" class="kpi-value">0 mm</div>
+                                    <div id="kpiRain" class="kpi-value">0.00 mm</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <div class="kpi-card shadow-sm" onclick="openKpiModal('flow')">
-                                    <div class="kpi-icon text-success"><i class="bi bi-water"></i></div>
-                                    <div class="kpi-title">Flow Rate</div>
-                                    <div id="kpiDischarge" class="kpi-value">0 m³/s</div>
+                            <div class="col-6 col-sm-3">
+                                <div class="kpi-card shadow-sm" id="kpiCardFlow" onclick="openKpiModal('flow')">
+                                    <div class="kpi-icon"><i class="bi bi-water"></i></div>
+                                    <div class="kpi-title">Discharge</div>
+                                    <div id="kpiDischarge" class="kpi-value">0.00 m³/s</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <div class="kpi-card shadow-sm" onclick="openKpiModal('risk')">
-                                    <div class="kpi-icon text-danger"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                                    <div class="kpi-title">Flood Prob</div>
+                            <div class="col-6 col-sm-3">
+                                <div class="kpi-card shadow-sm" id="kpiCardRisk" onclick="openKpiModal('risk')">
+                                    <div class="kpi-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                    <div class="kpi-title">Risk Status</div>
                                     <div id="kpiRisk" class="kpi-value">--</div>
                                 </div>
                             </div>
@@ -297,7 +355,7 @@
                         <!-- BARANGAY FLOOD PROBABILITY LIST CONTAINER -->
                         <div class="card p-3 shadow-sm" id="barangayRiskCard">
                             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-bottom pb-2 mb-2 gap-1">
-                                <h6 class="fw-bold mb-0 text-dark">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;">
                                     <i class="bi bi-buildings-fill text-primary me-1"></i> Predicted Flood Prone Barangays 
                                     <span id="selectedMunicipalityTitle" class="text-primary fs-6"></span>
                                 </h6>
@@ -309,14 +367,22 @@
                         </div>
                     </div>
                     
-                    <!-- RIGHT COLUMN: SYSTEM FIELD ANALYSIS -->
-                    <div class="col-lg-6">
+                    <!-- RIGHT COLUMN: HUMAN SAFETY ACTIONS & DECISION SUPPORT PANEL -->
+                    <div class="col-lg-5 col-xl-4">
                         <div class="card p-3 shadow-sm analysis-scroll-panel" id="detailsCard">
-                            <h6 class="fw-bold border-bottom pb-2 mb-3" style="color:#1c96c5;">System Field Analysis</h6>
+                            <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-arms-up text-primary me-1"></i> Human Safety Guide</h6>
+                                    <small class="text-muted" style="font-size: 0.72rem;">Individual & Family Action Protocols</small>
+                                </div>
+                                <span class="badge bg-light text-primary border fw-semibold" style="font-size: 0.7rem;">Live Public Feed</span>
+                            </div>
                             
-                            <!-- System Field Analysis Section -->
-                            <div id="details" class="mb-3">
-                                <span class="text-dark small">Perform an address search to visualize location analysis matrix.</span>
+                            <div id="details">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-geo-alt-fill fs-2 d-block mb-2 text-secondary"></i>
+                                    <span class="small">Perform an address search or select your current position to view illustrated human safety actions and location analysis.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -338,12 +404,12 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="kpiModalTitle">10-Day Historical Reference & Forecast</h5>
+                    <h5 class="modal-title fw-bold text-dark" id="kpiModalTitle">10-Day Historical Reference & Forecast</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center">
                     <canvas id="probChartModal"></canvas>
-                    <p class="small text-dark mt-2" id="kpiModalSubtext">Graph displays 10-day historical reference calculated backwards from today leading seamlessly through current value into +1h, +3h, +12h, and +24h predictions.</p>
+                    <p class="small text-muted mt-2" id="kpiModalSubtext">Graph displays 10-day historical reference calculated backwards leading seamlessly into +1h, +3h, +12h, and +24h predictions.</p>
                 </div>
             </div>
         </div>
@@ -370,9 +436,52 @@
         let currentLocationName = "Selected Coordinate Point";
         let selectedActiveLngLat = null;
         let thresholdData = { level: 2.5, level_high: 4, rain: 40, rain_high: 80, flow: 60, flow_high: 125 };
+
+        let currentFirebaseDate = "";
+        let currentFirebaseTime = "";
         
         const initialCenter = [120.5927871, 18.1959782];
         mapboxgl.accessToken = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+
+        // Helper: Convert time string to 12-hour format with AM/PM
+        function formatTo12Hour(timeStr) {
+            if (!timeStr) {
+                const now = new Date();
+                let h = now.getHours();
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+            }
+            const parts = timeStr.trim().split(':');
+            if (parts.length < 2) return timeStr;
+            let h = parseInt(parts[0], 10);
+            const m = parts[1].substring(0, 2);
+            const s = parts[2] ? parts[2].substring(0, 2) : '00';
+            if (isNaN(h)) return timeStr;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${String(h).padStart(2, '0')}:${m}:${s} ${ampm}`;
+        }
+
+        // Helper: Format raw date into readable string
+        function formatReadableDate(dateStr) {
+            if (!dateStr || dateStr === 'N/A') return 'August 2, 2026';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        // Helper: Apply threshold color class to a KPI Card element
+        function setKpiCardState(cardId, state) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            card.classList.remove('kpi-normal', 'kpi-moderate', 'kpi-critical');
+            if (state === 'critical') card.classList.add('kpi-critical');
+            else if (state === 'moderate') card.classList.add('kpi-moderate');
+            else card.classList.add('kpi-normal');
+        }
         
         window.onload = function() {
             updateKPIs();
@@ -390,7 +499,7 @@
                     });
                 }
             });
-        }
+        };
         
         function initGeocoder() {
             const geocoder = new MapboxGeocoder({
@@ -461,27 +570,33 @@
             const rVal = parseFloat(document.getElementById("rainfall").value) || 0;
             const dVal = parseFloat(document.getElementById("discharge").value) || 0;
             
+            // Water Level Thresholds
             const levelWarning = thresholdData.level !== undefined ? thresholdData.level : 2.5;
             const levelCritical = thresholdData.level_high !== undefined ? thresholdData.level_high : 4;
-            let waterColor = "#198754";
-            if (wVal >= levelCritical) waterColor = "#dc3545";
-            else if (wVal >= levelWarning) waterColor = "#d9a000";
+            let waterState = "normal";
+            if (wVal >= levelCritical) waterState = "critical";
+            else if (wVal >= levelWarning) waterState = "moderate";
+            setKpiCardState('kpiCardWater', waterState);
             
+            // Rainfall Thresholds
             const rainWarning = thresholdData.rain !== undefined ? thresholdData.rain : 40;
             const rainCritical = thresholdData.rain_high !== undefined ? thresholdData.rain_high : 80;
-            let rainColor = "#0dcaf0";
-            if (rVal >= rainCritical) rainColor = "#dc3545";
-            else if (rVal >= rainWarning) rainColor = "#d9a000";
+            let rainState = "normal";
+            if (rVal >= rainCritical) rainState = "critical";
+            else if (rVal >= rainWarning) rainState = "moderate";
+            setKpiCardState('kpiCardRain', rainState);
             
+            // Flow/Discharge Thresholds
             const flowWarning = thresholdData.flow !== undefined ? thresholdData.flow : 60;
             const flowCritical = thresholdData.flow_high !== undefined ? thresholdData.flow_high : 125;
-            let flowColor = "#198754";
-            if (dVal >= flowCritical) flowColor = "#dc3545";
-            else if (dVal >= flowWarning) flowColor = "#d9a000";
+            let flowState = "normal";
+            if (dVal >= flowCritical) flowState = "critical";
+            else if (dVal >= flowWarning) flowState = "moderate";
+            setKpiCardState('kpiCardFlow', flowState);
             
-            document.getElementById("kpiWater").innerHTML = `<span style="color: ${waterColor}">${wVal} m</span>`;
-            document.getElementById("kpiRain").innerHTML = `<span style="color: ${rainColor}">${rVal} mm</span>`;
-            document.getElementById("kpiDischarge").innerHTML = `<span style="color: ${flowColor}">${dVal} m³/s</span>`;
+            document.getElementById("kpiWater").innerHTML = `${wVal.toFixed(2)} m`;
+            document.getElementById("kpiRain").innerHTML = `${rVal.toFixed(2)} mm`;
+            document.getElementById("kpiDischarge").innerHTML = `${dVal.toFixed(2)} m³/s`;
         }
         
         const firebaseConfig = {
@@ -569,6 +684,9 @@
                 lastLevel = level;
                 lastRain = rain;
                 lastFlow = flow;
+
+                currentFirebaseDate = v.dt ?? v.date ?? "";
+                currentFirebaseTime = v.t ?? v.time ?? "";
             });
             
             historyLabels = getPastTenDaysLabels();
@@ -592,8 +710,8 @@
                 const fAvg = fChunk.length ? fChunk.reduce((a, b) => a + b, 0) / fChunk.length : lastFlow;
                 
                 historyWater.push(Number(wAvg.toFixed(2)));
-                historyRain.push(Number(rAvg.toFixed(1)));
-                historyFlow.push(Number(fAvg.toFixed(1)));
+                historyRain.push(Number(rAvg.toFixed(2)));
+                historyFlow.push(Number(fAvg.toFixed(2)));
             }
             
             setSensorInputs(lastLevel, lastRain, lastFlow);
@@ -653,7 +771,7 @@
             
             const elevInput = document.getElementById('elevation');
             if (elevInput) {
-                elevInput.value = Math.round(elevation);
+                elevInput.value = elevation.toFixed(2);
             }
             
             const geoQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=address,neighborhood,locality,place`;
@@ -715,97 +833,185 @@
             const currentDischarge = parseFloat(document.getElementById('discharge').value) || 0;
             const elevation = parseFloat(document.getElementById('elevation').value) || 0;
             
-            let interpretText = "Low / Safe Scenario";
-            let interpretColor = "#198754";
-            let recommendation = "";
+            let interpretTitle = "", alertBadgeClass = "", interpretColor = "", humanRecommendationsHTML = "";
             
             if (finalRisk >= 70) {
-                interpretText = `Alert Level 3 - Red Warning (${finalRisk}% Risk)`;
-                interpretColor = "#dc3545"; 
-                recommendation = `
-              <div class="alert alert-danger d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #dc3545;">
-                <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i>
-                <div>
-                  <strong class="d-block text-danger">CRITICAL HAZARD (Forced Evacuation)</strong>
-                  <p class="mb-1 small">Severe flood threat detected! Water level at <b>${currentWater.toFixed(2)}m</b> with <b>${currentRain.toFixed(1)}mm</b> rainfall and elevation of <b>${elevation.toFixed(1)}m</b> indicates imminent flash flooding.</p>
-                  <ul class="ps-3 mb-0 small">
-                    <li><i class="bi bi-house-exclamation me-1"></i>Move to designated high-ground evacuation centers immediately.</li>
-                    <li><i class="bi bi-x-octagon me-1"></i>Do not walk or drive through moving floodwaters.</li>
-                  </ul>
-                </div>
-              </div>`;
+                interpretTitle = `Critical Flash Flood Threat (${finalRisk}% Probability)`;
+                alertBadgeClass = "bg-danger text-white";
+                interpretColor = "#dc3545";
+                
+                humanRecommendationsHTML = `
+                    <!-- Action 1: Evacuate on Foot/Vehicle to High Ground -->
+                    <div class="human-action-card border-danger-subtle bg-danger-subtle">
+                        <div class="human-action-icon bg-danger text-white">
+                            <i class="bi bi-person-walking"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-danger small fw-bold">Evacuate Immediately to High Ground</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Guide your family, children, and elderly directly to designated evacuation centers now.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 2: Do Not Walk or Drive Through Floodwaters -->
+                    <div class="human-action-card border-danger-subtle bg-white">
+                        <div class="human-action-icon bg-danger text-white">
+                            <i class="bi bi-sign-stop-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-danger small fw-bold">Do Not Walk or Drive in Floodwaters</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Never cross flowing rivers or flooded streets on foot or motorcycle. Turn around, don't drown.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 3: Turn Off Circuit Breakers and Gas -->
+                    <div class="human-action-card border-danger-subtle bg-white">
+                        <div class="human-action-icon bg-secondary text-white">
+                            <i class="bi bi-power"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Turn Off Main Breakers & Gas Tanks</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Switch off electricity at the main breaker and tightly close LPG valves before leaving home.</p>
+                        </div>
+                    </div>`;
+                    
             } else if (finalRisk >= 50) {
-                interpretText = `Alert Level 2 - Orange Advisory (${finalRisk}% Risk)`;
-                interpretColor = "#fd7e14"; 
-                recommendation = `
-              <div class="alert alert-warning text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #fd7e14; background-color: #fff3cd;">
-                <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0"></i>
-                <div>
-                  <strong class="d-block text-warning-emphasis">HIGH VULNERABILITY (Pre-emptive Evacuation)</strong>
-                  <p class="mb-1 small">River water levels are approaching dangerous bank limits in low-lying areas.</p>
-                  <ul class="ps-3 mb-0 small">
-                    <li><i class="bi bi-box-seam me-1"></i>Secure emergency kits and water supplies.</li>
-                    <li><i class="bi bi-plug me-1"></i>Transfer electrical assets and valuables to higher floors.</li>
-                    <li><i class="bi bi-broadcast me-1"></i>Monitor local government advisories closely.</li>
-                  </ul>
-                </div>
-              </div>`;
+                interpretTitle = `Elevated Flood Warning (${finalRisk}% Probability)`;
+                alertBadgeClass = "bg-warning text-dark";
+                interpretColor = "#ea580c";
+                
+                humanRecommendationsHTML = `
+                    <!-- Action 1: Grab Emergency Go-Bag -->
+                    <div class="human-action-card border-warning-subtle bg-warning-subtle">
+                        <div class="human-action-icon bg-warning text-dark">
+                            <i class="bi bi-backpack-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Prepare Your Emergency Go-Bag</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Pack bottled water, dry food, flashlights, essential medicines, and waterproofed IDs.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 2: Move Possessions to Upper Floor -->
+                    <div class="human-action-card border-warning-subtle bg-white">
+                        <div class="human-action-icon bg-warning text-dark">
+                            <i class="bi bi-arrow-up-circle-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Elevate Home Assets & Appliances</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Transfer electronic devices, cooking supplies, and beds to the second floor or higher furniture.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 3: Assist Vulnerable Family Members -->
+                    <div class="human-action-card border-warning-subtle bg-white">
+                        <div class="human-action-icon bg-primary text-white">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Assist Elderly, Children & PWDs</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Ensure vulnerable household members are prepared for early preemptive evacuation.</p>
+                        </div>
+                    </div>`;
+                    
             } else if (finalRisk >= 20) {
-                interpretText = `Alert Level 1 - Yellow Advisory (${finalRisk}% Risk)`;
-                interpretColor = "#d9a000"; 
-                recommendation = `
-              <div class="alert alert-info text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #d9a000; background-color: #fff8e1;">
-                <i class="bi bi-info-circle-fill fs-4 flex-shrink-0" style="color: #d9a000;"></i>
-                <div>
-                  <strong class="d-block" style="color: #b38300;">MODERATE / MONITORING PHASE</strong>
-                  <p class="mb-1 small">Rising water trends observed upstream.</p>
-                  <ul class="ps-3 mb-0 small">
-                    <li><i class="bi bi-journal-check me-1"></i>Prepare family emergency kits.</li>
-                    <li><i class="bi bi-trash me-1"></i>Clear community drainage pathways to prevent blockages.</li>
-                    <li><i class="bi bi-truck me-1"></i>Prepare livestock or vehicles for potential relocation.</li>
-                  </ul>
-                </div>
-              </div>`;
+                interpretTitle = `Moderate Flood Precaution (${finalRisk}% Probability)`;
+                alertBadgeClass = "bg-yellow-moderate";
+                interpretColor = "#a16207";
+                
+                humanRecommendationsHTML = `
+                    <!-- Action 1: Listen to Announcements -->
+                    <div class="human-action-card border" style="background-color: #fefce8;">
+                        <div class="human-action-icon bg-warning text-dark">
+                            <i class="bi bi-megaphone-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Monitor Local Community Broadcasts</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Stay tuned to local barangay radio, mobile advisory alerts, and social media announcements.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 2: Clean House Drainages -->
+                    <div class="human-action-card border bg-white">
+                        <div class="human-action-icon bg-info text-white">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Clear Home Gutters & Yard Canals</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Remove leaves and trash from yard drains and gutters to allow continuous rainwater discharge.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 3: Charge Flashlights and Phones -->
+                    <div class="human-action-card border bg-white">
+                        <div class="human-action-icon bg-secondary text-white">
+                            <i class="bi bi-battery-charging"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Fully Charge Phones & Powerbanks</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Charge mobile devices and emergency flashlights in case of power interruption.</p>
+                        </div>
+                    </div>`;
+                    
             } else {
-                recommendation = `
-              <div class="alert alert-success text-dark d-flex align-items-start gap-2 p-2 mt-2 mb-0 shadow-sm" style="border-left: 5px solid #198754; background-color: #e8f5e9;">
-                <i class="bi bi-shield-check text-success fs-4 flex-shrink-0"></i>
-                <div>
-                  <strong class="d-block text-success">SAFE CONDITIONS</strong>
-                  <p class="mb-0 small">Low hazard detected under current parameters. Maintain standard weather monitoring and general community awareness.</p>
-                </div>
-              </div>`;
+                interpretTitle = `Normal / Safe Conditions (${finalRisk}% Probability)`;
+                alertBadgeClass = "bg-success text-white";
+                interpretColor = "#16a34a";
+                
+                humanRecommendationsHTML = `
+                    <!-- Action 1: Safe Status -->
+                    <div class="human-action-card border-success-subtle bg-success-subtle">
+                        <div class="human-action-icon bg-success text-white">
+                            <i class="bi bi-house-check-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-success small fw-bold">No Immediate Flood Hazard</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">River water and rainfall levels are normal. Continue daily activities safely.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 2: Routine Check -->
+                    <div class="human-action-card border bg-white">
+                        <div class="human-action-icon bg-light text-muted border">
+                            <i class="bi bi-shield-check text-secondary"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark small fw-bold">Maintain Routine Preparedness</strong>
+                            <p class="mb-0 text-dark" style="font-size: 0.76rem;">Keep your household emergency kit stocked and check local weather forecasts periodically.</p>
+                        </div>
+                    </div>`;
             }
             
-            const displayMunicipality = currentMunicipality ? currentMunicipality : "--";
+            const displayDate = formatReadableDate(currentFirebaseDate);
+            const displayTime = formatTo12Hour(currentFirebaseTime);
             
             const analysisContent = `
-            <div style="padding:4px; font-family: system-ui, -apple-system, sans-serif;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-dark small">${currentLocationName}</span>
-                </div>
-            
-                <div class="d-flex justify-content-between mb-1">
-                    <span class="text-dark small">Target Elevation:</span>
-                    <span class="fw-semibold small">${elevation.toFixed(1)}m MSL</span>
+            <div style="font-family: system-ui, -apple-system, sans-serif;">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="fw-bold text-dark text-truncate me-2" style="font-size: 0.95rem;">${currentLocationName}</span>
+                    <span class="badge ${alertBadgeClass} px-2 py-1">${finalRisk}% Risk</span>
                 </div>
 
-                <div class="d-flex justify-content-between mb-1">
-                    <span class="text-dark small">Municipality:</span>
-                    <span class="fw-semibold small text-primary">${displayMunicipality}</span>
+                <!-- Date & 12-Hour Telemetry Timestamp Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded text-dark" style="font-size: 0.76rem;">
+                    <span class="fw-semibold"><i class="bi bi-calendar-event text-primary me-1"></i> ${displayDate}</span>
+                    <span class="fw-semibold"><i class="bi bi-clock-history text-primary me-1"></i> ${displayTime}</span>
                 </div>
-                
-                <div class="mt-2 pt-2 border-top">
-                    <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Model Interpretation</span>
-                    <span class="fw-bold d-block" style="color: ${interpretColor}; font-size: 0.88rem;">${interpretText}</span>
+
+                <div class="mb-3">
+                    <span class="dss-section-title d-block mb-1">Local Risk Assessment</span>
+                    <div class="fw-bold" style="color: ${interpretColor}; font-size: 0.95rem;">
+                        ${interpretTitle}
+                    </div>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">Ground Elevation: ${elevation.toFixed(2)} m MSL</small>
                 </div>
-                
-                <div class="mt-2">
-                    <span class="text-dark d-block text-uppercase" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">Actionable Recommendation</span>
-                    ${recommendation}
+
+                <!-- ILLUSTRATED HUMAN ACTIONS -->
+                <div class="mb-2">
+                    <span class="dss-section-title d-block mb-2">Recommended Human Actions</span>
+                    ${humanRecommendationsHTML}
                 </div>
             </div>
-        `;
+            `;
             
             const infoPanel = document.getElementById('details'); 
             if (infoPanel) {
@@ -892,14 +1098,14 @@
                 return;
             }
             
-            let html = `<div class="row g-2 g-md-3">`;
+            let html = `<div class="row g-2">`;
                 
                 // Severe Section
                 html += `
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-danger">
-                        <strong class="text-danger small"><i class="bi bi-exclamation-octagon-fill me-1"></i> Severe Hazard (≥70%)</strong>
+                        <strong class="text-danger small"><i class="bi bi-exclamation-octagon-fill me-1"></i> Critical (≥70%)</strong>
                         <span class="badge bg-danger">${barangayRiskData.severe.length}</span>
                     </div>
                     <div class="brgy-list-scroll">
@@ -918,7 +1124,7 @@
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
-                        <strong class="text-warning-emphasis small"><i class="bi bi-exclamation-triangle-fill me-1"></i> High Vulnerability (50-69%)</strong>
+                        <strong class="text-warning-emphasis small"><i class="bi bi-exclamation-triangle-fill me-1"></i> High (50-69%)</strong>
                         <span class="badge bg-warning text-dark">${barangayRiskData.high.length}</span>
                     </div>
                     <div class="brgy-list-scroll">
@@ -937,14 +1143,14 @@
             <div class="col-12 col-md-4">
                 <div class="border rounded p-2 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-warning">
-                        <strong style="color: #b38300;" class="small"><i class="bi bi-info-circle-fill me-1"></i> Moderate Risk (20-49%)</strong>
-                        <span class="badge bg-dark-yellow">${barangayRiskData.moderate.length}</span>
+                        <strong style="color: #854d0e;" class="small"><i class="bi bi-info-circle-fill me-1"></i> Moderate (20-49%)</strong>
+                        <span class="badge bg-yellow-moderate">${barangayRiskData.moderate.length}</span>
                     </div>
                     <div class="brgy-list-scroll">
                         ${barangayRiskData.moderate.length > 0 ? barangayRiskData.moderate.map(b => `
                             <div class="d-flex justify-content-between align-items-center border-bottom py-1">
                                 <span class="small text-dark fw-semibold">${b.name}</span>
-                                <span class="badge bg-dark-yellow brgy-badge">${b.val}%</span>
+                                <span class="badge bg-yellow-moderate brgy-badge">${b.val}%</span>
                             </div>
                         `).join('') : '<span class="text-muted extra-small">None predicted</span>'}
                     </div>
@@ -982,17 +1188,29 @@
                     predictions.push(pred[0] * 100);
                     
                     forecastWater.push(Number((last[0] + h * 0.05).toFixed(2)));
-                    forecastRain.push(Number((last[1] + h * 1.2).toFixed(1)));
-                    forecastFlow.push(Number((last[2] + h * 0.8).toFixed(1)));
+                    forecastRain.push(Number((last[1] + h * 1.2).toFixed(2)));
+                    forecastFlow.push(Number((last[2] + h * 0.8).toFixed(2)));
                     
                     last[0] += 0.05; 
                 }
                 lastProbData = predictions;
                 const v = Math.round(predictions[0]);
                 
-                const riskColor = v < 20 ? "#198754" : v < 50 ? "#d9a000" : v < 70 ? "#fd7e14" : "#dc3545";
+                let riskState = "normal";
+                let riskText = "Low / Safe";
+                if (v >= 70) {
+                    riskState = "critical";
+                    riskText = "Critical";
+                } else if (v >= 50) {
+                    riskState = "critical";
+                    riskText = "High Risk";
+                } else if (v >= 20) {
+                    riskState = "moderate";
+                    riskText = "Moderate";
+                }
                 
-                document.getElementById("kpiRisk").innerHTML = `<b style="color:${riskColor}">${v}%</b>`;
+                setKpiCardState('kpiCardRisk', riskState);
+                document.getElementById("kpiRisk").innerHTML = `${v}% <small class="d-block" style="font-size:0.75rem; font-weight:700;">${riskText}</small>`;
                 
                 updateDashboardViews(v);
                 
@@ -1033,7 +1251,7 @@
                     document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
                     
                     annotations = {
-                        line1: { type: 'line', yScaleID: 'y', yMin: levelWarning, yMax: levelWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Warning (${levelWarning}m)` } },
+                        line1: { type: 'line', yScaleID: 'y', yMin: levelWarning, yMax: levelWarning, borderColor: '#eab308', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Warning (${levelWarning}m)` } },
                         line2: { type: 'line', yScaleID: 'y', yMin: levelCritical, yMax: levelCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Level Critical (${levelCritical}m)` } }
                     };
                 } else if (kpiType === 'rain') {
@@ -1047,7 +1265,7 @@
                     document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
                     
                     annotations = {
-                        line1: { type: 'line', yScaleID: 'y', yMin: rainWarning, yMax: rainWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Warning (${rainWarning}mm)` } },
+                        line1: { type: 'line', yScaleID: 'y', yMin: rainWarning, yMax: rainWarning, borderColor: '#eab308', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Warning (${rainWarning}mm)` } },
                         line2: { type: 'line', yScaleID: 'y', yMin: rainCritical, yMax: rainCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Rain Critical (${rainCritical}mm)` } }
                     };
                 } else if (kpiType === 'flow') {
@@ -1061,7 +1279,7 @@
                     document.getElementById("kpiModalTitle").innerText = "10-Day Historical Reference & Future Forecast";
                     
                     annotations = {
-                        line1: { type: 'line', yScaleID: 'y', yMin: flowWarning, yMax: flowWarning, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${flowWarning}m³/s)` } },
+                        line1: { type: 'line', yScaleID: 'y', yMin: flowWarning, yMax: flowWarning, borderColor: '#eab308', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Warning (${flowWarning}m³/s)` } },
                         line2: { type: 'line', yScaleID: 'y', yMin: flowCritical, yMax: flowCritical, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: `Flow Critical (${flowCritical}m³/s)` } }
                     };
                 } else {
@@ -1072,9 +1290,9 @@
                     document.getElementById("kpiModalTitle").innerText = "Flood Risk Probability Forecast (+1h, +3h, +12h, +24h)";
                     
                     annotations = {
-                        line1: { type: 'line', yScaleID: 'y', yMin: 20, yMax: 20, borderColor: '#d9a000', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Yellow (20%)' } },
-                        line2: { type: 'line', yScaleID: 'y', yMin: 50, yMax: 50, borderColor: '#fd7e14', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Orange (50%)' } },
-                        line3: { type: 'line', yScaleID: 'y', yMin: 70, yMax: 70, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Red (70%)' } }
+                        line1: { type: 'line', yScaleID: 'y', yMin: 20, yMax: 20, borderColor: '#eab308', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Moderate (20%)' } },
+                        line2: { type: 'line', yScaleID: 'y', yMin: 50, yMax: 50, borderColor: '#ea580c', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'High (50%)' } },
+                        line3: { type: 'line', yScaleID: 'y', yMin: 70, yMax: 70, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], label: { display: true, content: 'Critical (70%)' } }
                     };
                 }
                 
@@ -1144,4 +1362,4 @@
         </script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>
-    </html>
+</html>
