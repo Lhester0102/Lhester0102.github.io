@@ -296,7 +296,7 @@
   
   <!-- Add/Edit River Station Modal Form -->
   <div class="modal fade" id="addStationModal" tabindex="-1" aria-labelledby="addStationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow">
         <div class="modal-header bg-primary text-white">
           <h6 class="modal-title fw-bold" id="addStationModalLabel"><i class="bi bi-plus-circle-fill me-2"></i><span id="stationModalTitleText">Add New River Station</span></h6>
@@ -305,14 +305,18 @@
         <form id="addStationForm">
           <input type="hidden" id="editStationKey">
           <div class="modal-body p-3">
-            <div class="mb-3">
-              <label for="newStationName" class="form-label small fw-bold">Station Name</label>
-              <input type="text" class="form-control form-control-sm" id="newStationName" placeholder="e.g., Station Alpha" required>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="newStationName" class="form-label small fw-bold">Station Name</label>
+                <input type="text" class="form-control form-control-sm" id="newStationName" placeholder="e.g., Station Alpha" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="newStationInterval" class="form-label small fw-bold">Interval (Seconds)</label>
+                <input type="number" class="form-control form-control-sm" id="newStationInterval" placeholder="e.g., 90" value="90" min="1" required>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="newStationInterval" class="form-label small fw-bold">Interval (Seconds)</label>
-              <input type="number" class="form-control form-control-sm" id="newStationInterval" placeholder="e.g., 90" value="90" min="1" required>
-            </div>
+            
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label for="newStationLat" class="form-label small fw-bold">Latitude</label>
@@ -325,381 +329,409 @@
             </div>
             
             <!-- Dynamic Node Field Container -->
-            <div class="mb-3" id="nodeFieldContainer">
-              <!-- Dynamically rendered as <input> for Add or <select> for Edit/Update -->
+            <div class="mb-3" id="nodeFieldContainer"></div>
+
+            <hr class="my-2">
+            <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-sliders me-1 text-primary"></i> Station Threshold Settings (stations/{id}/threshold)</h6>
+            
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">Water Level (m)</label>
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text" style="width: 65px;">Level</span>
+                  <input type="number" step="any" class="form-control" id="threshLevel" placeholder="5" value="5">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control" id="threshLevelHigh" placeholder="10" value="10">
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">Water Flow (m³/s)</label>
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text" style="width: 65px;">Flow</span>
+                  <input type="number" step="any" class="form-control" id="threshFlow" placeholder="50" value="50">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control" id="threshFlowHigh" placeholder="150" value="150">
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">Rainfall (mm)</label>
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text" style="width: 65px;">Rain</span>
+                  <input type="number" step="any" class="form-control" id="threshRain" placeholder="10" value="10">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="width: 65px;">High</span>
+                  <input type="number" step="any" class="form-control" id="threshRainHigh" placeholder="30" value="30">
+                </div>
               </div>
             </div>
-            <div class="modal-footer bg-light py-2">
-              <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-sm btn-primary fw-bold" id="saveStationBtnText">Save Station</button>
-            </div>
-          </form>
-        </div>
+
+          </div>
+          <div class="modal-footer bg-light py-2">
+            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-sm btn-primary fw-bold" id="saveStationBtnText">Save Station</button>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
     
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <script>
+    let allReports = []; 
+    let currentFilteredData = [];
+    const liveTelemetry = {};
+    let availableNodesList = [];
     
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    let modalMapInstance = null;
+    let modalMarkerInstance = null;
     
-    <script>
-      let allReports = []; 
-      let currentFilteredData = [];
-      let globalThresholds = {}; // Stores threshold document fetched from firebase.com > threshold
-      const liveTelemetry = {};
-      let availableNodesList = [];
-      
-      let modalMapInstance = null;
-      let modalMarkerInstance = null;
-      
-      const MAPBOX_TOKEN = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
-      mapboxgl.accessToken = MAPBOX_TOKEN;
-      
-      window.onload = function() {
-        if (sessionStorage.getItem('loggedIn') !== 'true') {
-          window.location.href = 'log.html';
-        }
-        document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin Operator";
-        listenToGlobalThresholds();
-      };
-      
-      // Firebase Config
-      const firebaseConfig = {
-        apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
-        authDomain: "flooded-95eeb.firebaseapp.com",
-        projectId: "flooded-95eeb",
-        storageBucket: "flooded-95eeb.firebasestorage.app",
-        messagingSenderId: "142547476223",
-        appId: "1:142547476223:web:70de7014c664e26d0636ca"
-      };
-      
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
-      
-      // Fetch threshold object from firebase.com > threshold
-      function listenToGlobalThresholds() {
-        db.ref('threshold').on('value', snapshot => {
-          if (snapshot.exists()) {
-            globalThresholds = snapshot.val() || {};
-          } else {
-            globalThresholds = {};
-          }
-          renderTable();
-        });
+    const MAPBOX_TOKEN = 'pk.eyJ1IjoibGhlc3RlcjA4IiwiYSI6ImNtaHFmc3BncjBwZGQybHM0NWN3ejNoNnIifQ.2kEE1OBDTgpnse5-F8QGeg';
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    
+    window.onload = function() {
+      if (sessionStorage.getItem('loggedIn') !== 'true') {
+        window.location.href = 'log.html';
       }
-      
-      // Dynamic UI Node Field Rendering
-      function renderNodeInput(value = '') {
-        const container = document.getElementById('nodeFieldContainer');
-        container.innerHTML = `
+      document.getElementById("emails").innerHTML = sessionStorage.getItem("userEmail") || "Admin Operator";
+    };
+    
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcayr5NOjbrAuLn7bkUovRWVyG4O9wMPk",
+      authDomain: "flooded-95eeb.firebaseapp.com",
+      projectId: "flooded-95eeb",
+      storageBucket: "flooded-95eeb.firebasestorage.app",
+      messagingSenderId: "142547476223",
+      appId: "1:142547476223:web:70de7014c664e26d0636ca"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Dynamic UI Node Field Rendering
+    function renderNodeInput(value = '') {
+      const container = document.getElementById('nodeFieldContainer');
+      container.innerHTML = `
         <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
         <input type="text" class="form-control form-control-sm" id="newStationNode" placeholder="e.g., data4" value="${value}" required>
       `;
-      }
-      
-      function renderNodeDropdown(selectedVal = '') {
-        const container = document.getElementById('nodeFieldContainer');
-        container.innerHTML = `
+    }
+    
+    function renderNodeDropdown(selectedVal = '') {
+      const container = document.getElementById('nodeFieldContainer');
+      container.innerHTML = `
         <label for="newStationNode" class="form-label small fw-bold">Node Name</label>
         <select class="form-select form-select-sm" id="newStationNode" required>
           <option value="">Select Node Name</option>
         </select>
       `;
-        loadNodesDropdownOptions(selectedVal);
-      }
-      
-      // Fetch node names dynamically from nodes->id->name
-      function loadNodesDropdownOptions(selectedVal = '') {
-        db.ref('nodes').on('value', snapshot => {
-          const nodeSelect = document.getElementById('newStationNode');
-          if (!nodeSelect || nodeSelect.tagName !== 'SELECT') return;
-          
-          nodeSelect.innerHTML = '<option value="">Select Node Name</option>';
-          availableNodesList = [];
-          
-          if (snapshot.exists()) {
-            snapshot.forEach(childSnap => {
-              const nodeData = childSnap.val();
-              if (nodeData && nodeData.name) {
-                availableNodesList.push(nodeData.name);
-              }
-            });
-          }
-          
-          // Fallback options if nodes path is empty
-          if (availableNodesList.length === 0) {
-            availableNodesList = ['data', 'data2', 'data3'];
-          }
-          
-          // Deduplicate
-          const uniqueNodes = [...new Set(availableNodesList)];
-          uniqueNodes.forEach(nodeName => {
-            const opt = document.createElement('option');
-            opt.value = nodeName;
-            opt.textContent = nodeName;
-            if (nodeName === selectedVal) {
-              opt.selected = true;
+      loadNodesDropdownOptions(selectedVal);
+    }
+    
+    // Fetch node names dynamically from nodes->id->name
+    function loadNodesDropdownOptions(selectedVal = '') {
+      db.ref('nodes').on('value', snapshot => {
+        const nodeSelect = document.getElementById('newStationNode');
+        if (!nodeSelect || nodeSelect.tagName !== 'SELECT') return;
+        
+        nodeSelect.innerHTML = '<option value="">Select Node Name</option>';
+        availableNodesList = [];
+        
+        if (snapshot.exists()) {
+          snapshot.forEach(childSnap => {
+            const nodeData = childSnap.val();
+            if (nodeData && nodeData.name) {
+              availableNodesList.push(nodeData.name);
             }
-            nodeSelect.appendChild(opt);
           });
-        });
-      }
-      
-      // Helper: Reverse Geocoding Address Details via Mapbox API
-      async function getAddressFromCoords(lng, lat) {
-        try {
-          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data && data.features && data.features.length > 0) {
-            return data.features[0].place_name;
+        }
+        
+        if (availableNodesList.length === 0) {
+          availableNodesList = ['data', 'data2', 'data3'];
+        }
+        
+        const uniqueNodes = [...new Set(availableNodesList)];
+        uniqueNodes.forEach(nodeName => {
+          const opt = document.createElement('option');
+          opt.value = nodeName;
+          opt.textContent = nodeName;
+          if (nodeName === selectedVal) {
+            opt.selected = true;
           }
-        } catch (err) {
-          console.error("Geocoding Error:", err);
-        }
-        return "Address unavailable";
-      }
-      
-      // NOAH Elevation Threshold Evaluator
-      function getNOAHElevationBadge(elevationVal) {
-        if (elevationVal === null || elevationVal === undefined || isNaN(elevationVal)) {
-          return { label: 'N/A', badgeClass: 'bg-secondary text-white' };
-        }
-        
-        const ele = parseFloat(elevationVal);
-        const formatted = `${ele.toFixed(1)} m MSL`;
-        
-        if (ele <= 20) {
-          return { label: `${formatted} (High Risk / Critical Low Elevation)`, badgeClass: 'badge-critical' }; 
-        } else if (ele <= 30) {
-          return { label: `${formatted} (Medium Risk / Alarm Low Elevation)`, badgeClass: 'badge-alarm' }; 
-        } else if (ele <= 50) {
-          return { label: `${formatted} (Low Risk / Alert Elevation)`, badgeClass: 'badge-alert' }; 
-        }
-        return { label: `${formatted} (Safe / High Ground)`, badgeClass: 'badge-normal' }; 
-      }
-      
-      // Helper: Get Elevation in MSL via DEM API / Mapbox DEM query
-      async function getElevationMSLData(lng, lat, mapInstance) {
-        let rawElevation = null;
-        
-        if (mapInstance && typeof mapInstance.queryTerrainElevation === 'function') {
-          const ele = mapInstance.queryTerrainElevation([lng, lat]);
-          if (ele !== null && ele !== undefined) {
-            rawElevation = parseFloat(ele);
-          }
-        }
-        
-        if (rawElevation === null) {
-          try {
-            const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data && data.elevation && data.elevation.length > 0) {
-              rawElevation = parseFloat(data.elevation[0]);
-            }
-          } catch (err) {
-            console.error("Elevation API Error:", err);
-          }
-        }
-        
-        return getNOAHElevationBadge(rawElevation);
-      }
-      
-      // Color Standard Evaluator referenced from firebase threshold database: if >= high is badge-critical, >= normal is badge-alert, else badge-normal
-      function getLevelBadgeClass(val, station) {
-        const v = parseFloat(val) || 0;
-        const high = parseFloat(globalThresholds.levelHigh ?? globalThresholds.level_high ?? station.high ?? 10);
-        const normal = parseFloat(globalThresholds.levelNormal ?? globalThresholds.level_normal ?? station.normal ?? 5);
-        
-        if (v >= high) return 'badge-critical';
-        if (v >= normal) return 'badge-alert';
-        return 'badge-normal';
-      }
-      
-      function getFlowBadgeClass(val, station) {
-        const v = parseFloat(val) || 0;
-        const high = parseFloat(globalThresholds.flowHigh ?? globalThresholds.flow_high ?? 150);
-        const normal = parseFloat(globalThresholds.flowNormal ?? globalThresholds.flow_normal ?? 50);
-        
-        if (v >= high) return 'badge-critical';
-        if (v >= normal) return 'badge-alert';
-        return 'badge-normal';
-      }
-      
-      function getRainBadgeClass(val, station) {
-        const v = parseFloat(val) || 0;
-        const high = parseFloat(globalThresholds.rainHigh ?? globalThresholds.rain_high ?? 30);
-        const normal = parseFloat(globalThresholds.rainNormal ?? globalThresholds.rain_normal ?? 10);
-        
-        if (v >= high) return 'badge-critical';
-        if (v >= normal) return 'badge-alert';
-        return 'badge-normal';
-      }
-      
-      function getThresholdRowClass(level, station) {
-        const currentLevel = parseFloat(level) || 0;
-        const highThreshold = parseFloat(globalThresholds.levelHigh ?? globalThresholds.level_high ?? station.high ?? Infinity);
-        const normalThreshold = parseFloat(globalThresholds.levelNormal ?? globalThresholds.level_normal ?? station.normal ?? Infinity);
-        
-        if (currentLevel >= highThreshold) {
-          return 'row-status-critical';
-        } else if (currentLevel >= normalThreshold) {
-          return 'row-status-alert';
-        }
-        return 'row-status-normal';
-      }
-      
-      // Seconds to Minutes & Seconds conversion object
-      function getMinSecObj(totalSeconds) {
-        const sec = parseInt(totalSeconds, 10) || 0;
-        return {
-          m: Math.floor(sec / 60),
-          s: sec % 60
-        };
-      }
-      
-      // Helper to format Date from Firebase to MM-DD-YYYY
-      function formatDateToMMDDYYYY(dateStr) {
-        if (!dateStr || dateStr === 'N/A') return '';
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr; 
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${month}-${day}-${year}`;
-      }
-      
-      // Helper to format Time from Firebase to 12-hour format with AM/PM
-      function formatTimeTo12Hour(timeStr) {
-        if (!timeStr || timeStr === 'N/A') return '';
-        const parts = timeStr.trim().split(':');
-        if (parts.length < 2) return timeStr; 
-        let hours = parseInt(parts[0], 10);
-        const minutes = parts[1].substring(0, 2); 
-        if (isNaN(hours)) return timeStr;
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; 
-        const formattedHours = String(hours).padStart(2, '0');
-        return `${formattedHours}:${minutes} ${ampm}`;
-      }
-      
-      function formatField(f) {
-        return (f === undefined || f === null || f === 'N/A') ? '' : f;
-      }
-      
-      const stationsRef = db.ref('stations');
-      const rowLimitSelect = document.getElementById('filterRowLimit');
-      
-      // Listen to data nodes and dynamic telemetry nodes
-      const activeDataNodes = new Set(['data', 'data2', 'data3']);
-      
-      function attachNodeListener(nodeKey) {
-        if (!nodeKey || activeDataNodes.has(nodeKey)) return;
-        activeDataNodes.add(nodeKey);
-        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
-          if (!snapshot.exists()) return;
-          snapshot.forEach(child => {
-            const val = child.val();
-            liveTelemetry[nodeKey] = {
-              level: parseFloat(val.water ?? val.level ?? 0),
-              flow: parseFloat(val.flow ?? val.discharge ?? 0),
-              rain: parseFloat(val.rain ?? val.rainfall ?? 0),
-              date: val.date ?? val.timestamp ?? val.time ?? null,
-              time: val.time ?? val.timestamp ?? null
-            };
-          });
-          renderTable();
-        });
-      }
-      
-      ['data', 'data2', 'data3'].forEach(nodeKey => {
-        db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
-          if (!snapshot.exists()) return;
-          snapshot.forEach(child => {
-            const val = child.val();
-            liveTelemetry[nodeKey] = {
-              level: parseFloat(val.water ?? val.level ?? 0),
-              flow: parseFloat(val.flow ?? val.discharge ?? 0),
-              rain: parseFloat(val.rain ?? val.rainfall ?? 0),
-              date: val.date ?? val.timestamp ?? val.time ?? null,
-              time: val.time ?? val.timestamp ?? null
-            };
-          });
-          renderTable();
+          nodeSelect.appendChild(opt);
         });
       });
-      
-      function updateStationFilter() {
-        const stationSelect = document.getElementById('filterStation');
-        const currentValue = stationSelect.value;
-        const uniqueStations = [...new Set(allReports.map(item => item.station || item.city || 'Unknown'))].filter(s => s !== '');
-        
-        stationSelect.innerHTML = '<option value="">All Stations</option>';
-        uniqueStations.sort().forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = s;
-          opt.textContent = s;
-          if (s === currentValue) opt.selected = true;
-          stationSelect.appendChild(opt);
-        });
+    }
+    
+    // Helper: Reverse Geocoding Address Details via Mapbox API
+    async function getAddressFromCoords(lng, lat) {
+      try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.features && data.features.length > 0) {
+          return data.features[0].place_name;
+        }
+      } catch (err) {
+        console.error("Geocoding Error:", err);
+      }
+      return "Address unavailable";
+    }
+    
+    // NOAH Elevation Threshold Evaluator
+    function getNOAHElevationBadge(elevationVal) {
+      if (elevationVal === null || elevationVal === undefined || isNaN(elevationVal)) {
+        return { label: 'N/A', badgeClass: 'bg-secondary text-white' };
       }
       
-      function renderTable() {
-        const tableBody = document.getElementById('flood-data-table');
-        tableBody.innerHTML = '';
-        
-        const userLgu = sessionStorage.getItem('userLgu');
-        const isDisabled = userLgu !== 'All' ? 'disabled' : '';
-        
-        const stationFilter = document.getElementById('filterStation').value.toLowerCase();
-        const rowLimit = rowLimitSelect.value;
-        
-        currentFilteredData = allReports.filter(item => {
-          const stationValue = item.station || item.city || '';
-          return !stationFilter || stationValue.toLowerCase().includes(stationFilter);
+      const ele = parseFloat(elevationVal);
+      const formatted = `${ele.toFixed(1)} m MSL`;
+      
+      if (ele <= 20) {
+        return { label: `${formatted} (High Risk / Critical Low Elevation)`, badgeClass: 'badge-critical' }; 
+      } else if (ele <= 30) {
+        return { label: `${formatted} (Medium Risk / Alarm Low Elevation)`, badgeClass: 'badge-alarm' }; 
+      } else if (ele <= 50) {
+        return { label: `${formatted} (Low Risk / Alert Elevation)`, badgeClass: 'badge-alert' }; 
+      }
+      return { label: `${formatted} (Safe / High Ground)`, badgeClass: 'badge-normal' }; 
+    }
+    
+    // Helper: Get Elevation in MSL via DEM API / Mapbox DEM query
+    async function getElevationMSLData(lng, lat, mapInstance) {
+      let rawElevation = null;
+      
+      if (mapInstance && typeof mapInstance.queryTerrainElevation === 'function') {
+        const ele = mapInstance.queryTerrainElevation([lng, lat]);
+        if (ele !== null && ele !== undefined) {
+          rawElevation = parseFloat(ele);
+        }
+      }
+      
+      if (rawElevation === null) {
+        try {
+          const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.elevation && data.elevation.length > 0) {
+            rawElevation = parseFloat(data.elevation[0]);
+          }
+        } catch (err) {
+          console.error("Elevation API Error:", err);
+        }
+      }
+      
+      return getNOAHElevationBadge(rawElevation);
+    }
+    
+    // Evaluators targeting stations -> {id} -> threshold directly (using level, flow, rain for normal basis)
+    function getLevelBadgeClass(val, station) {
+      const v = parseFloat(val) || 0;
+      const t = station.threshold || {};
+      const high = parseFloat(t.levelHigh ?? t.level_high ?? 10);
+      const normal = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? 5);
+      
+      if (v >= high) return 'badge-critical';
+      if (v >= normal) return 'badge-alert';
+      return 'badge-normal';
+    }
+    
+    function getFlowBadgeClass(val, station) {
+      const v = parseFloat(val) || 0;
+      const t = station.threshold || {};
+      const high = parseFloat(t.flowHigh ?? t.flow_high ?? 150);
+      const normal = parseFloat(t.flow ?? t.flowNormal ?? t.flow_normal ?? 50);
+      
+      if (v >= high) return 'badge-critical';
+      if (v >= normal) return 'badge-alert';
+      return 'badge-normal';
+    }
+    
+    function getRainBadgeClass(val, station) {
+      const v = parseFloat(val) || 0;
+      const t = station.threshold || {};
+      const high = parseFloat(t.rainHigh ?? t.rain_high ?? 30);
+      const normal = parseFloat(t.rain ?? t.rainNormal ?? t.rain_normal ?? 10);
+      
+      if (v >= high) return 'badge-critical';
+      if (v >= normal) return 'badge-alert';
+      return 'badge-normal';
+    }
+    
+    function getThresholdRowClass(level, station) {
+      const currentLevel = parseFloat(level) || 0;
+      const t = station.threshold || {};
+      const highThreshold = parseFloat(t.levelHigh ?? t.level_high ?? Infinity);
+      const normalThreshold = parseFloat(t.level ?? t.levelNormal ?? t.level_normal ?? Infinity);
+      
+      if (currentLevel >= highThreshold) {
+        return 'row-status-critical';
+      } else if (currentLevel >= normalThreshold) {
+        return 'row-status-alert';
+      }
+      return 'row-status-normal';
+    }
+    
+    // Seconds to Minutes & Seconds conversion object
+    function getMinSecObj(totalSeconds) {
+      const sec = parseInt(totalSeconds, 10) || 0;
+      return {
+        m: Math.floor(sec / 60),
+        s: sec % 60
+      };
+    }
+    
+    // Helper to format Date from Firebase to MM-DD-YYYY
+    function formatDateToMMDDYYYY(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr; 
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${month}-${day}-${year}`;
+    }
+    
+    // Helper to format Time from Firebase to 12-hour format with AM/PM
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr || timeStr === 'N/A') return '';
+      const parts = timeStr.trim().split(':');
+      if (parts.length < 2) return timeStr; 
+      let hours = parseInt(parts[0], 10);
+      const minutes = parts[1].substring(0, 2); 
+      if (isNaN(hours)) return timeStr;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      const formattedHours = String(hours).padStart(2, '0');
+      return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    function formatField(f) {
+      return (f === undefined || f === null || f === 'N/A') ? '' : f;
+    }
+    
+    const stationsRef = db.ref('stations');
+    const rowLimitSelect = document.getElementById('filterRowLimit');
+    
+    // Listen to data nodes and dynamic telemetry nodes
+    const activeDataNodes = new Set(['data', 'data2', 'data3']);
+    
+    function attachNodeListener(nodeKey) {
+      if (!nodeKey || activeDataNodes.has(nodeKey)) return;
+      activeDataNodes.add(nodeKey);
+      db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        snapshot.forEach(child => {
+          const val = child.val();
+          liveTelemetry[nodeKey] = {
+            level: parseFloat(val.water ?? val.level ?? 0),
+            flow: parseFloat(val.flow ?? val.discharge ?? 0),
+            rain: parseFloat(val.rain ?? val.rainfall ?? 0),
+            date: val.date ?? val.timestamp ?? val.time ?? null,
+            time: val.time ?? val.timestamp ?? null
+          };
         });
+        renderTable();
+      });
+    }
+    
+    ['data', 'data2', 'data3'].forEach(nodeKey => {
+      db.ref(nodeKey).orderByKey().limitToLast(1).on('value', snapshot => {
+        if (!snapshot.exists()) return;
+        snapshot.forEach(child => {
+          const val = child.val();
+          liveTelemetry[nodeKey] = {
+            level: parseFloat(val.water ?? val.level ?? 0),
+            flow: parseFloat(val.flow ?? val.discharge ?? 0),
+            rain: parseFloat(val.rain ?? val.rainfall ?? 0),
+            date: val.date ?? val.timestamp ?? val.time ?? null,
+            time: val.time ?? val.timestamp ?? null
+          };
+        });
+        renderTable();
+      });
+    });
+    
+    function updateStationFilter() {
+      const stationSelect = document.getElementById('filterStation');
+      const currentValue = stationSelect.value;
+      const uniqueStations = [...new Set(allReports.map(item => item.station || item.city || 'Unknown'))].filter(s => s !== '');
+      
+      stationSelect.innerHTML = '<option value="">All Stations</option>';
+      uniqueStations.sort().forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        if (s === currentValue) opt.selected = true;
+        stationSelect.appendChild(opt);
+      });
+    }
+    
+    function renderTable() {
+      const tableBody = document.getElementById('flood-data-table');
+      tableBody.innerHTML = '';
+      
+      const userLgu = sessionStorage.getItem('userLgu');
+      const isDisabled = userLgu !== 'All' ? 'disabled' : '';
+      
+      const stationFilter = document.getElementById('filterStation').value.toLowerCase();
+      const rowLimit = rowLimitSelect.value;
+      
+      currentFilteredData = allReports.filter(item => {
+        const stationValue = item.station || item.city || '';
+        return !stationFilter || stationValue.toLowerCase().includes(stationFilter);
+      });
+      
+      let displayData = [...currentFilteredData];
+      if (rowLimit !== 'all') {
+        displayData = displayData.slice(0, parseInt(rowLimit));
+      }
+      
+      document.getElementById('activeStationCount').innerText = `${allReports.length} Live Stations`;
+      
+      if (displayData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-dark small">No stations found matching filters.</td></tr>';
+        return;
+      }
+      
+      for (const item of displayData) {
+        const stationStr = formatField(item.station || item.city);
+        const intervalVal = item.interval || 15;
+        const timeObj = getMinSecObj(intervalVal);
         
-        let displayData = [...currentFilteredData];
-        if (rowLimit !== 'all') {
-          displayData = displayData.slice(0, parseInt(rowLimit));
-        }
+        // Power status represented visually with Bootstrap Toggle Icons
+        const isOnline = item.status == 1;
+        const powerIconHTML = isOnline 
+        ? `<i class="bi bi-toggle-on text-success fs-3" title="Power: ON"></i>` 
+        : `<i class="bi bi-toggle-off text-secondary fs-3" title="Power: OFF"></i>`;
         
-        document.getElementById('activeStationCount').innerText = `${allReports.length} Live Stations`;
+        const telemetryNode = item.node || 'data';
+        attachNodeListener(telemetryNode);
+        const sensor = liveTelemetry[telemetryNode] || { level: 0, flow: 0, rain: 0, date: null, time: null };
+        const dateStr = formatDateToMMDDYYYY(formatField(sensor.date));
+        const timeStr = formatTimeTo12Hour(formatField(sensor.time));
         
-        if (displayData.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-dark small">No stations found matching filters.</td></tr>';
-          return;
-        }
+        // Calculate thresholds background classes referencing stations->{id}->threshold
+        const thresholdRowClass = getThresholdRowClass(sensor.level, item);
+        const levelClass = getLevelBadgeClass(sensor.level, item);
+        const flowClass = getFlowBadgeClass(sensor.flow, item);
+        const rainClass = getRainBadgeClass(sensor.rain, item);
         
-        for (const item of displayData) {
-          const stationStr = formatField(item.station || item.city);
-          const intervalVal = item.interval || 15;
-          const timeObj = getMinSecObj(intervalVal);
-          
-          // Power status represented visually with Bootstrap Toggle Icons
-          const isOnline = item.status == 1;
-          const powerIconHTML = isOnline 
-          ? `<i class="bi bi-toggle-on text-success fs-3" title="Power: ON"></i>` 
-          : `<i class="bi bi-toggle-off text-secondary fs-3" title="Power: OFF"></i>`;
-          
-          const telemetryNode = item.node || 'data';
-          attachNodeListener(telemetryNode);
-          const sensor = liveTelemetry[telemetryNode] || { level: 0, flow: 0, rain: 0, date: null, time: null };
-          const dateStr = formatDateToMMDDYYYY(formatField(sensor.date));
-          const timeStr = formatTimeTo12Hour(formatField(sensor.time));
-          
-          // Calculate thresholds background classes
-          const thresholdRowClass = getThresholdRowClass(sensor.level, item);
-          const levelClass = getLevelBadgeClass(sensor.level, item);
-          const flowClass = getFlowBadgeClass(sensor.flow, item);
-          const rainClass = getRainBadgeClass(sensor.rain, item);
-          
-          const rowHTML = `
+        const rowHTML = `
         <tr class="${thresholdRowClass} clickable-row" onclick="openStationModal('${item.__key}')">
             <td class="ps-3"> 
               <div class="fw-bold text-dark" style="font-size: 1rem;"><i class="bi bi-router-fill"></i>${stationStr}</div>
@@ -761,83 +793,83 @@
               </button>
             </td>
         </tr>`;
-          tableBody.innerHTML += rowHTML;
-        }
-      } 
+        tableBody.innerHTML += rowHTML;
+      }
+    } 
+    
+    function openStationModal(stationKey) {
+      const station = allReports.find(s => s.__key === stationKey);
+      if (!station) return;
       
-      function openStationModal(stationKey) {
-        const station = allReports.find(s => s.__key === stationKey);
-        if (!station) return;
+      const lat = parseFloat(station.lat ?? station.latitude ?? 18.187710);
+      const lng = parseFloat(station.lng ?? station.longitude ?? station.lon ?? 120.587385);
+      const stationName = station.station || station.city || "River Station";
+      
+      document.getElementById('stationModalLabel').innerHTML = `<i class="bi bi-geo-alt-fill me-2"></i> ${stationName} Details`;
+      
+      const modalElement = document.getElementById('stationModal');
+      const bsModal = new bootstrap.Modal(modalElement);
+      bsModal.show();
+      
+      modalElement.addEventListener('shown.bs.modal', () => {
+        if (modalMapInstance) {
+          modalMapInstance.remove();
+          modalMapInstance = null;
+        }
         
-        const lat = parseFloat(station.lat ?? station.latitude ?? 18.187710);
-        const lng = parseFloat(station.lng ?? station.longitude ?? station.lon ?? 120.587385);
-        const stationName = station.station || station.city || "River Station";
+        modalMapInstance = new mapboxgl.Map({
+          container: 'modalMap',
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [lng, lat],
+          zoom: 13,
+          pitch: 0
+        });
         
-        document.getElementById('stationModalLabel').innerHTML = `<i class="bi bi-geo-alt-fill me-2"></i> ${stationName} Details`;
+        modalMapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
         
-        const modalElement = document.getElementById('stationModal');
-        const bsModal = new bootstrap.Modal(modalElement);
-        bsModal.show();
+        modalMapInstance.on('load', () => {
+          modalMapInstance.resize();
+        });
         
-        modalElement.addEventListener('shown.bs.modal', () => {
-          if (modalMapInstance) {
-            modalMapInstance.remove();
-            modalMapInstance = null;
-          }
-          
-          modalMapInstance = new mapboxgl.Map({
-            container: 'modalMap',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [lng, lat],
-            zoom: 13,
-            pitch: 0
-          });
-          
-          modalMapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
-          
-          modalMapInstance.on('load', () => {
-            modalMapInstance.resize();
-          });
-          
-          const initialPopupHTML = `
+        const initialPopupHTML = `
           <div class="p-1">
             <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-router-fill me-1"></i>${stationName}</h6>
             <div class="small text-muted mb-1"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
             <div class="small text-secondary">Click pin to load NOAH elevation details...</div>
           </div>
         `;
+        
+        const popupInstance = new mapboxgl.Popup({ offset: 25, maxWidth: '340px' }).setHTML(initialPopupHTML);
+        
+        modalMarkerInstance = new mapboxgl.Marker({ color: '#1c96c5' })
+        .setLngLat([lng, lat])
+        .setPopup(popupInstance)
+        .addTo(modalMapInstance);
+        
+        const markerElement = modalMarkerInstance.getElement();
+        markerElement.style.cursor = 'pointer';
+        markerElement.addEventListener('click', async () => {
+          modalMapInstance.flyTo({
+            center: [lng, lat],
+            zoom: 17,
+            pitch: 65,
+            duration: 2000,
+            essential: true
+          });
           
-          const popupInstance = new mapboxgl.Popup({ offset: 25, maxWidth: '340px' }).setHTML(initialPopupHTML);
-          
-          modalMarkerInstance = new mapboxgl.Marker({ color: '#1c96c5' })
-          .setLngLat([lng, lat])
-          .setPopup(popupInstance)
-          .addTo(modalMapInstance);
-          
-          const markerElement = modalMarkerInstance.getElement();
-          markerElement.style.cursor = 'pointer';
-          markerElement.addEventListener('click', async () => {
-            modalMapInstance.flyTo({
-              center: [lng, lat],
-              zoom: 17,
-              pitch: 65,
-              duration: 2000,
-              essential: true
-            });
-            
-            popupInstance.setHTML(`
+          popupInstance.setHTML(`
             <div class="p-2 text-center" style="min-width: 220px;">
               <div class="spinner-border spinner-border-sm text-primary mb-1" role="status"></div>
               <div class="small fw-medium text-dark">Evaluating NOAH Elevation & Address...</div>
             </div>
           `);
-            
-            const [addressDetail, eleNOAH] = await Promise.all([
+          
+          const [addressDetail, eleNOAH] = await Promise.all([
             getAddressFromCoords(lng, lat),
             getElevationMSLData(lng, lat, modalMapInstance)
-            ]);
-            
-            const detailedPopupHTML = `
+          ]);
+          
+          const detailedPopupHTML = `
             <div class="p-1" style="width: 100%;">
               <h6 class="fw-bold mb-2 text-primary border-bottom pb-1 text-break">
                 <i class="bi bi-geo-alt-fill me-1 text-danger"></i>${stationName}
@@ -854,194 +886,224 @@
               </div>
             </div>
           `;
-            
-            popupInstance.setHTML(detailedPopupHTML);
-            if (!popupInstance.isOpen()) {
-              modalMarkerInstance.togglePopup();
-            }
-          });
-        }, { once: true });
-      }
+          
+          popupInstance.setHTML(detailedPopupHTML);
+          if (!popupInstance.isOpen()) {
+            modalMarkerInstance.togglePopup();
+          }
+        });
+      }, { once: true });
+    }
+    
+    window.handleMinSecChange = (source, key) => {
+      const minEl = document.getElementById(`min_${key}`);
+      const secEl = document.getElementById(`sec_${key}`);
       
-      window.handleMinSecChange = (source, key) => {
-        const minEl = document.getElementById(`min_${key}`);
-        const secEl = document.getElementById(`sec_${key}`);
-        
-        const mins = parseInt(minEl.value, 10) || 0;
-        const secs = parseInt(secEl.value, 10) || 0;
-        
-        const totalSeconds = (mins * 60) + secs;
-        
-        const itemRef = db.ref(`${source}/${key}`);
-        itemRef.update({ interval: totalSeconds || 15 })
-        .then(() => console.log(`Assigned interval: ${mins}m ${secs}s (${totalSeconds}s) to node: ${key}`))
-        .catch(err => alert("Realtime Sync Error: " + err.message));
+      const mins = parseInt(minEl.value, 10) || 0;
+      const secs = parseInt(secEl.value, 10) || 0;
+      
+      const totalSeconds = (mins * 60) + secs;
+      
+      const itemRef = db.ref(`${source}/${key}`);
+      itemRef.update({ interval: totalSeconds || 15 })
+      .then(() => console.log(`Assigned interval: ${mins}m ${secs}s (${totalSeconds}s) to node: ${key}`))
+      .catch(err => alert("Realtime Sync Error: " + err.message));
+    };
+    
+    function openAddStationModal() {
+      document.getElementById('addStationForm').reset();
+      document.getElementById('editStationKey').value = '';
+      document.getElementById('stationModalTitleText').innerText = 'Add New River Station';
+      document.getElementById('saveStationBtnText').innerText = 'Save Station';
+      
+      // Default thresholds for new station (level, flow, rain)
+      document.getElementById('threshLevel').value = 5;
+      document.getElementById('threshLevelHigh').value = 10;
+      document.getElementById('threshFlow').value = 50;
+      document.getElementById('threshFlowHigh').value = 150;
+      document.getElementById('threshRain').value = 10;
+      document.getElementById('threshRainHigh').value = 30;
+      
+      // Render text input for Node when Adding
+      renderNodeInput();
+      
+      const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
+      myModal.show();
+    }
+    
+    function openEditStationModal(stationKey) {
+      const station = allReports.find(s => s.__key === stationKey);
+      if (!station) return;
+      
+      document.getElementById('editStationKey').value = stationKey;
+      document.getElementById('newStationName').value = station.station || station.city || '';
+      document.getElementById('newStationInterval').value = station.interval || 90;
+      document.getElementById('newStationLat').value = station.lat || station.latitude || '';
+      document.getElementById('newStationLng').value = station.lng || station.longitude || '';
+      
+      // Populate threshold inputs directly from stations/{id}/threshold using level, flow, and rain
+      const t = station.threshold || {};
+      document.getElementById('threshLevel').value = t.level ?? t.levelNormal ?? t.level_normal ?? 5;
+      document.getElementById('threshLevelHigh').value = t.levelHigh ?? t.level_high ?? 10;
+      document.getElementById('threshFlow').value = t.flow ?? t.flowNormal ?? t.flow_normal ?? 50;
+      document.getElementById('threshFlowHigh').value = t.flowHigh ?? t.flow_high ?? 150;
+      document.getElementById('threshRain').value = t.rain ?? t.rainNormal ?? t.rain_normal ?? 10;
+      document.getElementById('threshRainHigh').value = t.rainHigh ?? t.rain_high ?? 30;
+      
+      // Render dropdown for Node when Editing
+      renderNodeDropdown(station.node || '');
+      
+      document.getElementById('stationModalTitleText').innerText = 'Edit River Station';
+      document.getElementById('saveStationBtnText').innerText = 'Update Station';
+      
+      const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
+      myModal.show();
+    }
+    
+    // Handle form submission to add/edit river station and sync nodes
+    document.getElementById('addStationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const editKey = document.getElementById('editStationKey').value;
+      const stationName = document.getElementById('newStationName').value.trim();
+      const interval = parseInt(document.getElementById('newStationInterval').value, 10) || 15;
+      const latitude = parseFloat(document.getElementById('newStationLat').value);
+      const longitude = parseFloat(document.getElementById('newStationLng').value);
+      const nodeName = document.getElementById('newStationNode').value.trim();
+      
+      // Construct threshold object using level, flow, and rain keys
+      const thresholdData = {
+        level: parseFloat(document.getElementById('threshLevel').value) || 5,
+        levelHigh: parseFloat(document.getElementById('threshLevelHigh').value) || 10,
+        flow: parseFloat(document.getElementById('threshFlow').value) || 50,
+        flowHigh: parseFloat(document.getElementById('threshFlowHigh').value) || 150,
+        rain: parseFloat(document.getElementById('threshRain').value) || 10,
+        rainHigh: parseFloat(document.getElementById('threshRainHigh').value) || 30
       };
       
-      function openAddStationModal() {
-        document.getElementById('addStationForm').reset();
-        document.getElementById('editStationKey').value = '';
-        document.getElementById('stationModalTitleText').innerText = 'Add New River Station';
-        document.getElementById('saveStationBtnText').innerText = 'Save Station';
-        
-        // Render text input for Node when Adding
-        renderNodeInput();
-        
-        const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
-        myModal.show();
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const dateToday = `${yyyy}-${mm}-${dd}`;
+      
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeToday = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
+      
+      const stationData = {
+        station: stationName,
+        interval: interval,
+        lat: latitude,
+        lng: longitude,
+        node: nodeName,
+        status: 1,
+        threshold: thresholdData
+      };
+      
+      const telemetryDataPayload = {
+        date: dateToday,
+        flow: 0.00,
+        level: 0.00,
+        rain: 0,
+        station: stationName,
+        time: timeToday
+      };
+      
+      let stationRefToUse;
+      if (editKey) {
+        stationRefToUse = db.ref(`stations/${editKey}`);
+      } else {
+        stationRefToUse = stationsRef.push();
       }
       
-      function openEditStationModal(stationKey) {
-        const station = allReports.find(s => s.__key === stationKey);
-        if (!station) return;
-        
-        document.getElementById('editStationKey').value = stationKey;
-        document.getElementById('newStationName').value = station.station || station.city || '';
-        document.getElementById('newStationInterval').value = station.interval || 90;
-        document.getElementById('newStationLat').value = station.lat || station.latitude || '';
-        document.getElementById('newStationLng').value = station.lng || station.longitude || '';
-        
-        // Render dropdown for Node when Editing
-        renderNodeDropdown(station.node || '');
-        
-        document.getElementById('stationModalTitleText').innerText = 'Edit River Station';
-        document.getElementById('saveStationBtnText').innerText = 'Update Station';
-        
-        const myModal = new bootstrap.Modal(document.getElementById('addStationModal'));
-        myModal.show();
-      }
+      const generatedId = stationRefToUse.key;
       
-      // Handle form submission to add/edit river station and sync nodes
-      document.getElementById('addStationForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const editKey = document.getElementById('editStationKey').value;
-        const stationName = document.getElementById('newStationName').value.trim();
-        const interval = parseInt(document.getElementById('newStationInterval').value, 10) || 15;
-        const latitude = parseFloat(document.getElementById('newStationLat').value);
-        const longitude = parseFloat(document.getElementById('newStationLng').value);
-        const nodeName = document.getElementById('newStationNode').value.trim();
-        
-        const now = new Date();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const yyyy = now.getFullYear();
-        const dateToday = `${yyyy}-${mm}-${dd}`;
-        
-        let hours = now.getHours();
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const timeToday = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
-        
-        const stationData = {
-          station: stationName,
-          interval: interval,
-          lat: latitude,
-          lng: longitude,
-          node: nodeName,
-          status: 1
-        };
-        
-        const telemetryDataPayload = {
-          date: dateToday,
-          flow: 0.00,
-          level: 0.00,
-          rain: 0,
-          station: stationName,
-          time: timeToday
-        };
-        
-        let stationRefToUse;
-        if (editKey) {
-          stationRefToUse = db.ref(`stations/${editKey}`);
-        } else {
-          stationRefToUse = stationsRef.push();
-        }
-        
-        const generatedId = stationRefToUse.key;
-        
-        const updates = {};
-        updates[`stations/${generatedId}`] = stationData;
-        updates[`nodes/${generatedId}/name`] = nodeName;
+      const updates = {};
+      updates[`stations/${generatedId}`] = stationData;
+      updates[`nodes/${generatedId}/name`] = nodeName;
+      if (!editKey) {
         updates[`${nodeName}/${generatedId}`] = telemetryDataPayload;
+      }
+      
+      db.ref().update(updates)
+      .then(() => {
+        Swal.fire({
+          title: 'Success!',
+          text: editKey ? 'River station updated successfully.' : 'New river station added successfully.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         
-        db.ref().update(updates)
-        .then(() => {
+        document.getElementById('addStationForm').reset();
+        const modalEl = document.getElementById('addStationModal');
+        const modalObj = bootstrap.Modal.getInstance(modalEl);
+        modalObj.hide();
+      })
+      .catch(err => {
+        Swal.fire({
+          title: 'Error',
+          text: 'Operation failed: ' + err.message,
+          icon: 'error'
+        });
+      });
+    });
+    
+    // Snapshot Listener for Stations Node
+    stationsRef.on('value', (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        allReports = Object.keys(data).map(key => ({
+          ...data[key],
+          __key: key,
+          __source: 'stations'
+        }));
+      } else {
+        allReports = [];
+      }
+      
+      updateStationFilter();
+      renderTable();
+    });
+    
+    document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+      const stationSelect = document.getElementById('filterStation');
+      if(stationSelect) stationSelect.selectedIndex = 0;
+      rowLimitSelect.value = '10'; 
+      renderTable();
+    });
+    
+    document.getElementById('logoutLink').addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          sessionStorage.clear();
           Swal.fire({
-            title: 'Success!',
-            text: editKey ? 'River station updated successfully.' : 'New river station added successfully.',
+            title: 'Logged Out',
+            text: 'You have been logged out successfully.',
             icon: 'success',
             timer: 1500,
             showConfirmButton: false
+          }).then(() => {
+            window.location.href = 'log.html';
           });
-          
-          document.getElementById('addStationForm').reset();
-          const modalEl = document.getElementById('addStationModal');
-          const modalObj = bootstrap.Modal.getInstance(modalEl);
-          modalObj.hide();
-        })
-        .catch(err => {
-          Swal.fire({
-            title: 'Error',
-            text: 'Operation failed: ' + err.message,
-            icon: 'error'
-          });
-        });
-      });
-      
-      // Snapshot Listener for Stations Node
-      stationsRef.on('value', (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          allReports = Object.keys(data).map(key => ({
-            ...data[key],
-            __key: key,
-            __source: 'stations'
-          }));
-        } else {
-          allReports = []
         }
-        
-        updateStationFilter();
-        renderTable();
       });
-      
-      document.getElementById('btnApplyFilters').addEventListener('click', renderTable);
-      document.getElementById('btnResetFilters').addEventListener('click', () => {
-        const stationSelect = document.getElementById('filterStation');
-        if(stationSelect) stationSelect.selectedIndex = 0;
-        rowLimitSelect.value = '10'; 
-        renderTable();
-      });
-      
-      document.getElementById('logoutLink').addEventListener('click', function (e) {
-        e.preventDefault();
-        
-        Swal.fire({
-          title: 'Logout?',
-          text: 'Are you sure you want to log out?',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Yes, Logout',
-          cancelButtonText: 'No'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            sessionStorage.clear();
-            Swal.fire({
-              title: 'Logged Out',
-              text: 'You have been logged out successfully.',
-              icon: 'success',
-              timer: 1500,
-              showConfirmButton: false
-            }).then(() => {
-              window.location.href = 'log.html';
-            });
-          }
-        });
-      });
-    </script>
-    <script src="menu.js"></script>
-  </body>
-  </html>
+    });
+  </script>
+  <script src="menu.js"></script>
+</body>
+</html>

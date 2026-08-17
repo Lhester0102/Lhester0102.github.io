@@ -21,6 +21,7 @@
             background: #f4f6f9; 
             overflow: hidden; 
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; 
+            color: #1e293b;
         }
         
         /* App Viewport Container */
@@ -42,7 +43,7 @@
         }
         
         .nav-link { 
-            color: rgba(255,255,255,0.85); 
+            color: rgba(255,255,255,0.9); 
             transition: 0.2s; 
             border-radius: 5px; 
             margin-bottom: 2px; 
@@ -78,10 +79,21 @@
         .mobile-brand img { width: 35px; height: 35px; }
         .mobile-brand h6 { margin: 0; font-size: 0.95rem; font-weight: bold; }
 
-        /* Custom Darker Yellow Badge */
-        .bg-dark-yellow {
-            background-color: #d9a000 !important;
+        /* High-Contrast Risk Badges */
+        .bg-risk-moderate {
+            background-color: #b45309 !important;
             color: #ffffff !important;
+            font-weight: 700;
+        }
+        .bg-risk-high {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        .bg-risk-severe {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+            font-weight: 700;
         }
         
         @media (max-width: 767.98px) {
@@ -94,30 +106,58 @@
             background-color: #ffffff;
             border-left: 6px solid #1c96c5;
         }
-        .barangay-subitem {
-            background-color: #f8f9fa;
-            border-left: 4px solid #6c757d;
-            transition: all 0.2s ease;
-        }
-        .barangay-subitem:hover {
-            background-color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .barangay-subitem.risk-severe { border-left-color: #dc3545; background-color: #fff8f8; }
-        .barangay-subitem.risk-orange { border-left-color: #fd7e14; background-color: #fffcf5; }
-        .barangay-subitem.risk-yellow, .barangay-subitem.risk-moderate { border-left-color: #d9a000; background-color: #fffdf0; }
-        .barangay-subitem.risk-low { border-left-color: #198754; }
         
-        /* Collapsible Toggle Styling */
-        .collapse-toggle-btn {
+        /* Simplified Barangay Collapsible Design */
+        .barangay-table-wrapper {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .barangay-row {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            transition: background-color 0.15s ease;
+        }
+
+        .barangay-row:last-child {
+            border-bottom: none;
+        }
+
+        .barangay-row:hover {
+            background-color: #f8fafc;
+        }
+
+        .barangay-row.risk-severe { border-left: 5px solid #dc2626; }
+        .barangay-row.risk-orange { border-left: 5px solid #ea580c; }
+        .barangay-row.risk-yellow, .barangay-row.risk-moderate { border-left: 5px solid #b45309; }
+
+        .action-protocol-text {
+            font-size: 0.8rem;
+            color: #0f172a;
+            font-weight: 600;
+            margin-top: 0.35rem;
+            line-height: 1.35;
+        }
+
+        .collapse-toggle-clean {
             cursor: pointer;
             user-select: none;
-            transition: background-color 0.2s;
-            background-color: #e9ecef;
+            padding: 0.65rem 0.9rem;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            transition: all 0.2s ease;
         }
-        .collapse-toggle-btn:hover { background-color: #dee2e6; }
+
+        .collapse-toggle-clean:hover {
+            background-color: #e2e8f0;
+        }
+
         .collapse-icon { transition: transform 0.2s ease; }
-        .collapse-toggle-btn[aria-expanded="true"] .collapse-icon { transform: rotate(180deg); }
+        .collapse-toggle-clean[aria-expanded="true"] .collapse-icon { transform: rotate(180deg); }
         
         /* Container Fill Logic */
         .viewport-fit-wrapper {
@@ -141,13 +181,13 @@
         
         .metric-label {
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: 0.5px;
-            color: #495057;
+            color: #0f172a;
             text-transform: uppercase;
         }
         .metric-value {
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             font-weight: 800;
         }
     </style>
@@ -170,7 +210,7 @@
                 </div>
                 
                 <div class="text-center mb-4 d-none d-md-block">
-                    <img src="images/GDSS.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
+                    <img src="images/gds.png" class="rounded-circle w-75 mb-2 border shadow-sm" alt="Logo">
                     <h6 class="fw-bold mb-0 fs-6">Geospatial DSS</h6>
                 </div>
                 
@@ -198,7 +238,7 @@
                 </ul>
             </nav>
             
-            <!-- Main Content Display Viewport -->
+            <!-- Main Content Area -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
                 
                 <!-- Header Control Bar -->
@@ -215,34 +255,23 @@
                             <a href="dash.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-speedometer2"></i> Main Dashboard</a>
                             <a href="dash4.html" class="p-2 btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-exclamation-triangle-fill text-warning"></i> Flood Warnings</a>
                             <a href="newindex3.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-map-fill text-info"></i> Flood Map</a>
-                            <!-- <a href="floods4.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm"><i class="bi bi-list text-info"></i> All Barangays</a> -->
                         </div>
 
-                        <div class="dropdown d-md-none">
-                            <button class="p-2 btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown"><i class="bi bi-grid-fill me-1"></i> Navigation</button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                                <li><a class="dropdown-item small" href="dash.html"><i class="bi bi-speedometer2 me-2 text-primary"></i>Main Dashboard</a></li>
-                                <li><a class="dropdown-item small active" href="dash4.html"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Flood Warnings</a></li>
-                                <li><a class="dropdown-item small" href="newindex3.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
-                                <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li>
-                            </ul>
-                        </div>
-                        
                         <div class="dropdown">
-                            <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
+                            <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2 fw-semibold text-dark" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle fs-6"></i>
                                 <span id="emails">User Loading...</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                                 <li><h6 class="dropdown-header text-dark small fw-semibold">Account Management</h6></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item small" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
+                                <li><a class="dropdown-item small text-dark" href="users2.html"><i class="bi bi-person me-2 text-primary"></i>My Account</a></li>
                             </ul>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Main Container Card -->
+                <!-- Main Content Body -->
                 <div class="card p-3 bg-white shadow-sm viewport-fit-wrapper">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 border-bottom pb-2 flex-shrink-0">
                         <h6 class="fw-bold mb-0 text-dark fs-6">Monitored River Stations & Barangay Risk Status</h6>
@@ -251,7 +280,7 @@
                     
                     <div class="viewport-scroll-container">
                         <div id="stationsListContainer" class="d-flex flex-column gap-3">
-                            <div class="text-center py-5 text-muted fw-semibold">
+                            <div class="text-center py-5 text-dark fw-bold">
                                 <div class="spinner-border spinner-border-sm text-primary me-2"></div>
                                 Loading river telemetry data and calculating risk warnings...
                             </div>
@@ -263,7 +292,7 @@
         </div>
     </div>
     
-    <!-- Third-Party Scripts -->
+    <!-- JavaScript Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="menu.js"></script>
@@ -286,22 +315,35 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
         
-        let model = null, minVals = [], maxVals = [], allBarangayPins = [];
-        
-        const stationDefinitions = [
-            { node: "data", id: "baldi", name: "Baldi River Station", basin: "Baldi River Basin", municipalities: ["Pasuquin"] },
-            { node: "data2", id: "padsan", name: "Padsan River Station", basin: "Padsan River Basin", municipalities: ["Laoag City", "Laoag", "San Nicolas"] },
-            { node: "data3", id: "bislak", name: "Bislak River Station", basin: "Bislak River Basin", municipalities: ["Bacarra", "Vintar"] }
+        let model = null, minVals = [], maxVals = [];
+        let allBarangayPins = [];
+        let firebaseStations = [];
+        const liveDataStore = {};
+        const activeNodeListeners = new Set();
+
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
         ];
         
-        const liveDataStore = {
-            data: { level: 0, rain: 0, flow: 0, time: "" },
-            data2: { level: 0, rain: 0, flow: 0, time: "" },
-            data3: { level: 0, rain: 0, flow: 0, time: "" }
-        };
-
-        // Stores dynamic limits fetched from Firebase database (path: /threshold)
-        let firebaseThresholds = {};
+        // Helper: Format raw timestamps to "Month, Day, Year • 12-Hour Time AM/PM"
+        function formatDateTime(rawDateStr) {
+            const dateObj = rawDateStr ? new Date(rawDateStr) : new Date();
+            const validDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+            
+            const month = monthNames[validDate.getMonth()];
+            const day = validDate.getDate();
+            const year = validDate.getFullYear();
+            
+            let hours = validDate.getHours();
+            const minutes = validDate.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const formattedHours = hours.toString().padStart(2, '0');
+            
+            return `${month}, ${day}, ${year} • ${formattedHours}:${minutes} ${ampm}`;
+        }
         
         window.addEventListener('DOMContentLoaded', async () => {
             if (sessionStorage.getItem('loggedIn') !== 'true') { 
@@ -319,8 +361,7 @@
             
             await loadNeuralModel();
             await fetchBarangayPins();
-            setupLiveThresholds();
-            setupLiveTelemetry();
+            setupLiveStations();
         });
         
         async function loadNeuralModel() {
@@ -354,9 +395,9 @@
                     
                     snapshot.forEach(child => {
                         const pin = child.val();
-                        if (pin.node) {
+                        if (pin.node || pin.stationId || pin.station) {
                             const name = (pin.name || pin.barangayName || "Unknown Barangay").trim();
-                            const muni = pin.municipality || "Laoag City";
+                            const muni = pin.municipality || pin.muni || "Laoag City";
                             const uniqueKey = `${muni.toLowerCase()}-${name.toLowerCase()}`;
                             const parsedElevation = parseFloat(pin.elevation ?? pin.elev ?? pin.targetElevation ?? pin.altitude);
                             
@@ -366,7 +407,8 @@
                                     id: child.key,
                                     name: name,
                                     municipality: muni,
-                                    node: pin.node,
+                                    node: pin.node || pin.stationNode || "",
+                                    stationId: pin.stationId || pin.station || "",
                                     lat: parseFloat(pin.latitude || pin.lat || 18.19),
                                     lng: parseFloat(pin.longitude || pin.lng || 120.59),
                                     elevation: !isNaN(parsedElevation) ? parsedElevation : 12.5
@@ -382,37 +424,74 @@
             }
         }
 
-        // Live Listener for Dynamic Thresholds stored under /threshold path in Firebase
-        function setupLiveThresholds() {
-            onValue(ref(db, 'threshold'), (snapshot) => {
-                if (snapshot.exists()) {
-                    firebaseThresholds = snapshot.val();
-                } else {
-                    firebaseThresholds = {};
+        // Live Listener for stations directly loaded from firebase.com -> stations
+        function setupLiveStations() {
+            onValue(ref(db, 'stations'), (snapshot) => {
+                if (!snapshot.exists()) {
+                    firebaseStations = [];
+                    renderStationWarningLists();
+                    return;
                 }
+
+                const stationsData = [];
+                snapshot.forEach(child => {
+                    const val = child.val();
+                    const key = child.key;
+                    
+                    let munis = [];
+                    if (Array.isArray(val.municipalities)) {
+                        munis = val.municipalities;
+                    } else if (typeof val.municipalities === 'string') {
+                        munis = val.municipalities.split(',').map(m => m.trim());
+                    } else if (val.municipality) {
+                        munis = [val.municipality];
+                    }
+
+                    // Look directly at station property for station name and basin
+                    const stationObj = {
+                        id: key,
+                        node: val.node || val.dataNode || key,
+                        station: val.station || val.stationName || val.name || `Station ${key}`,
+                        basin: val.station || val.stationBasin || val.basin || val.riverBasin || "River Basin",
+                        municipalities: munis,
+                        threshold: val.threshold || val.thresholds || {}
+                    };
+
+                    stationsData.push(stationObj);
+
+                    // Dynamically attach listeners to each station's respective telemetry node
+                    if (stationObj.node && !activeNodeListeners.has(stationObj.node)) {
+                        activeNodeListeners.add(stationObj.node);
+                        attachTelemetryListener(stationObj.node);
+                    }
+                });
+
+                firebaseStations = stationsData;
                 renderStationWarningLists();
             });
         }
         
-        function setupLiveTelemetry() {
-            ['data', 'data2', 'data3'].forEach(nodeKey => {
-                onValue(ref(db, nodeKey), (snapshot) => {
-                    if (!snapshot.exists()) return;
-                    
-                    const raw = snapshot.val();
-                    const records = (typeof raw === 'object' && raw !== null) ? Object.values(raw) : [];
-                    
-                    if (records.length > 0) {
-                        const latest = records[records.length - 1];
-                        liveDataStore[nodeKey] = {
-                            level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
-                            rain: parseFloat(latest.rain ?? latest.rainfall ?? 0),
-                            flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
-                            time: latest.time || latest.t || latest.date || ""
-                        };
-                    }
-                    renderStationWarningLists();
-                });
+        function attachTelemetryListener(nodeKey) {
+            if (!liveDataStore[nodeKey]) {
+                liveDataStore[nodeKey] = { level: 0, rain: 0, flow: 0, time: "" };
+            }
+
+            onValue(ref(db, nodeKey), (snapshot) => {
+                if (!snapshot.exists()) return;
+                
+                const raw = snapshot.val();
+                const records = (typeof raw === 'object' && raw !== null) ? Object.values(raw) : [];
+                
+                if (records.length > 0) {
+                    const latest = records[records.length - 1];
+                    liveDataStore[nodeKey] = {
+                        level: parseFloat(latest.level ?? latest.water ?? latest.water_level ?? 0),
+                        rain: parseFloat(latest.rain ?? latest.rainfall ?? 0),
+                        flow: parseFloat(latest.flow ?? latest.discharge ?? 0),
+                        time: latest.time || latest.t || latest.date || ""
+                    };
+                }
+                renderStationWarningLists();
             });
         }
         
@@ -435,12 +514,11 @@
             return 15;
         }
 
-        /* Dynamic Class Generator driven directly by Firebase /threshold readings */
-        function getDynamicClassFromFirebase(nodeKey, metricKey, val) {
-            const nodeLimits = firebaseThresholds[nodeKey] || firebaseThresholds['default'] || firebaseThresholds || {};
-            const metricLimits = nodeLimits[metricKey] || nodeLimits[`${metricKey}Threshold`] || {};
+        // Directly checks thresholds from station.threshold
+        function getDynamicClassFromStation(station, metricKey, val) {
+            const thresholdObj = station.threshold || {};
+            const metricLimits = thresholdObj[metricKey] || thresholdObj[`${metricKey}Threshold`] || {};
             
-            // Extract warning & critical parameters from Firebase or fallback to standard model limits
             const criticalLimit = parseFloat(metricLimits.critical ?? metricLimits.danger ?? metricLimits.high ?? (metricKey === 'level' ? 4.0 : metricKey === 'rain' ? 15.0 : 50.0));
             const warningLimit = parseFloat(metricLimits.warning ?? metricLimits.orange ?? metricLimits.moderate ?? (metricKey === 'level' ? 2.5 : metricKey === 'rain' ? 7.5 : 25.0));
 
@@ -452,99 +530,126 @@
         function renderStationWarningLists() {
             const container = document.getElementById('stationsListContainer');
             if (!container) return;
+
+            if (firebaseStations.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-dark fw-bold">
+                        <i class="bi bi-info-circle fs-4 d-block mb-2"></i>
+                        No stations available in database.
+                    </div>
+                `;
+                return;
+            }
             
             const openStates = {};
             document.querySelectorAll('.collapse').forEach(elem => {
                 if (elem.id) openStates[elem.id] = elem.classList.contains('show');
             });
-            
-            container.innerHTML = stationDefinitions.map(station => {
-                const telemetry = liveDataStore[station.node];
+
+            // Map and calculate risk for barangays mapped to each station
+            const processedStations = firebaseStations.map(station => {
+                const telemetry = liveDataStore[station.node] || { level: 0, rain: 0, flow: 0, time: "" };
                 
                 const coveredBarangays = allBarangayPins.filter(b => 
-                    b.node === station.node || station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase())
+                    (b.node && b.node === station.node) ||
+                    (b.stationId && b.stationId === station.id) ||
+                    (station.municipalities && station.municipalities.some(m => m.toLowerCase() === b.municipality.toLowerCase()))
                 );
                 
                 const warningBarangays = coveredBarangays
                     .map(b => ({ ...b, risk: calculateBarangayRisk(telemetry, b.elevation) }))
                     .filter(b => b.risk >= 20)
                     .sort((a, b) => b.risk !== a.risk ? b.risk - a.risk : a.name.localeCompare(b.name));
-                
+
+                return {
+                    station,
+                    telemetry,
+                    warningBarangays
+                };
+            });
+
+            // Show stations only if they have affected barangays
+            const stationsWithWarnings = processedStations.filter(item => item.warningBarangays.length > 0);
+
+            if (stationsWithWarnings.length === 0) {
+                container.innerHTML = `
+                    <div class="p-4 text-center text-dark bg-light rounded border border-dashed fw-bold">
+                        <i class="bi bi-shield-check text-success fs-3 d-block mb-2"></i>
+                        All river stations report normal conditions. No barangays currently affected.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = stationsWithWarnings.map(({ station, telemetry, warningBarangays }) => {
                 let stationBadge = '<span class="badge bg-success fs-6">Normal</span>';
                 if (warningBarangays.some(b => b.risk >= 70)) {
                     stationBadge = '<span class="badge bg-danger fs-6">Severe</span>';
                 } else if (warningBarangays.some(b => b.risk >= 50)) {
                     stationBadge = '<span class="badge bg-warning text-dark fs-6">High</span>';
                 } else if (warningBarangays.length > 0) {
-                    stationBadge = '<span class="badge bg-dark-yellow fs-6">Moderate</span>';
+                    stationBadge = '<span class="badge bg-risk-moderate fs-6">Moderate</span>';
                 }
                 
                 const collapseId = `collapseStation_${station.id}`;
+                // Default is FALSE (collapsed on load) unless explicitly opened by user
                 const isOpen = openStates[collapseId] ?? false;
                 
-                /* Dynamic Threshold evaluation based on firebase.com -> threshold */
-                const levelColorClass = getDynamicClassFromFirebase(station.node, 'level', telemetry.level);
-                const rainColorClass = getDynamicClassFromFirebase(station.node, 'rain', telemetry.rain);
-                const flowColorClass = getDynamicClassFromFirebase(station.node, 'flow', telemetry.flow);
+                const levelColorClass = getDynamicClassFromStation(station, 'level', telemetry.level);
+                const rainColorClass = getDynamicClassFromStation(station, 'rain', telemetry.rain);
+                const flowColorClass = getDynamicClassFromStation(station, 'flow', telemetry.flow);
 
-                const barangaySublistHTML = warningBarangays.length > 0 
-                    ? warningBarangays.map(b => {
-                        let riskClass = 'risk-yellow', badgeBg = 'bg-dark-yellow', riskLabel = 'Moderate';
-                        let actionRec = '<strong>MODERATE MONITORING:</strong> Prepare emergency Go-Bags, clear community drainage pathways, and monitor upstream water trends.';
-                        
-                        if (b.risk >= 70) {
-                            riskClass = 'risk-severe'; badgeBg = 'bg-danger'; riskLabel = 'Severe';
-                            actionRec = '<strong>CRITICAL HAZARD (Forced Evacuation):</strong> Severe flood threat detected! Execute immediate high-ground evacuation protocols.';
-                        } else if (b.risk >= 50) {
-                            riskClass = 'risk-orange'; badgeBg = 'bg-warning text-dark'; riskLabel = 'High';
-                            actionRec = '<strong>HIGH VULNERABILITY (Pre-emptive Evacuation):</strong> Execute pre-emptive evacuation, secure emergency kits, and transfer assets to higher floors.';
-                        }
-                        
-                        const depth = Math.max(0, (telemetry.level - (b.elevation * (b.risk / 100 - 0.75))) * (b.risk / 100)).toFixed(2);
-                        
-                        return `
-                            <div class="card p-3 border-0 barangay-subitem ${riskClass} mb-2">
-                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-0" style="font-size:0.95rem;">${b.name}</h6>
-                                        <span class="text-secondary fw-semibold" style="font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>${b.municipality} | Elevation: ${b.elevation.toFixed(1)}m MSL</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="text-end">
-                                            <span class="d-block metric-label">Est. Water Depth</span>
-                                            <span class="fw-bold text-dark" style="font-size:0.95rem;">${depth} m</span>
-                                        </div>
-                                        <span class="badge ${badgeBg} px-2 py-1" style="font-size:0.8rem;">${riskLabel} (${b.risk}%)</span>
-                                    </div>
+                // Format sensor date and 12-hour time
+                const formattedSensorTime = formatDateTime(telemetry.time);
+
+                // High-contrast, scannable flat list styling for affected barangays with dark text
+                const barangaySublistHTML = warningBarangays.map(b => {
+                    let borderClass = 'risk-yellow', badgeBg = 'bg-risk-moderate', riskLabel = 'Moderate';
+                    let actionText = 'Prepare emergency kits, clear localized drainage, and monitor upstream river levels.';
+                    
+                    if (b.risk >= 70) {
+                        borderClass = 'risk-severe'; badgeBg = 'bg-risk-severe'; riskLabel = 'Severe';
+                        actionText = 'Execute immediate forced evacuation to designated high-ground shelters.';
+                    } else if (b.risk >= 50) {
+                        borderClass = 'risk-orange'; badgeBg = 'bg-risk-high'; riskLabel = 'High';
+                        actionText = 'Initiate pre-emptive evacuation and secure ground-level property/assets.';
+                    }
+                    
+                    const depth = Math.max(0, (telemetry.level - (b.elevation * (b.risk / 100 - 0.75))) * (b.risk / 100)).toFixed(2);
+                    
+                    return `
+                        <div class="barangay-row ${borderClass} d-flex flex-column">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="fw-bold text-dark" style="font-size: 0.95rem;">${b.name}</span>
+                                    <span class="text-dark fw-bold" style="font-size: 0.85rem;">(${b.municipality} • Elev: ${b.elevation.toFixed(1)}m MSL)</span>
                                 </div>
-                                <div class="mt-1 pt-1 border-top">
-                                    <span class="text-dark d-block text-uppercase fw-bold" style="font-size:0.65rem;">Actionable Safety Protocol</span>
-                                    <p class="mb-0 text-dark small" style="font-size:0.78rem; text-align: justify; line-height:1.25;">${actionRec}</p>
+                                <div class="d-flex align-items-center gap-3 ms-auto">
+                                    <span class="text-dark fw-bold" style="font-size: 0.85rem;">Est. Depth: <span class="text-dark fw-bolder">${depth}m</span></span>
+                                    <span class="badge ${badgeBg} rounded-pill px-3 py-1" style="font-size: 0.8rem;">${riskLabel} (${b.risk}%)</span>
                                 </div>
                             </div>
-                        `;
-                    }).join('')
-                    : `
-                        <div class="p-3 text-center text-secondary bg-light rounded border border-dashed fw-semibold small">
-                            <i class="bi bi-shield-check text-success fs-5 d-block mb-1"></i>
-                            No active warnings for barangays under ${station.name}. All parameters within safe limits.
+                            <div class="action-protocol-text">
+                                <i class="bi bi-arrow-return-right me-1 text-dark fw-bold"></i><strong class="text-dark">Action:</strong> ${actionText}
+                            </div>
                         </div>
                     `;
+                }).join('');
                 
                 return `
-                    <div class="card border station-header-card p-3 shadow-sm">
+                    <div class="card border station-header-card p-3 shadow-sm mb-3">
                         <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 border-bottom mb-2 gap-2">
                             <div>
-                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-router-fill me-2 text-primary"></i>${station.name}</h5>
-                                <span class="text-secondary fw-semibold" style="font-size:0.82rem;">${station.basin} | Sensor Time: ${telemetry.time || 'Live'}</span>
+                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-router-fill me-2 text-primary"></i>${station.station}</h5>
+                                <span class="text-dark fw-bold" style="font-size:0.85rem;">${station.basin} | Sensor Time: ${formattedSensorTime}</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 ${stationBadge}
-                                <span class="badge bg-light text-dark border fs-6 fw-bold"><i class="bi bi-exclamation-triangle text-warning me-1"></i>${warningBarangays.length} Warnings</span>
+                                <span class="badge bg-light text-dark border fs-6 fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>${warningBarangays.length} Warnings</span>
                             </div>
                         </div>
 
-                        <!-- Dynamic Color-Coded Metrics via Firebase /threshold -->
+                        <!-- Telemetry KPI Summary -->
                         <div class="row g-2 mb-2 text-center">
                             <div class="col-4">
                                 <div class="p-2 bg-light rounded border">
@@ -566,17 +671,20 @@
                             </div>
                         </div>
 
-                        <div>
-                            <div class="p-2 px-3 rounded border d-flex justify-content-between align-items-center collapse-toggle-btn" 
+                        <!-- Clean Collapsible Control (Default: Collapsed) -->
+                        <div class="mt-2">
+                            <div class="collapse-toggle-clean d-flex justify-content-between align-items-center shadow-sm" 
                                  data-bs-toggle="collapse" 
                                  data-bs-target="#${collapseId}" 
                                  aria-expanded="${isOpen}">
-                                <span class="fw-bold text-dark small text-uppercase"><i class="bi bi-list-nested me-2"></i>Affected Barangays & Warning List (${warningBarangays.length})</span>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">
+                                    <i class="bi bi-shield-exclamation me-2 text-danger"></i>View Affected Barangays (${warningBarangays.length})
+                                </span>
                                 <i class="bi bi-chevron-down collapse-icon text-dark fw-bold"></i>
                             </div>
 
-                            <div class="collapse ${isOpen ? 'show' : ''}" id="${collapseId}">
-                                <div class="pt-2">
+                            <div class="collapse ${isOpen ? 'show' : ''} pt-2" id="${collapseId}">
+                                <div class="barangay-table-wrapper shadow-sm">
                                     ${barangaySublistHTML}
                                 </div>
                             </div>

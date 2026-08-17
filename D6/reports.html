@@ -302,7 +302,7 @@
         const data2Ref = ref(db, 'data2');
         const data3Ref = ref(db, 'data3');
         
-        let dbThresholds = null;
+        let stationMetadata = {};
         let dataReports = [];
         let data2Reports = [];
         let data3Reports = [];
@@ -313,31 +313,41 @@
         const dynamicContainer = document.getElementById('dynamicInputContainer');
         const rowLimitSelect = document.getElementById('filterRowLimit');
 
-        // Listen for Firebase Real-time Threshold settings ("threshold" node)
-        onValue(ref(db, 'threshold'), (snapshot) => {
+        // Listen for station thresholds directly under "stations"
+        onValue(ref(db, 'stations'), (snapshot) => {
             if (snapshot.exists()) {
-                dbThresholds = snapshot.val();
+                const stations = snapshot.val();
+                stationMetadata = {};
+                Object.keys(stations).forEach(key => {
+                    const st = stations[key];
+                    const name = (st.name || st.station || key).toString().trim().toLowerCase();
+                    stationMetadata[name] = st.threshold || st;
+                    stationMetadata[key.toString().trim().toLowerCase()] = st.threshold || st;
+                });
                 if (allReports.length > 0) {
                     renderTable();
                 }
             }
         });
 
-        // Determine dynamic threshold class based on Firebase thresholds
-        function getMetricClass(type, value) {
+        // Determine dynamic threshold class based on specific station threshold
+        function getMetricClass(type, value, stationName) {
             const val = parseFloat(value);
             if (isNaN(val)) return 'lvl-low';
 
+            const key = (stationName || '').trim().toLowerCase();
+            const threshold = stationMetadata[key] || {};
+
             let warning = 2.5, high = 4.0;
             if (type === 'water') {
-                warning = parseFloat(dbThresholds?.level) || 2.5;
-                high = parseFloat(dbThresholds?.level_high) || 4.0;
+                warning = parseFloat(threshold.level ?? threshold.water ?? threshold.water_warning ?? 2.5);
+                high = parseFloat(threshold.level_high ?? threshold.water_high ?? 4.0);
             } else if (type === 'rain') {
-                warning = parseFloat(dbThresholds?.rain) || 7.5;
-                high = parseFloat(dbThresholds?.rain_high) || 15.0;
+                warning = parseFloat(threshold.rain ?? threshold.rain_warning ?? 7.5);
+                high = parseFloat(threshold.rain_high ?? threshold.rain_high ?? 15.0);
             } else if (type === 'flow') {
-                warning = parseFloat(dbThresholds?.flow) || 10.0;
-                high = parseFloat(dbThresholds?.flow_high) || 25.0;
+                warning = parseFloat(threshold.flow ?? threshold.flow_warning ?? 10.0);
+                high = parseFloat(threshold.flow_high ?? threshold.flow_high ?? 25.0);
             }
 
             if (val >= high) return 'lvl-high';
@@ -381,14 +391,14 @@
             return `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
         }
         
-        function getDepthInfo(level) {
+        function getDepthInfo(level, stationName) {
             const l = parseFloat(level);
-            const waterClass = getMetricClass('water', level);
+            const waterClass = getMetricClass('water', level, stationName);
             let label = 'Safe';
             if (waterClass === 'lvl-high') label = 'High Risk';
             else if (waterClass === 'lvl-med') label = 'Warning';
 
-            const depthCalc = (l * 0.4).toFixed(2) + ' m';
+            const depthCalc = (!isNaN(l) ? (l * 0.4).toFixed(2) : '0.00') + ' m';
             return { label, class: waterClass, depthCalc };
         }
         
@@ -462,13 +472,12 @@
             
             // Step 4: Render Rows
             displayData.forEach(item => {
-                const depthMeta = getDepthInfo(item.level);
+                const stationStr = formatField(item.station || item.city);
+                const depthMeta = getDepthInfo(item.level, stationStr);
                 
                 // Formatted Date and Time
                 const dateStr = formatDateToMMDDYYYY(formatField(item.date));
                 const timeStr = formatTimeTo12Hour(formatField(item.time));
-                
-                const stationStr = formatField(item.station || item.city);
                 
                 const levelStr = (item.level === undefined || item.level === null || item.level === '') ? '' : `${item.level} m`;
                 const rainStr = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : `${item.rain} mm`;
@@ -476,10 +485,10 @@
                 const depthCalcStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.depthCalc;
                 const statusStr = (item.level === undefined || item.level === null || item.level === '') ? '' : depthMeta.label;
 
-                // Derive specific color threshold classes
-                const waterClass = getMetricClass('water', item.level);
-                const rainClass = getMetricClass('rain', item.rain);
-                const flowClass = getMetricClass('flow', item.flow);
+                // Station-specific threshold classes
+                const waterClass = getMetricClass('water', item.level, stationStr);
+                const rainClass = getMetricClass('rain', item.rain, stationStr);
+                const flowClass = getMetricClass('flow', item.flow, stationStr);
                 
                 const lvlNum = item.level ?? 1.1;
                 const rainNum = item.rain ?? 0.1;
@@ -577,10 +586,10 @@
             
             let csvContent = "Date,Time,Station,Water Level,Rainfall,Flow,Depth,Status\n";
             exportData.forEach(item => {
-                const depthMeta = getDepthInfo(item.level);
+                const stationValue = formatField(item.station || item.city);
+                const depthMeta = getDepthInfo(item.level, stationValue);
                 const dateStr = formatDateToMMDDYYYY(formatField(item.date));
                 const timeStr = formatTimeTo12Hour(formatField(item.time));
-                const stationValue = formatField(item.station || item.city);
                 const levelVal = (item.level === undefined || item.level === null || item.level === '') ? '' : item.level;
                 const rainVal = (item.rain === undefined || item.rain === null || item.rain === '') ? '' : item.rain;
                 const flowVal = (item.flow === undefined || item.flow === null || item.flow === '') ? '' : item.flow;
