@@ -341,13 +341,13 @@
             let warning = 2.5, high = 4.0;
             if (type === 'water') {
                 warning = parseFloat(threshold.level ?? threshold.water ?? threshold.water_warning ?? 2.5);
-                high = parseFloat(threshold.level_high ?? threshold.water_high ?? 4.0);
+                high = parseFloat(threshold.levelHigh ?? threshold.water_high ?? 4.0);
             } else if (type === 'rain') {
-                warning = parseFloat(threshold.rain ?? threshold.rain_warning ?? 7.5);
-                high = parseFloat(threshold.rain_high ?? threshold.rain_high ?? 15.0);
+                warning = parseFloat(threshold.rain ?? threshold.rain_warning ?? 55);
+                high = parseFloat(threshold.rainHigh ?? threshold.rain_high ?? 150);
             } else if (type === 'flow') {
-                warning = parseFloat(threshold.flow ?? threshold.flow_warning ?? 10.0);
-                high = parseFloat(threshold.flow_high ?? threshold.flow_high ?? 25.0);
+                warning = parseFloat(threshold.flow ?? threshold.flow_warning ?? 15.0);
+                high = parseFloat(threshold.flowHigh ?? threshold.flow_high ?? 50.0);
             }
 
             if (val >= high) return 'lvl-high';
