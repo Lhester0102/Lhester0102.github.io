@@ -476,13 +476,13 @@
             let warning = 2.5, high = 4.0;
             if (type === 'water') {
                 warning = parseFloat(dbThresholds?.level) || 2.5;
-                high = parseFloat(dbThresholds?.level_high) || 4.0;
+                high = parseFloat(dbThresholds?.levelHigh) || 4.0;
             } else if (type === 'rain') {
                 warning = parseFloat(dbThresholds?.rain) || 7.5;
-                high = parseFloat(dbThresholds?.rain_high) || 15.0;
+                high = parseFloat(dbThresholds?.rainHigh) || 15.0;
             } else if (type === 'flow') {
                 warning = parseFloat(dbThresholds?.flow) || 10.0;
-                high = parseFloat(dbThresholds?.flow_high) || 25.0;
+                high = parseFloat(dbThresholds?.flowHigh) || 25.0;
             }
             return { warning, high };
         }
