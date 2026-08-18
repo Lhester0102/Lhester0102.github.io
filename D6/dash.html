@@ -10,10 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
-        /* Theme Core */
         body { background: #f4f6f9; min-height: 100vh; overflow-x: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
         
-        /* Sidebar Styles */
         .sidebar { 
             background-color: #1c96c5; 
             transition: all 0.3s;
@@ -34,17 +32,13 @@
             color: #fff !important; 
         }
         
-        /* Card & UI Refinement */
-        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
-        .card-header { border-top-left-radius: 14px !important; border-top-right-radius: 14px !important; font-weight: bold; }
-        
-        /* Badges for Station Headers */
+        .card { border: none; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .badge-metric { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; }
         
-        /* Text Value Color-Coding Threshold Classes */
-        .lvl-text-high { color: #dc3545 !important; } /* Red */
-        .lvl-text-med { color: #fd7e14 !important; }  /* Orange */
-        .lvl-text-low { color: #198754 !important; }  /* Green */
+        /* Dynamic Threshold Evaluation Colors */
+        .lvl-text-high { color: #dc3545 !important; } /* Critical Risk (>= High Limit) */
+        .lvl-text-med { color: #fd7e14 !important; }  /* Warning Level (>= Normal Limit) */
+        .lvl-text-low { color: #198754 !important; }  /* Normal / Safe (< Normal Limit) */
         
         @media (min-width: 768px) {
             .sidebar { min-height: 100vh; height: 100vh; }
@@ -65,7 +59,6 @@
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 
-        /* Metric Box Interactive Design */
         .metric-card-clickable {
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -77,15 +70,10 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important;
             background-color: #ffffff;
         }
-        .metric-icon-wrapper {
-            font-size: 1.4rem;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
+        .metric-icon-wrapper { font-size: 1.4rem; line-height: 1; margin-bottom: 4px; }
         .metric-title { font-size: 0.82rem; color: #212529; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .metric-value { font-weight: 800; margin-bottom: 0; font-size: 1.3rem; }
         
-        /* Video Overlay Controls (Top Right) */
         .video-controls-top-right {
             position: absolute;
             top: 15px;
@@ -94,27 +82,12 @@
             display: flex;
             gap: 8px;
         }
-        
-        /* Print Specific Styles */
-        .print-header { display: none; }
-        
-        @media print {
-            @page { margin: 1cm; }
-            body { background: white; margin: 0; padding: 0; }
-            .sidebar, .mobile-brand, #filterCard, .btn, .navbar, .dropdown { display: none !important; }
-            .main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
-            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
-            .table thead th { background-color: #f8f9fa !important; color: black !important; border-bottom: 2px solid #000 !important; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
-            .print-header h4 { margin: 0; font-weight: bold; color: #1c96c5; }
-        }
     </style>
 </head>
 
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar Navigation -->
             <nav class="col-lg-2 col-md-3 text-white p-3 sidebar collapse d-md-block" id="sidebarMenu">
                 <div class="d-md-none mobile-brand">
                     <img src="images/GDSS.png" class="rounded-circle border border-light" alt="Logo">
@@ -149,21 +122,14 @@
                     <li class="mb-1"><a class="nav-link text-white" href="reports.html"><i class="bi bi-table me-2"></i>Daily Reports</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="reports2.html"><i class="bi bi-clipboard-data me-2"></i>Flood Forecast</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="floods3.html"><i class="bi bi-eye me-2"></i>Flood Watch</a></li>
-                    <li class="mb-1">
-                        <a class="nav-link text-white" href="tutorial.html">
-                            <i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help
-                        </a>
-                    </li>
+                    <li class="mb-1"><a class="nav-link text-white" href="tutorial.html"><i class="bi bi-play-circle-fill text-white me-2"></i>Tutorial & Help</a></li>
                     <li class="mb-1"><a class="nav-link text-white" href="users.html"><i class="bi bi-person me-2"></i>Accounts</a></li>
                     <hr>
                     <a id="logoutLink" href="#" class="nav-link text-white opacity-75 small"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a>
                 </ul>
             </nav>
             
-            <!-- Main Content Display Viewport -->
             <main class="col-lg-10 col-md-9 ms-sm-auto px-3 main-content">
-                
-                <!-- Header Top Bar -->
                 <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-1 p-2 bg-white rounded shadow gap-2">
                     <div class="d-flex align-items-center gap-2 me-auto">
                         <button style="background-color: #1c96c5; color: #fff;" class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
@@ -173,7 +139,6 @@
                     </div>
                     
                     <div class="d-flex align-items-center gap-2 ms-auto">
-                        <!-- Desktop Submenu Links -->
                         <div class="d-none d-md-flex align-items-center gap-1">
                             <a href="dash.html" class="p-2 btn btn-sm btn-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                                 <i class="bi bi-speedometer2"></i> Main Dashboard
@@ -184,12 +149,8 @@
                             <a href="newindex3.html" class="p-2 btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
                                 <i class="bi bi-map-fill text-info"></i> Flood Map
                             </a>
-                            <!-- <a href="floods4.html" class="btn btn-sm btn-outline-primary fw-bold px-2 px-sm-3 d-flex align-items-center gap-1 shadow-sm">
-                                <i class="bi bi-list text-info"></i> All Barangays
-                            </a> -->
                         </div>
 
-                        <!-- Mobile Collapsible Submenu Dropdown Button -->
                         <div class="dropdown d-md-none">
                             <button class="p-2 btn btn-sm btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-grid-fill me-1"></i> Navigation
@@ -198,11 +159,9 @@
                                 <li><a class="dropdown-item small active" href="dash.html"><i class="bi bi-speedometer2 me-2 text-primary"></i>Main Dashboard</a></li>
                                 <li><a class="dropdown-item small" href="dash4.html"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Flood Warnings</a></li>
                                 <li><a class="dropdown-item small" href="newindex3.html"><i class="bi bi-map-fill me-2 text-info"></i>Flood Map</a></li>
-                                <!-- <li><a class="dropdown-item small" href="floods4.html"><i class="bi bi-list me-2 text-info"></i>All Barangays</a></li> -->
                             </ul>
                         </div>
 
-                        <!-- Account Dropdown -->
                         <div class="dropdown">
                             <button class="btn dropdown-toggle btn-sm border shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i>
@@ -217,24 +176,21 @@
                     </div>
                 </div>
 
-                <!-- MAIN WORKSPACE MATRIX -->
                 <div class="card p-2 bg-white shadow-sm mb-1">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
                         <h6 class="fw-bold mb-0 text-dark fs-6"><i class="bi bi-matrix-perspective me-2"></i>Real-time Workspace Summary Matrix</h6>
                     </div>
                     
-                    <!-- Dynamic Station Cards Container synced with assigned node paths -->
                     <div class="row g-3" id="dynamic-stations-container">
                         <div class="col-12 text-center py-4">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading stations...</span>
                             </div>
-                            <p class="text-muted small mt-2 mb-0">Synchronizing stations from Firebase <code>stations</code> node...</p>
+                            <p class="text-muted small mt-2 mb-0">Synchronizing stations and dynamic thresholds from Firebase...</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- LOWER WORKSPACE: 3 Circular/Doughnut Graphs for Infrastructure Metrics -->
                 <div class="card p-4 bg-white shadow-sm mb-1">
                     <h6 class="fw-bold mb-4 text-dark fs-6"><i class="bi bi-pie-chart-fill me-2"></i>Infrastructure Overview Metrics Matrix</h6>
                     <div class="row g-3 text-center">
@@ -267,12 +223,10 @@
                         </div>
                     </div>
                 </div>
-
             </main>
         </div>
     </div>
 
-    <!-- Dynamic Metric Details Modal -->
     <div class="modal fade" id="metricModal" tabindex="-1" aria-labelledby="metricModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -292,7 +246,6 @@
         </div>
     </div>
 
-    <!-- Video Popup Modal -->
     <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content bg-dark text-white border-0 shadow-lg">
@@ -308,7 +261,7 @@
                         <button id="savePlayPreferenceBtn" class="btn btn-primary btn-sm rounded px-2 py-1 fw-bold fs-7">
                             <i class="bi bi-check-circle me-1"></i> Save Preference
                         </button>
-                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close" id="closeVideoBtn"></button>
+                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                 </div>
                 <div class="modal-body p-0 position-relative text-center bg-black">
@@ -316,28 +269,23 @@
                         <button id="unmuteBtn" class="btn btn-primary btn-sm shadow rounded-pill px-3 py-1 fw-bold">
                             <i class="bi bi-volume-up-fill me-1"></i> Enable Sound
                         </button>
-                        <button id="skipBtn" class="btn btn-dark btn-sm shadow rounded-pill px-3 py-1 fw-bold" data-bs-dismiss="modal">
+                        <button class="btn btn-dark btn-sm shadow rounded-pill px-3 py-1 fw-bold" data-bs-dismiss="modal">
                             <i class="bi bi-fast-forward-fill me-1"></i> Skip
                         </button>
                     </div>
-                    
                     <video id="popupVideo" class="w-100" style="max-height: 70vh;" controls muted playsinline loop>
                         <source src="videos/admins.mp4" type="video/mp4">
-                        Your browser does not support playing HTML video.
                     </video>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Third-Party Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="menu.js"></script>
 
-    <!-- Optimized JavaScript ES Module -->
-<!-- Optimized JavaScript ES Module -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, update, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -356,55 +304,89 @@
 
         const chartInstances = {};
         const stationRecordsMap = {};
-        const stationMetaMap = {}; // Stores station metadata & station-specific thresholds
+        const stationMetaMap = {}; 
         const stationNodeListeners = new Set();
-        let dbThresholds = null;
+        let activeModalConfig = null;
         let loggedInUserKey = null;
         let bsVideoModalInstance = null;
 
-        // Global fallback thresholds
-        onValue(ref(db, 'threshold'), (snapshot) => {
-            if (snapshot.exists()) dbThresholds = snapshot.val();
-        });
-
-        // Safe Escaping Helper
         function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, (m) => ({
+            return String(str || '').replace(/[&<>"']/g, (m) => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
             })[m]);
         }
 
-        // Checks thresholds directly in station (stations -> stationId -> threshold)
-        function getThresholdValues(type, stationId = null) {
-            const defaults = { water: [2.5, 4.0], rain: [7.5, 15.0], flow: [10.0, 25.0] };
-            const keys = { water: ['level', 'level_high'], rain: ['rain', 'rain_high'], flow: ['flow', 'flow_high'] };
-            
-            if (!keys[type]) return { warning: 2.5, high: 4.0 };
-            
-            const [wKey, hKey] = keys[type];
-            const stationMeta = stationId ? stationMetaMap[stationId] : null;
-            const stationThreshold = stationMeta?.threshold || stationMeta;
+        /**
+         * Resolves station metadata from stations index
+         */
+        function findStationRecord(stationId) {
+            if (!stationId) return null;
+            if (stationMetaMap[stationId]) return stationMetaMap[stationId];
 
-            const warningVal = stationThreshold?.[wKey] ?? dbThresholds?.[wKey] ?? defaults[type][0];
-            const highVal = stationThreshold?.[hKey] ?? dbThresholds?.[hKey] ?? defaults[type][1];
+            const target = String(stationId).trim().toLowerCase();
+            for (const key of Object.keys(stationMetaMap)) {
+                const s = stationMetaMap[key];
+                if (key.toLowerCase() === target) return s;
+                const name = String(s?.station || s?.stationName || s?.name || '').trim().toLowerCase();
+                if (name === target || name.includes(target) || target.includes(name)) return s;
+            }
+            return null;
+        }
+
+        /**
+         * Resolves dynamic thresholds directly from stations/{station_id}/threshold:
+         * Water: level, level_high / levelHigh
+         * Rain: rain, rain_high / rainHigh
+         * Flow: flow, flow_high / flowHigh
+         */
+        function getThresholdValues(type, stationId = null) {
+            const defaults = {
+                water: { normal: 2.5, high: 4.0 },
+                rain: { normal: 7.5, high: 15.0 },
+                flow: { normal: 10.0, high: 25.0 }
+            };
+
+            const fallback = defaults[type] || { normal: 2.5, high: 4.0 };
+            const station = findStationRecord(stationId);
+            if (!station) return fallback;
+
+            let t = station.threshold || station.Threshold || station.thresholds || station;
+            if (typeof t === 'string') {
+                try { t = JSON.parse(t); } catch (e) {}
+            }
+
+            let normalVal, highVal;
+
+            if (type === 'water') {
+                normalVal = t.level ?? t.water ?? t.water_level;
+                highVal = t.level_high ?? t.levelHigh ?? t.water_high ?? t.high_level;
+            } else if (type === 'rain') {
+                normalVal = t.rain ?? t.rainfall;
+                highVal = t.rain_high ?? t.rainHigh ?? t.rainfall_high;
+            } else if (type === 'flow') {
+                normalVal = t.flow ?? t.flow_rate;
+                highVal = t.flow_high ?? t.flowHigh ?? t.flow_rate_high;
+            }
+
+            const parsedNormal = parseFloat(normalVal);
+            const parsedHigh = parseFloat(highVal);
 
             return {
-                warning: parseFloat(warningVal) || defaults[type][0],
-                high: parseFloat(highVal) || defaults[type][1]
+                normal: !isNaN(parsedNormal) ? parsedNormal : fallback.normal,
+                high: !isNaN(parsedHigh) ? parsedHigh : fallback.high
             };
         }
 
         function getThresholdTextClass(type, val, stationId = null) {
             const v = parseFloat(val);
             if (isNaN(v)) return 'lvl-text-low';
-            const { warning, high } = getThresholdValues(type, stationId);
-            return v >= high ? 'lvl-text-high' : v >= warning ? 'lvl-text-med' : 'lvl-text-low';
+            const { normal, high } = getThresholdValues(type, stationId);
+            return v >= high ? 'lvl-text-high' : v >= normal ? 'lvl-text-med' : 'lvl-text-low';
         }
 
         function applyValueTextStyle(elemId, type, val, stationId = null) {
             const elem = document.getElementById(elemId);
-            if (!elem) return;
-            elem.className = `metric-value ${getThresholdTextClass(type, val, stationId)}`;
+            if (elem) elem.className = `metric-value ${getThresholdTextClass(type, val, stationId)}`;
         }
 
         function formatTimeTo12Hour(timeStr) {
@@ -424,12 +406,6 @@
             if (parts.length === 3) {
                 if (parts[0].length === 4) return `${parts[1]}-${parts[2]}-${parts[0]}`;
                 if (parts[2].length === 4) return `${parts[0]}-${parts[1]}-${parts[2]}`;
-            }
-            const parsedDate = new Date(dateStr);
-            if (!isNaN(parsedDate.getTime())) {
-                const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-                const day = String(parsedDate.getDate()).padStart(2, '0');
-                return `${month}-${day}-${parsedDate.getFullYear()}`;
             }
             return dateStr;
         }
@@ -457,9 +433,7 @@
             const dailyGroups = {};
             records.forEach(item => {
                 if (!item.date) return;
-                if (!dailyGroups[item.date]) {
-                    dailyGroups[item.date] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
-                }
+                if (!dailyGroups[item.date]) dailyGroups[item.date] = { levelSum: 0, rainSum: 0, flowSum: 0, count: 0 };
                 dailyGroups[item.date].levelSum += parseFloat(item.level) || 0;
                 dailyGroups[item.date].rainSum += parseFloat(item.rain) || 0;
                 dailyGroups[item.date].flowSum += parseFloat(item.flow) || 0;
@@ -516,6 +490,7 @@
         }
 
         window.openMetricModal = function(stationId, stationName, metricType) {
+            activeModalConfig = { stationId, stationName, metricType };
             const records = stationRecordsMap[stationId] || [];
             const trendData = generate30DayTrend(records);
 
@@ -533,7 +508,7 @@
             const lastVal = cfg.data.length ? cfg.data[cfg.data.length - 1] : null;
             const predictionSeries = [...Array(Math.max(0, cfg.data.length - 1)).fill(null), lastVal, cfg.pred.p1, cfg.pred.p3, cfg.pred.p12, cfg.pred.p24];
 
-            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${escapeHtml(stationName)} - ${cfg.label} (Forecast)`;
+            document.getElementById('metricModalLabel').innerHTML = `<i class="bi bi-graph-up-arrow me-2"></i> ${escapeHtml(stationName)} - ${cfg.label} <span class="badge bg-secondary ms-2" style="font-size:0.75rem;">Normal: ${limits.normal} | High: ${limits.high}</span>`;
 
             if (chartInstances['modalMetricChart']) chartInstances['modalMetricChart'].destroy();
 
@@ -545,21 +520,21 @@
                     datasets: [
                         { label: `Historical ${cfg.label}`, data: historicalSeries, borderColor: cfg.color, backgroundColor: cfg.color + '22', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
                         { label: 'Forecast Horizon', data: predictionSeries, borderColor: '#6f42c1', backgroundColor: '#6f42c133', borderDash: [5, 5], borderWidth: 2.5, pointRadius: 5, fill: false },
-                        { label: 'Warning Level', data: Array(extendedLabels.length).fill(limits.warning), borderColor: '#fd7e14', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false },
-                        { label: 'High Risk Level', data: Array(extendedLabels.length).fill(limits.high), borderColor: '#dc3545', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false }
+                        { label: `Station Normal Limit (${limits.normal})`, data: Array(extendedLabels.length).fill(limits.normal), borderColor: '#fd7e14', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false },
+                        { label: `Station High Limit (${limits.high})`, data: Array(extendedLabels.length).fill(limits.high), borderColor: '#dc3545', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: true }, y: { display: true } } }
             });
 
-            new bootstrap.Modal(document.getElementById('metricModal')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('metricModal')).show();
         };
 
         function getDepthBadgeInfo(level, stationId) {
             const l = parseFloat(level);
-            const { warning, high } = getThresholdValues('water', stationId);
+            const { normal, high } = getThresholdValues('water', stationId);
             if (l >= high) return { label: 'High Risk', class: 'bg-danger text-white' };
-            if (l >= warning) return { label: 'Warning', class: 'bg-warning text-dark' };
+            if (l >= normal) return { label: 'Warning', class: 'bg-warning text-dark' };
             return { label: 'Safe', class: 'bg-success text-white' };
         }
 
@@ -572,7 +547,13 @@
             stationRecordsMap[stationId] = records;
 
             const current = records.length > 0 ? records[records.length - 1] : {};
-            const meta = current.level !== undefined ? getDepthBadgeInfo(current.level, stationId) : { label: 'No Data', class: 'bg-dark text-white' };
+            const currentLevel = current.level !== undefined ? parseFloat(current.level) : NaN;
+            const currentRain = current.rain !== undefined ? parseFloat(current.rain) : NaN;
+            const currentFlow = current.flow !== undefined ? parseFloat(current.flow) : NaN;
+
+            const meta = !isNaN(currentLevel) 
+                ? getDepthBadgeInfo(currentLevel, stationId) 
+                : { label: 'No Data', class: 'bg-dark text-white' };
 
             const elements = {
                 lvl: document.getElementById(`lvl-${stationId}`),
@@ -583,16 +564,21 @@
                 status: document.getElementById(`status-${stationId}`)
             };
 
-            if (elements.lvl) elements.lvl.innerText = current.level !== undefined ? `${current.level} m` : '--';
-            if (elements.rain) elements.rain.innerText = current.rain !== undefined ? `${current.rain} mm` : '--';
-            if (elements.flow) elements.flow.innerText = current.flow !== undefined ? `${current.flow} m³/s` : '--';
+            if (elements.lvl) elements.lvl.innerText = !isNaN(currentLevel) ? `${current.level} m` : '--';
+            if (elements.rain) elements.rain.innerText = !isNaN(currentRain) ? `${current.rain} mm` : '--';
+            if (elements.flow) elements.flow.innerText = !isNaN(currentFlow) ? `${current.flow} m³/s` : '--';
             if (elements.time) elements.time.innerText = formatTimeTo12Hour(current.time || '');
             if (elements.interval) elements.interval.innerHTML = `<i class="bi bi-calendar3"></i> Date: ${formatDateToMMDDYYYY(current.date)}`;
             if (elements.status) elements.status.innerHTML = `<span class="badge-metric ${meta.class}">${meta.label}</span>`;
 
-            if (current.level !== undefined) applyValueTextStyle(`lvl-${stationId}`, 'water', current.level, stationId);
-            if (current.rain !== undefined) applyValueTextStyle(`rain-${stationId}`, 'rain', current.rain, stationId);
-            if (current.flow !== undefined) applyValueTextStyle(`flow-${stationId}`, 'flow', current.flow, stationId);
+            if (!isNaN(currentLevel)) applyValueTextStyle(`lvl-${stationId}`, 'water', currentLevel, stationId);
+            if (!isNaN(currentRain)) applyValueTextStyle(`rain-${stationId}`, 'rain', currentRain, stationId);
+            if (!isNaN(currentFlow)) applyValueTextStyle(`flow-${stationId}`, 'flow', currentFlow, stationId);
+
+            const modalElem = document.getElementById('metricModal');
+            if (modalElem && modalElem.classList.contains('show') && activeModalConfig && (activeModalConfig.stationId === stationId || activeModalConfig.stationName === resolveStationDisplayName(stationMetaMap[stationId], stationId))) {
+                window.openMetricModal(activeModalConfig.stationId, activeModalConfig.stationName, activeModalConfig.metricType);
+            }
         }
 
         function loadDynamicStations() {
@@ -613,10 +599,16 @@
 
                 stationKeys.forEach(stationId => {
                     const stationMeta = stationsObj[stationId] || {};
-                    stationMetaMap[stationId] = stationMeta; // Cache station metadata & threshold
+                    stationMetaMap[stationId] = stationMeta; 
+                    const displayName = resolveStationDisplayName(stationMeta, stationId);
+                    stationMetaMap[displayName] = stationMeta;
+
                     const assignedNodePath = stationMeta.node || stationMeta.nodePath || stationMeta.path || stationMeta.dataReader || stationId;
-                    
                     syncStationToAssignedNode(stationId, stationMeta, assignedNodePath);
+                    
+                    if (stationRecordsMap[stationId]) {
+                        updateStationCardUI(stationId, stationRecordsMap[stationId]);
+                    }
                 });
             });
         }
@@ -624,41 +616,42 @@
         function syncStationToAssignedNode(stationId, stationMeta, assignedNodePath) {
             const displayName = resolveStationDisplayName(stationMeta, stationId);
             const container = document.getElementById('dynamic-stations-container');
+            const safeStationIdAttr = String(stationId).replace(/[^a-zA-Z0-9_-]/g, '_');
 
-            if (!document.getElementById(`station-card-${stationId}`)) {
+            if (!document.getElementById(`station-card-${safeStationIdAttr}`)) {
                 const cardCol = document.createElement('div');
                 cardCol.className = 'col-lg-4';
-                cardCol.id = `station-card-${stationId}`;
+                cardCol.id = `station-card-${safeStationIdAttr}`;
                 cardCol.innerHTML = `
                     <div class="card border border-light-subtle bg-white p-3 shadow-sm h-100 border-top border-primary border-3">
                         <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
                             <span class="text-dark fw-bold fs-6"><i class="bi bi-router-fill me-1 text-primary"></i>${escapeHtml(displayName)}</span>
-                            <div id="status-${stationId}"><span class="badge-metric bg-dark text-white">Connecting...</span></div>
+                            <div id="status-${safeStationIdAttr}"><span class="badge-metric bg-dark text-white">Connecting...</span></div>
                         </div>
                         <div class="d-flex justify-content-between text-secondary my-2 fw-semibold" style="font-size: 0.8rem;">
-                            <span id="interval-${stationId}"><i class="bi bi-calendar3"></i> Date: --</span>
-                            <span id="time-${stationId}" class="fw-bold text-dark">--:--</span>
+                            <span id="interval-${safeStationIdAttr}"><i class="bi bi-calendar3"></i> Date: --</span>
+                            <span id="time-${safeStationIdAttr}" class="fw-bold text-dark">--:--</span>
                         </div>
                         <div class="row g-2 mt-1">
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'water')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${escapeHtml(stationId)}', '${escapeHtml(displayName)}', 'water')">
                                     <div class="metric-icon-wrapper text-primary"><i class="bi bi-droplet-fill"></i></div>
                                     <div class="metric-title">Water Level</div>
-                                    <h6 id="lvl-${stationId}" class="metric-value">--</h6>
+                                    <h6 id="lvl-${safeStationIdAttr}" class="metric-value">--</h6>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'rain')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${escapeHtml(stationId)}', '${escapeHtml(displayName)}', 'rain')">
                                     <div class="metric-icon-wrapper text-info"><i class="bi bi-cloud-rain-fill"></i></div>
                                     <div class="metric-title">Rainfall</div>
-                                    <h6 id="rain-${stationId}" class="metric-value">--</h6>
+                                    <h6 id="rain-${safeStationIdAttr}" class="metric-value">--</h6>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${stationId}', '${escapeHtml(displayName)}', 'flow')">
+                                <div class="rounded p-2 text-center metric-card-clickable border" onclick="openMetricModal('${escapeHtml(stationId)}', '${escapeHtml(displayName)}', 'flow')">
                                     <div class="metric-icon-wrapper text-success"><i class="bi bi-water"></i></div>
                                     <div class="metric-title">Flow Rate</div>
-                                    <h6 id="flow-${stationId}" class="metric-value">--</h6>
+                                    <h6 id="flow-${safeStationIdAttr}" class="metric-value">--</h6>
                                 </div>
                             </div>
                         </div>
@@ -668,11 +661,12 @@
 
             if (!stationNodeListeners.has(stationId)) {
                 stationNodeListeners.add(stationId);
-                
                 const nodeQuery = query(ref(db, assignedNodePath), limitToLast(100));
                 onValue(nodeQuery, (snapshot) => {
                     const records = snapshot.exists() ? parseRawReadingsPayload(snapshot.val()) : [];
-                    updateStationCardUI(stationId, records);
+                    updateStationCardUI(safeStationIdAttr, records);
+                    stationRecordsMap[stationId] = records;
+                    stationRecordsMap[safeStationIdAttr] = records;
                 });
             }
         }
@@ -701,7 +695,11 @@
             initCircleGraphs();
             loadDynamicStations();
 
-            document.getElementById('logoutLink')?.addEventListener('click', logoutUser);
+            document.getElementById('logoutLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                sessionStorage.clear();
+                window.location.href = 'log.html';
+            });
         });
 
         async function saveUserPreference() {
@@ -794,12 +792,6 @@
                 videoElem.pause();
                 videoElem.currentTime = 0;
             }, { once: true });
-        }
-
-        function logoutUser(e) {
-            if (e) e.preventDefault();
-            sessionStorage.clear();
-            window.location.href = 'log.html';
         }
 
         function initCircleGraphs() {
