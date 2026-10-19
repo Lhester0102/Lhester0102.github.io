@@ -136,6 +136,25 @@
     #stationUnderListCanvas:hover {
       transform: scale(1.01);
     }
+
+    /* Mapbox Custom Popup & Telemetry Badge Overlays */
+    .mapboxgl-popup-content {
+      padding: 12px 14px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .custom-station-badge {
+      background: rgba(33, 37, 41, 0.9);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      pointer-events: none; /* Let clicks pass through to the marker */
+    }
   </style>
 </head>
 
@@ -630,11 +649,22 @@
         const rainColorClass = getDynamicClassFromThreshold(river, 'rain', cur.rain);
         const flowColorClass = getDynamicClassFromThreshold(river, 'flow', cur.flow);
         
-        const marker = new mapboxgl.Marker({ color: calculatedPinColor })
+        // Create custom DOM element for marker + embedded telemetry badge header
+        const el = document.createElement('div');
+        el.className = 'custom-marker-container';
+        el.innerHTML = `
+          <div class="custom-station-badge text-center mb-1">
+            <div class="fw-bold text-truncate" style="max-width: 130px;">${river.name}</div>
+            <div><span class="${levelColorClass}">${cur.level.toFixed(2)}m</span> | <span class="${rainColorClass}">${cur.rain.toFixed(1)}mm</span></div>
+          </div>
+          <div class="marker-pin mx-auto" style="width: 20px; height: 20px; background-color: ${calculatedPinColor}; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>
+        `;
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([river.lng, river.lat])
           .addTo(map);
         
-        marker.getElement().addEventListener('click', (e) => {
+        el.addEventListener('click', (e) => {
           e.stopPropagation();
           map.flyTo({ center: [river.lng, river.lat], zoom: 14 });
           selectStationAndRenderBottomChart(idx);
